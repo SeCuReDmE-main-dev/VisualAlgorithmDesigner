@@ -85,7 +85,7 @@ To integrate PandaAI for data analysis and make it easy to use, follow these ste
 
 * **Set up PandaAI** 🐼
   * Install the `pandasai` package using `pip install pandasai`. 📦
-  * Set your PandaAI API key using `pai.api_key.set("PAI-5829cd70-c3a3-4390-82f4-38ecf13b9d41")`. 🔑
+  * Set your PandaAI API key using `pai.api_key.set("PAI-********************************")`. 🔑
 
 * **Load and push data** 📊
   * Use `pai.load("your-data-path")` to load your data. 📂
