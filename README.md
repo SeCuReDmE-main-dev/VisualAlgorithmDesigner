@@ -1,2 +1,1 @@
-# VisualAlgorithmDesigner
-A repository for the Visual Algorithm Designer project
+This repository is empty. Any task executed on it should be considered a new capability and needs to be created.
