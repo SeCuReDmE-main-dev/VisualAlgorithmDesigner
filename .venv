@@ -1,0 +1,8 @@
+# This is a virtual environment directory for the Visual Algorithm Designer project.
+# It contains the necessary Python dependencies and environment setup for the project.
+
+# To activate the virtual environment, use the following command:
+# source .venv/bin/activate
+
+# To deactivate the virtual environment, use the following command:
+# deactivate

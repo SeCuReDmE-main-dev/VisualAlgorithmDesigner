@@ -1,0 +1,7 @@
+mindsdb_sdk
+numphy
+torchquantum
+sequence
+tensorflow
+tensorquantum
+tensorzero_sdk
