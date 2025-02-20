@@ -66,7 +66,7 @@ function App() {
 
   // Function to generate algorithm using LLM
   const generateAlgorithm = async () => {
-    const prompt = spark.llmPrompt`Generate a simple algorithm based on this description: ${llmInput}. Please provide each step on a new line.`;
+    const prompt = spark.llmPrompt`Hey AI, can you help me make an algorithm? Here's what I want it to do: ${llmInput}. Please give me each step on a new line.`;
     const response = await spark.llm(prompt);
     setLlmOutput(response);
     // Parse the response and add steps
@@ -76,7 +76,7 @@ function App() {
 
   // Function to debug visual problems using LLM
   const debugVisualProblem = async () => {
-    const prompt = spark.llmPrompt`You are an assistant that helps debug visual problems in a React application. The user will describe a visual issue they are experiencing. Provide a concise explanation of the possible cause and suggest code changes to fix the issue. Please only provide the code and minimal explanation, formatted in Markdown so it can be displayed properly. Issue description: ${debugInput} Please provide your suggestions:TypeError: Cannot read properties of null (reading 'useState')`;
+    const prompt = spark.llmPrompt`Hey AI, I'm having a problem with my app's visuals. Here's what's wrong: ${debugInput}. Can you help me fix it? Please give me a simple explanation and the code changes I need to make.`;
     const response = await spark.llm(prompt);
     setDebugOutput(response);
   };
@@ -92,7 +92,7 @@ function App() {
             type="text"
             value={newStep}
             onChange={(e) => setNewStep(e.target.value)}
-            placeholder="Enter a new step"
+            placeholder="Type a new step here"
             className="mr-2"
           />
           <Button onClick={addStep}>Add Step</Button>
@@ -140,7 +140,7 @@ function App() {
             type="text"
             value={llmInput}
             onChange={(e) => setLlmInput(e.target.value)}
-            placeholder="Describe your algorithm"
+            placeholder="Describe what you want the algorithm to do"
             className="mb-2"
           />
           <Button onClick={generateAlgorithm}>Generate Algorithm</Button>
@@ -158,7 +158,7 @@ function App() {
           <Textarea
             value={debugInput}
             onChange={(e) => setDebugInput(e.target.value)}
-            placeholder="Describe the visual problem you're experiencing"
+            placeholder="Describe the visual problem you're having"
             rows={4}
             className="mb-2"
           />
