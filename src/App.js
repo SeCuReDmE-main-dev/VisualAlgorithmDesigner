@@ -2,6 +2,10 @@ import * as React from "react";
 import { SparkApp, PageContainer, Button, Input, Card, Textarea } from "@github/spark/components";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { useKV } from "@github/spark/hooks";
+import { config } from 'dotenv';
+
+// Load environment variables from .env file
+config();
 
 // Visualization component for algorithm execution
 function AlgorithmVisualization({ steps, currentStep }) {
