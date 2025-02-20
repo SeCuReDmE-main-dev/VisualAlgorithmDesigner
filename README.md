@@ -25,8 +25,8 @@ Follow these steps to set up the project and run the development server.
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/githubnext/workspace-blank.git
-   cd workspace-blank
+   git clone https://github.com/Celebrum/VisualAlgorithmDesigner.git
+   cd VisualAlgorithmDesigner
    ```
 
 2. Install the dependencies:
@@ -116,7 +116,7 @@ To integrate PandaAI for data analysis and make it easy to use, follow these ste
 
 ### Running the development server 🚀
 * If the development server doesn't start, check for any error messages in the terminal and ensure all dependencies are installed. 🖥️
-* Make sure you are in the correct directory (`workspace-blank`) before running `npm start` or `yarn start`. 📂
+* Make sure you are in the correct directory (`VisualAlgorithmDesigner`) before running `npm start` or `yarn start`. 📂
 
 ### Browser issues 🌐
 * If the app doesn't load in the browser, try clearing the browser cache or using a different browser. 🧹
