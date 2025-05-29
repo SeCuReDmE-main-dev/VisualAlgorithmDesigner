@@ -1,0 +1,35 @@
+{
+  "id": "ReaAaS-N-Algorithm-Builder",
+  "name": "ReaAaS-N Algorithm Builder",
+  "version": "0.1.0",
+  "description": "A drag-and-drop algorithm builder with natural language input. Provides a UI and API.",
+  "author": "Celebrum & Jules",
+  "license": "MIT",
+  "platforms": ["windows", "linux", "macos"],
+  "architecture": "x64",
+  "moduleType": "Custom",
+  "startup": "script",
+  "executable": "npm",
+  "arguments": "start",
+  "workingDirectory": "",
+  "port": 3001,
+  "schemaVersion": "1.0",
+  "routes": [
+    {
+      "path": "/",
+      "verb": "GET",
+      "description": "Serves the main UI for the Algorithm Builder.",
+      "produces": "text/html"
+    },
+    {
+       "path": "/api/hello",
+       "verb": "GET",
+       "description": "Sample API endpoint.",
+       "produces": "application/json"
+    }
+  ],
+  "dependencies": [
+       { "name": "Node.js", "version": ">=16.0" }
+  ],
+  "settings": []
+}
