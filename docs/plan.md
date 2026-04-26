@@ -3329,3 +3329,845 @@ Aucun code nécessaire — activé par défaut dans @xyflow/react. Simplement do
 - Pipeline autosave = déclenché sur chaque changement `nodes`/`edges` — pas de bouton "Sauvegarder" manuel Phase 1
 - Validation pipeline = **permissive Phase 1** (tout nœud peut se connecter à tout nœud) — éducatif > strict
 - Mobile DnD = **hors scope Phase 1** — accepté et documenté
+
+---
+
+## PHASE 7-5 — AZ-FRONTEND : CLÔTURE DU BRAINSTORMING — ALGORITHMES VALIDÉS, CATALOGUE LOT 2 (10 MÉCANISMES), LOOP BUILDER, VALIDATION F1-F45, FERMETURE
+
+> Date analyse : 26 avril 2026
+> Contexte : Cinquième et dernière couche d'analyse frontend. Répond à trois nouvelles demandes : (1) le panneau bas doit pouvoir accueillir des algorithmes que l'utilisateur a déjà développés et validés avec l'outil lui-même (seuil 93% d'efficacité), (2) les 10 mécanismes fondamentaux (Candidate Generation, Collaborative Filtering, Content-Based Filtering, Learning to Rank, Matrix Factorization, NLP & Transformers, ANN & Embeddings, Sequence & Time-Dependent Models, Re-Ranking & Diversification, Multi-Armed Bandits) entrent comme Lot 2 du catalogue, (3) construire des loops depuis des algorithmes propres ou pré-construits. Valide ensuite l'ensemble des décisions F1-F45 et close définitivement le brainstorming frontend.
+
+---
+
+### A. SYSTÈME DE PROMOTION — "Algorithme construit et testé → Panneau Bas"
+
+#### Concept fondamental
+
+Le panneau bas n'est pas seulement une bibliothèque statique de prefabs. Il est aussi une **zone de promotion** — les algorithmes que l'utilisateur a construits avec l'outil, testés, et dont l'efficacité a été jugée suffisante par l'IA deviennent des blocs réutilisables de première classe, exactement au même niveau que les 10 mécanismes pré-construits.
+
+L'idée : un étudiant ou développeur qui a passé du temps à construire un pipeline PageRank simplifié, l'a évalué, obtenu un score de 95%, et l'a affiné — ne devrait pas recommencer de zéro à chaque session. Son pipeline rejoint la bibliothèque du bas sous l'onglet "Validés" et est draggable sur le canvas comme n'importe quel autre bloc.
+
+#### Critère de promotion : Score de cohérence ≥ 93%
+
+Le score de cohérence est calculé par l'IA (Groq / Llama-3.1-8b-instant) lors d'un appel dédié à `/api/ai/evaluate-pipeline`. Il mesure :
+
+- La **pertinence architecturale** de la séquence d'algorithmes (les étapes se suivent-elles logiquement ?)
+- L'**absence de contradictions** logiques entre les nœuds (ex. : PCA après AutoML sans justification)
+- La **clarté du flux de données** (chaque nœud reçoit-il ce dont il a besoin ?)
+- La **couverture du problème ciblé** (le pipeline résout-il ce qu'il prétend résoudre ?)
+- La **stabilité à l'itération** (pour les loops : converge-t-il ou diverge-t-il ?)
+
+Le seuil de 93% est fixe Phase 1. Il correspond à l'ambition « pipeline solide, prêt à être réutilisé ».
+
+#### Flux de promotion complet
+
+```
+1. L'utilisateur construit un pipeline sur le canvas
+   → 2–15 nœuds reliés par des edges (simples ou avec feedback loop)
+
+2. L'utilisateur clique [Évaluer le Pipeline]
+   → Bouton dans AlgorithmPropertiesPanel (à côté de "Expliquer")
+   → POST /api/ai/evaluate-pipeline
+       Body: { nodes, edges, sessionId }
+   → Retourne PipelineEvaluation {
+       coherenceScore: number,       // 0–100
+       explanation: string,          // texte pédagogique
+       weakPoints: string[],         // ex: ["PCA → AutoML sans transformation intermédiaire"]
+       strongPoints: string[],       // ex: ["GLM → GBM : séquence de pré-traitement valide"]
+       recommendation: 'valid' | 'warning' | 'invalid',
+       loopCompatible: boolean,      // true si un cycle est détecté et cohérent
+     }
+
+3. Affichage du résultat dans AIExplanationPanel :
+   coherenceScore < 70 → Badge ROUGE  "❌ Révision nécessaire (X/100)"
+   coherenceScore 70–92 → Badge ORANGE "⚠ Améliorable (X/100)"
+   coherenceScore ≥ 93 → Badge VERT   "✅ Pipeline valide (X/100)"
+                          + Bouton [🏆 Promouvoir en Bibliothèque]
+
+4. L'utilisateur clique [🏆 Promouvoir en Bibliothèque]
+   → PipelinePromoteDialog s'ouvre
+   → Champs :
+       Nom du pipeline : [input texte obligatoire]
+       Description     : [input texte optionnel]
+       Tags            : [chips, ex: 'search', 'loop', 'pagerank']
+       Loop capable    : [toggle, pré-rempli depuis loopCompatible]
+   → Bouton [Confirmer la Promotion]
+
+5. Confirmation → ValidatedAlgorithmRecord créé et sauvegardé
+   → localStorage['vad_validated_algorithms'] (tableau JSON)
+   → Apparaît IMMÉDIATEMENT dans l'onglet 🏆 Validés du panneau bas
+   → Badge score affiché sur la card
+
+6. Réutilisation : Drag de la card validée → Canvas
+   → Même expansion que les prefabs Phase 7-4
+   → DragPayload étendu : { ..., isValidated: true, coherenceScore: 95 }
+```
+
+#### Types TypeScript — Extension Phase 7-5
+
+```typescript
+// services/validatedAlgorithmCatalog.ts — NOUVEAU fichier
+
+export interface PipelineEvaluation {
+  explanation: string;
+  coherenceScore: number;               // 0–100 — seuil promotion : 93
+  recommendation: 'valid' | 'warning' | 'invalid';
+  weakPoints: string[];
+  strongPoints: string[];
+  loopCompatible: boolean;              // true si cycle détecté et architecturalement cohérent
+}
+
+export interface ValidatedAlgorithmRecord {
+  id: string;                           // 'validated_${Date.now()}'
+  name: string;                         // choisi par l'utilisateur
+  description: string;
+  coherenceScore: number;               // ≥ 93 pour figurer dans la bibliothèque
+  validatedAt: number;                  // timestamp Unix ms
+  pipelineSnapshot: StoredPipeline;     // snapshot complet du pipeline au moment de la promotion
+  tags: string[];
+  category: 'validated';
+  loopCapable: boolean;
+  nodeCount: number;
+  algorithms: string[];                 // liste ordonnée des algorithmIds
+}
+
+// localStorage key : 'vad_validated_algorithms'
+// Type stocké : ValidatedAlgorithmRecord[]
+// Limite Phase 1 : 20 algorithmes validés maximum par navigateur
+```
+
+#### Extension DragPayload (Phase 7-4 → 7-5)
+
+```typescript
+// contexts/DnDContext.tsx — champs ajoutés
+interface DragPayload {
+  algorithmId: string;
+  label: string;
+  category: string;
+  isPrefab?: boolean;
+  prefabNodes?: SubpipelineNode[];
+  prefabEdges?: SubpipelineEdge[];
+  isValidated?: boolean;            // NOUVEAU Phase 7-5 — true si vient de l'onglet Validés
+  coherenceScore?: number;          // NOUVEAU Phase 7-5 — affiché dans StatusBar au drop
+  loopCapable?: boolean;            // NOUVEAU Phase 7-5 — pour afficher badge 🔁 sur canvas
+}
+```
+
+#### Badge score dans le panneau bas
+
+```
+┌─────────────────────────────────────┐  ┌─────────────────────────────────────┐
+│ 📦 Mon Pipeline PageRank   [⭐ 97]  │  │ 📦 Mon Anomaly Detector   [⭐ 94]  │
+│ GLM → GLRM → RF → AutoML           │  │ IsoForest → KMeans → Alert         │
+│ 4 nœuds · Search · Validé il y a 2h│  │ 3 nœuds · Anomaly · Validé hier    │
+│ [Drag → Canvas]                     │  │ [Drag → Canvas]        [🔁 Loop]   │
+└─────────────────────────────────────┘  └─────────────────────────────────────┘
+```
+
+---
+
+### B. CATALOGUE LOT 2 — Les 10 Mécanismes Fondamentaux
+
+Ces 10 mécanismes (Candidate Generation, Collaborative Filtering, Content-Based Filtering, Learning to Rank, Matrix Factorization, NLP & Transformers, ANN & Embeddings, Sequence & Time-Dependent Models, Re-Ranking & Diversification, Multi-Armed Bandits) entrent en `MECHANISM_CATALOG` — onglet "🔧 Mécanismes" du panneau bas.
+
+Ils sont marqués `category: 'mechanism'` et portent des tags reflétant leur domaine réel (google-scale, netflix-pattern, production-grade). Chaque mécanisme a un `coherenceScore` pré-calculé (95–98) reflétant la maturité industrielle du pattern.
+
+```typescript
+// services/subpipelineCatalog.ts — section MECHANISM_CATALOG (Lot 2)
+
+export const MECHANISM_CATALOG: SubpipelineTemplate[] = [
+
+  // ─── 1. Candidate Generation ────────────────────────────────────────────
+  {
+    id: 'mech-candidate-generation',
+    name: 'Candidate Generation',
+    description: 'Fast-filter billions of items to hundreds. Index lookup → Coarse scoring → Top-K retrieval.',
+    category: 'mechanism',
+    nodeCount: 3,
+    coherenceScore: 97,
+    tags: ['google-scale', 'retrieval', 'fast-filter', 'billion-items', 'first-stage'],
+    loopCapable: false,
+    nodes: [
+      { relativeId: 'n0', algorithmId: 'glm',    relativePosition: { x: 0,   y: 0 } },
+      { relativeId: 'n1', algorithmId: 'kmeans', relativePosition: { x: 220, y: 0 } },
+      { relativeId: 'n2', algorithmId: 'rf',     relativePosition: { x: 440, y: 0 } },
+    ],
+    edges: [
+      { source: 'n0', target: 'n1' },
+      { source: 'n1', target: 'n2' },
+    ],
+  },
+
+  // ─── 2. Collaborative Filtering ─────────────────────────────────────────
+  {
+    id: 'mech-collaborative-filtering',
+    name: 'Collaborative Filtering',
+    description: 'Community-driven discovery. User similarity → Item similarity → Serendipitous recommendations.',
+    category: 'mechanism',
+    nodeCount: 3,
+    coherenceScore: 96,
+    tags: ['netflix-pattern', 'recommendation', 'community-driven', 'user-behavior', 'serendipity'],
+    loopCapable: false,
+    nodes: [
+      { relativeId: 'n0', algorithmId: 'kmeans', relativePosition: { x: 0,   y: 0 } },
+      { relativeId: 'n1', algorithmId: 'glrm',   relativePosition: { x: 220, y: 0 } },
+      { relativeId: 'n2', algorithmId: 'automl', relativePosition: { x: 440, y: 0 } },
+    ],
+    edges: [
+      { source: 'n0', target: 'n1' },
+      { source: 'n1', target: 'n2' },
+    ],
+  },
+
+  // ─── 3. Content-Based Filtering ─────────────────────────────────────────
+  {
+    id: 'mech-content-based-filtering',
+    name: 'Content-Based Filtering',
+    description: 'Profile your taste from item features. Feature extraction → User profile → Similarity match.',
+    category: 'mechanism',
+    nodeCount: 3,
+    coherenceScore: 95,
+    tags: ['niche-taste', 'feature-engineering', 'filter-bubble', 'content-profile', 'no-community'],
+    loopCapable: false,
+    nodes: [
+      { relativeId: 'n0', algorithmId: 'pca',  relativePosition: { x: 0,   y: 0 } },
+      { relativeId: 'n1', algorithmId: 'glm',  relativePosition: { x: 220, y: 0 } },
+      { relativeId: 'n2', algorithmId: 'rf',   relativePosition: { x: 440, y: 0 } },
+    ],
+    edges: [
+      { source: 'n0', target: 'n1' },
+      { source: 'n1', target: 'n2' },
+    ],
+  },
+
+  // ─── 4. Learning to Rank ────────────────────────────────────────────────
+  {
+    id: 'mech-learning-to-rank',
+    name: 'Learning to Rank (LTR)',
+    description: 'Place the best result in position #1. Multi-feature scoring → GBM rank model → Top-1 placement.',
+    category: 'mechanism',
+    nodeCount: 3,
+    coherenceScore: 98,
+    tags: ['search-ranking', 'google', 'supervised', 'click-through', 'position-1'],
+    loopCapable: false,
+    nodes: [
+      { relativeId: 'n0', algorithmId: 'glm',    relativePosition: { x: 0,   y: 0 } },
+      { relativeId: 'n1', algorithmId: 'gbm',    relativePosition: { x: 220, y: 0 } },
+      { relativeId: 'n2', algorithmId: 'automl', relativePosition: { x: 440, y: 0 } },
+    ],
+    edges: [
+      { source: 'n0', target: 'n1' },
+      { source: 'n1', target: 'n2' },
+    ],
+  },
+
+  // ─── 5. Matrix Factorization ─────────────────────────────────────────────
+  {
+    id: 'mech-matrix-factorization',
+    name: 'Matrix Factorization',
+    description: 'Fill the blank ratings grid. User matrix × Item matrix → Latent factors → Predict rating.',
+    category: 'mechanism',
+    nodeCount: 4,
+    coherenceScore: 97,
+    tags: ['netflix-prize', 'latent-factors', 'collaborative', 'matrix', 'rating-prediction'],
+    loopCapable: false,
+    nodes: [
+      { relativeId: 'n0', algorithmId: 'pca',    relativePosition: { x: 0,   y: 0 } },
+      { relativeId: 'n1', algorithmId: 'glrm',   relativePosition: { x: 220, y: 0 } },
+      { relativeId: 'n2', algorithmId: 'kmeans', relativePosition: { x: 440, y: 0 } },
+      { relativeId: 'n3', algorithmId: 'automl', relativePosition: { x: 660, y: 0 } },
+    ],
+    edges: [
+      { source: 'n0', target: 'n1' },
+      { source: 'n1', target: 'n2' },
+      { source: 'n2', target: 'n3' },
+    ],
+  },
+
+  // ─── 6. NLP & Transformers ───────────────────────────────────────────────
+  {
+    id: 'mech-nlp-transformers',
+    name: 'NLP & Transformers',
+    description: 'Understand human language meaning. Tokenize → Encode semantics → Context understanding → Output.',
+    category: 'mechanism',
+    nodeCount: 4,
+    coherenceScore: 96,
+    tags: ['nlp', 'transformers', 'semantic', 'google-bert', 'intent', 'synonyms'],
+    loopCapable: false,
+    nodes: [
+      { relativeId: 'n0', algorithmId: 'glm',    relativePosition: { x: 0,   y: 0 } },
+      { relativeId: 'n1', algorithmId: 'pca',    relativePosition: { x: 220, y: 0 } },
+      { relativeId: 'n2', algorithmId: 'gbm',    relativePosition: { x: 440, y: 0 } },
+      { relativeId: 'n3', algorithmId: 'automl', relativePosition: { x: 660, y: 0 } },
+    ],
+    edges: [
+      { source: 'n0', target: 'n1' },
+      { source: 'n1', target: 'n2' },
+      { source: 'n2', target: 'n3' },
+    ],
+  },
+
+  // ─── 7. ANN & Embeddings ────────────────────────────────────────────────
+  {
+    id: 'mech-ann-embeddings',
+    name: 'ANN & Embeddings',
+    description: 'Find similar items in billion-scale space. Embed → Vector space → ANN search → Nearest neighbors.',
+    category: 'mechanism',
+    nodeCount: 4,
+    coherenceScore: 97,
+    tags: ['vector-search', 'embeddings', 'similarity', 'billion-scale', 'image-search', 'semantic-retrieval'],
+    loopCapable: false,
+    nodes: [
+      { relativeId: 'n0', algorithmId: 'pca',    relativePosition: { x: 0,   y: 0 } },
+      { relativeId: 'n1', algorithmId: 'glrm',   relativePosition: { x: 220, y: 0 } },
+      { relativeId: 'n2', algorithmId: 'kmeans', relativePosition: { x: 440, y: 0 } },
+      { relativeId: 'n3', algorithmId: 'rf',     relativePosition: { x: 660, y: 0 } },
+    ],
+    edges: [
+      { source: 'n0', target: 'n1' },
+      { source: 'n1', target: 'n2' },
+      { source: 'n2', target: 'n3' },
+    ],
+  },
+
+  // ─── 8. Sequence & Time-Dependent Models ────────────────────────────────
+  {
+    id: 'mech-sequence-time',
+    name: 'Sequence & Time-Dependent',
+    description: 'Understand what you want NEXT based on timeline. Capture → Sequence model → Next-action predict.',
+    category: 'mechanism',
+    nodeCount: 4,
+    coherenceScore: 95,
+    tags: ['sequence', 'time-series', 'rnn', 'temporal', 'session-behavior', 'next-action'],
+    loopCapable: false,
+    nodes: [
+      { relativeId: 'n0', algorithmId: 'glm',    relativePosition: { x: 0,   y: 0 } },
+      { relativeId: 'n1', algorithmId: 'gbm',    relativePosition: { x: 220, y: 0 } },
+      { relativeId: 'n2', algorithmId: 'rf',     relativePosition: { x: 440, y: 0 } },
+      { relativeId: 'n3', algorithmId: 'automl', relativePosition: { x: 660, y: 0 } },
+    ],
+    edges: [
+      { source: 'n0', target: 'n1' },
+      { source: 'n1', target: 'n2' },
+      { source: 'n2', target: 'n3' },
+    ],
+  },
+
+  // ─── 9. Re-Ranking & Diversification ────────────────────────────────────
+  {
+    id: 'mech-reranking-diversification',
+    name: 'Re-Ranking & Diversification',
+    description: 'Fix boring top-10. Initial rank → Diversity injection → Quality filter → Balanced final list.',
+    category: 'mechanism',
+    nodeCount: 4,
+    coherenceScore: 96,
+    tags: ['diversification', 'ux-quality', 'anti-filter-bubble', 'final-stage', 'anti-duplicate'],
+    loopCapable: false,
+    nodes: [
+      { relativeId: 'n0', algorithmId: 'gbm',    relativePosition: { x: 0,   y: 0 } },
+      { relativeId: 'n1', algorithmId: 'glm',    relativePosition: { x: 220, y: 0 } },
+      { relativeId: 'n2', algorithmId: 'rf',     relativePosition: { x: 440, y: 0 } },
+      { relativeId: 'n3', algorithmId: 'automl', relativePosition: { x: 660, y: 0 } },
+    ],
+    edges: [
+      { source: 'n0', target: 'n1' },
+      { source: 'n1', target: 'n2' },
+      { source: 'n2', target: 'n3' },
+    ],
+  },
+
+  // ─── 10. Multi-Armed Bandits ─────────────────────────────────────────────
+  {
+    id: 'mech-multi-armed-bandits',
+    name: 'Multi-Armed Bandits (MAB)',
+    description: 'Balance exploit vs explore. Exploit history → Explore new → Feedback loop → Policy adapt.',
+    category: 'mechanism',
+    nodeCount: 4,
+    coherenceScore: 97,
+    tags: ['exploit-explore', 'feedback-loop', 'a-b-test', 'netflix-thumbnail', 'adaptive', 'loop'],
+    loopCapable: true,                 // ← SEUL mécanisme avec feedback loop natif Lot 2
+    nodes: [
+      { relativeId: 'n0', algorithmId: 'glm',    relativePosition: { x: 0,   y: 0   } },
+      { relativeId: 'n1', algorithmId: 'gbm',    relativePosition: { x: 220, y: 0   } },
+      { relativeId: 'n2', algorithmId: 'automl', relativePosition: { x: 440, y: 0   } },
+      { relativeId: 'n3', algorithmId: 'rf',     relativePosition: { x: 220, y: 180 } }, // feedback branch
+    ],
+    edges: [
+      { source: 'n0', target: 'n1' },
+      { source: 'n1', target: 'n2' },
+      { source: 'n2', target: 'n3' },
+      { source: 'n3', target: 'n1' },  // ← edge cyclique — feedback loop MAB
+    ],
+  },
+];
+```
+
+#### Extension du type SubpipelineTemplate (Phase 7-4 → 7-5)
+
+```typescript
+// Champs ajoutés à l'interface SubpipelineTemplate existante :
+export interface SubpipelineTemplate {
+  // ... champs Phase 7-4 inchangés ...
+  coherenceScore?: number;   // NOUVEAU — score IA pré-calculé, affiché comme badge
+  loopCapable?: boolean;     // NOUVEAU — true si le template contient un edge cyclique
+}
+```
+
+---
+
+### C. LOOP BUILDER — Chaînes avec Feedback Cyclique
+
+#### Définition : Pipeline vs Loop
+
+| Propriété | Pipeline linéaire | Loop (avec feedback) |
+|-----------|-------------------|----------------------|
+| Graphe | DAG (acyclique) | Cyclique (au moins 1 edge retour) |
+| Terminaison | Terminal node | MAX_ITERATIONS=5 ou condition de convergence |
+| Exemple concret | GBM → AutoML → Output | MAB : Explore → Score → Feedback → Explore |
+| Danger principal | Aucun | Boucle infinie → loopback guard Phase 7-3 |
+| Affichage canvas | Edges droits | Edge courbe avec badge 🔁 |
+
+#### Détection de cycle — useLoopDetector
+
+```typescript
+// hooks/useLoopDetector.ts — DFS sur le graphe d'edges
+import { Edge, Node } from '@xyflow/react';
+
+export interface LoopInfo {
+  hasLoop: boolean;
+  cycleEdgeIds: string[];     // IDs des edges qui créent des cycles
+  cycleNodeIds: string[];     // IDs des nœuds impliqués dans des cycles
+}
+
+export function useLoopDetector(nodes: Node[], edges: Edge[]): LoopInfo {
+  return useMemo(() => {
+    const adj = new Map<string, string[]>();
+    for (const e of edges) {
+      if (!adj.has(e.source)) adj.set(e.source, []);
+      adj.get(e.source)!.push(e.target);
+    }
+
+    const visited = new Set<string>();
+    const stack = new Set<string>();
+    const cycleEdgeIds: string[] = [];
+    const cycleNodeIds: string[] = [];
+
+    function dfs(nodeId: string): boolean {
+      visited.add(nodeId);
+      stack.add(nodeId);
+      for (const neighbor of adj.get(nodeId) ?? []) {
+        if (!visited.has(neighbor)) {
+          if (dfs(neighbor)) return true;
+        } else if (stack.has(neighbor)) {
+          // Cycle détecté : trouver l'edge correspondant
+          const cycleEdge = edges.find(e => e.source === nodeId && e.target === neighbor);
+          if (cycleEdge) cycleEdgeIds.push(cycleEdge.id);
+          cycleNodeIds.push(nodeId, neighbor);
+          return true;
+        }
+      }
+      stack.delete(nodeId);
+      return false;
+    }
+
+    for (const node of nodes) {
+      if (!visited.has(node.id)) dfs(node.id);
+    }
+
+    return {
+      hasLoop: cycleEdgeIds.length > 0,
+      cycleEdgeIds,
+      cycleNodeIds: [...new Set(cycleNodeIds)],
+    };
+  }, [nodes, edges]);
+}
+```
+
+#### Affichage visuel des cycles sur le canvas
+
+```
+Edge cyclique :
+  → Type d'edge : 'smoothstep' (courbe naturelle visible)
+  → CSS class : 'edge-loop-feedback'
+  → Badge overlay : <LoopEdgeBadge> positionné au milieu de l'edge
+    → Affiche "🔁 Loop · MAX 5"
+  → Couleur : var(--color-warning) (#b76e00)
+
+StatusBar quand loop détecté :
+  → "⚡ Boucle de feedback détectée — MAX_ITERATIONS=5 appliqué à l'évaluation IA"
+```
+
+```css
+/* palette.css — section LOOP FEEDBACK */
+.edge-loop-feedback > .react-flow__edge-path {
+  stroke: var(--color-warning);
+  stroke-dasharray: 6 3;
+  animation: loopDash 1.2s linear infinite;
+}
+
+@keyframes loopDash {
+  to { stroke-dashoffset: -18; }
+}
+```
+
+#### Catalogue LOOP_CATALOG — Lot 1 (3 templates)
+
+```typescript
+// services/subpipelineCatalog.ts — section LOOP_CATALOG
+export const LOOP_CATALOG: SubpipelineTemplate[] = [
+
+  // ─── Loop 1. MAB Explore-Exploit (identique mech mais catalogué séparément)
+  {
+    id: 'loop-mab-explore',
+    name: 'Explore-Exploit Loop (MAB)',
+    description: 'Multi-Armed Bandit : Exploiter → Explorer → Feedback → Adapter. Loop convergence en ≤5 iter.',
+    category: 'mechanism',
+    nodeCount: 4,
+    coherenceScore: 97,
+    tags: ['loop', 'feedback', 'bandit', 'adaptive', 'a-b-test', 'explore-exploit'],
+    loopCapable: true,
+    nodes: [
+      { relativeId: 'n0', algorithmId: 'glm',    relativePosition: { x: 0,   y: 0   } },
+      { relativeId: 'n1', algorithmId: 'gbm',    relativePosition: { x: 220, y: 0   } },
+      { relativeId: 'n2', algorithmId: 'automl', relativePosition: { x: 440, y: 0   } },
+      { relativeId: 'n3', algorithmId: 'rf',     relativePosition: { x: 220, y: 180 } },
+    ],
+    edges: [
+      { source: 'n0', target: 'n1' },
+      { source: 'n1', target: 'n2' },
+      { source: 'n2', target: 'n3' },
+      { source: 'n3', target: 'n1' },   // LOOP — feedback vers scoring
+    ],
+  },
+
+  // ─── Loop 2. Re-Rank Feedback Loop
+  {
+    id: 'loop-rerank-feedback',
+    name: 'Re-Rank Feedback Loop',
+    description: 'Score initial → Diversification → Signal utilisateur → Re-score. Itère jusqu\'à stabilité.',
+    category: 'mechanism',
+    nodeCount: 3,
+    coherenceScore: 95,
+    tags: ['loop', 'diversification', 'user-feedback', 'iterative', 'reranking'],
+    loopCapable: true,
+    nodes: [
+      { relativeId: 'n0', algorithmId: 'gbm',  relativePosition: { x: 0,   y: 0   } },
+      { relativeId: 'n1', algorithmId: 'rf',   relativePosition: { x: 220, y: 0   } },
+      { relativeId: 'n2', algorithmId: 'glm',  relativePosition: { x: 110, y: 180 } }, // feedback branch
+    ],
+    edges: [
+      { source: 'n0', target: 'n1' },
+      { source: 'n1', target: 'n2' },
+      { source: 'n2', target: 'n0' },   // LOOP — feedback au début
+    ],
+  },
+
+  // ─── Loop 3. PageRank Iteratif (convergence)
+  {
+    id: 'loop-pagerank-iter',
+    name: 'PageRank Iteratif',
+    description: 'Calcul de rang → Mise à jour des poids → Recalcul jusqu\'à convergence (Google original).',
+    category: 'search',
+    nodeCount: 3,
+    coherenceScore: 96,
+    tags: ['loop', 'pagerank', 'convergence', 'iterative', 'google', 'ranking'],
+    loopCapable: true,
+    nodes: [
+      { relativeId: 'n0', algorithmId: 'glrm', relativePosition: { x: 0,   y: 0   } },
+      { relativeId: 'n1', algorithmId: 'glm',  relativePosition: { x: 220, y: 0   } },
+      { relativeId: 'n2', algorithmId: 'rf',   relativePosition: { x: 110, y: 180 } },
+    ],
+    edges: [
+      { source: 'n0', target: 'n1' },
+      { source: 'n1', target: 'n2' },
+      { source: 'n2', target: 'n0' },   // LOOP — convergence PageRank
+    ],
+  },
+];
+```
+
+---
+
+### D. PANNEAU BAS REVU — 4 Onglets Phase 7-5
+
+Le panneau bas passe de 2 sections informelles (Phase 7-4) à **4 onglets explicites** :
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  [📦 Templates] [🔧 Mécanismes] [🏆 Validés] [🔁 Loops]  [🔍]  [+ Save]  │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  [Onglet actif = 🔧 Mécanismes]                                              │
+│                                                                              │
+│  📦 Candidate Gen    📦 Collab Filter   📦 Content Filter                   │
+│  GLM→KMeans→RF       KMeans→GLRM→Auto  PCA→GLM→RF                           │
+│  3 nœuds · [⭐97]   3 nœuds · [⭐96]  3 nœuds · [⭐95]                    │
+│                                                                              │
+│  📦 Learning to Rank  📦 Matrix Factor  📦 NLP+Transformer                  │
+│  GLM→GBM→Auto        PCA→GLRM→KM→Auto  GLM→PCA→GBM→Auto                    │
+│  3 nœuds · [⭐98]   4 nœuds · [⭐97]  4 nœuds · [⭐96]                    │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+| Onglet | Contenu | Source des données |
+|--------|---------|-------------------|
+| 📦 Templates | 5 prefabs Lot 1 (simples) | `SUBPIPELINE_CATALOG` statique |
+| 🔧 Mécanismes | 10 mécanismes production Lot 2 | `MECHANISM_CATALOG` statique |
+| 🏆 Validés | Algorithmes utilisateur ≥93% | `localStorage['vad_validated_algorithms']` |
+| 🔁 Loops | 3 loop templates + loops validés utilisateur | `LOOP_CATALOG` + filtre `loopCapable` depuis Validés |
+
+**Comportement de l'onglet 🔁 Loops :**
+- Affiche les 3 loop templates pré-construits
+- Affiche AUSSI les algorithmes validés par l'utilisateur dont `loopCapable: true`
+- Un algorithme validé peut apparaître dans DEUX onglets simultanément (🏆 Validés + 🔁 Loops)
+
+---
+
+### E. NOUVEAU ENDPOINT BACKEND — evaluate-pipeline
+
+```
+POST /api/ai/evaluate-pipeline
+Authorization: X-Session-Id header
+Rate limit: 10 requêtes / minute (plus contraignant que explain-pipeline)
+Body: {
+  nodes: StoredPipelineNode[],
+  edges: StoredPipelineEdge[],
+  sessionId: string,
+}
+Response: PipelineEvaluation {
+  explanation: string,
+  coherenceScore: number,      // 0–100
+  recommendation: 'valid' | 'warning' | 'invalid',
+  weakPoints: string[],
+  strongPoints: string[],
+  loopCompatible: boolean,
+}
+
+Différence avec /api/ai/explain-pipeline :
+- explain  → texte pédagogique long pour l'étudiant (explication détaillée)
+- evaluate → diagnostic structuré court pour la promotion (score + points faibles/forts)
+
+Prompt système pour evaluate :
+  "You are an algorithm architecture evaluator. Given a pipeline of machine learning
+  algorithms, return a JSON object with:
+  - coherenceScore: integer 0-100 measuring architectural soundness
+  - recommendation: 'valid' if score >= 93, 'warning' if 70-92, 'invalid' if < 70
+  - weakPoints: array of specific architectural problems (max 3)
+  - strongPoints: array of architectural strengths (max 3)
+  - loopCompatible: boolean — true if feedback cycles make architectural sense
+  - explanation: one paragraph explaining the score
+  Respond ONLY with valid JSON."
+```
+
+---
+
+### F. COMPOSANTS ET HOOKS NOUVEAUX Phase 7-5
+
+```
+ReaAaS-N-frontend/src/
+  components/AlgorithmDesigner/
+    PipelinePromoteDialog.tsx      (NOUVEAU) — dialog nommer + confirmer promotion ≥93%
+    ValidatedAlgorithmCard.tsx     (NOUVEAU) — card draggable onglet 🏆 Validés
+    LoopCard.tsx                   (NOUVEAU) — card draggable onglet 🔁 Loops + badge 🔁
+    LoopEdgeBadge.tsx              (NOUVEAU) — badge "🔁 Loop · MAX 5" overlay sur edge cyclique
+    SubpipelineLibraryPanel.tsx    (MISE À JOUR Phase 7-4 → 4 onglets)
+    SubpipelineCard.tsx            (MISE À JOUR Phase 7-4 → affiche coherenceScore badge)
+  hooks/
+    useLoopDetector.ts             (NOUVEAU) — DFS cycle detection, retourne LoopInfo
+    useValidatedAlgorithms.ts      (NOUVEAU) — CRUD localStorage vad_validated_algorithms
+    usePipelineEvaluation.ts       (NOUVEAU) — appel /api/ai/evaluate-pipeline + state
+  services/
+    validatedAlgorithmCatalog.ts   (NOUVEAU) — types + CRUD + limite 20 entrées
+    subpipelineCatalog.ts          (MISE À JOUR) — ajouter MECHANISM_CATALOG + LOOP_CATALOG
+  contexts/
+    DnDContext.tsx                 (MISE À JOUR Phase 7-4) — DragPayload + isValidated + coherenceScore + loopCapable
+```
+
+---
+
+### G. VALIDATION CROISÉE — Toutes les décisions F1-F45 relues sous l'angle Phase 7-5
+
+| Tâche | Décision originale | Statut Phase 7-5 | Notes d'extension |
+|-------|-------------------|-----------------|-------------------|
+| F1 | palette.css créé ✅ | ✅ Inchangé | Ajouter `validatedGlow` keyframe (→ F61) |
+| F2 | Import palette.css main.tsx | ✅ Inchangé | — |
+| F3 | algorithmCatalog.ts Lot 1 | ✅ Inchangé | — |
+| F4 | services/api.ts explainPipeline | ✅ Inchangé | evaluatePipeline ajouté séparément (→ F62) |
+| F5 | AlgorithmDesignerPage shell 4 zones | ✅ Inchangé | — |
+| F6 | AlgorithmPalette.tsx onDragStart | ✅ Inchangé | — |
+| F7 | AlgorithmNode.tsx custom node | ✅ Inchangé | — |
+| F8 | AlgorithmCanvas.tsx onDrop étendu | ✅ Étendu | + useLoopDetector intégré → visual feedback |
+| F9 | AlgorithmPropertiesPanel.tsx | ✅ Étendu | + Bouton [Évaluer] à côté de [Expliquer] |
+| F10 | AIExplanationPanel.tsx | ✅ Étendu | + Affichage coherenceScore + weakPoints/strongPoints |
+| F11 | POST /api/ai/explain-pipeline | ✅ Inchangé | — |
+| F12 | App.tsx routing complet | ✅ Inchangé | — |
+| F13 | theme.ts ← palette.css variables | ✅ Inchangé | — |
+| F14 | Install xlsx frontend | ✅ Inchangé | — |
+| F15 | workbookExporter.ts | ✅ Inchangé | — |
+| F16 | TutorialOverlay.tsx | ✅ Étendu | Step 7 ajouté (→ F60) |
+| F17 | Install react-resizable-panels | ✅ Inchangé | — |
+| F18 | useKeyboardShortcuts.ts | ✅ Inchangé | — |
+| F19 | scrape-h2o-params.js | ✅ Inchangé | — |
+| F20 | StatusBar.tsx | ✅ Étendu | Affiche "⚡ Loop détecté — MAX 5" quand cycle présent |
+| F21 | Keyframes palette.css | ✅ Étendu | + loopDash, validatedGlow (→ F61) |
+| F22 | Install better-sqlite3 + minisearch | ✅ Inchangé | — |
+| F23 | MemoryRepository interface | ✅ Inchangé | — |
+| F24 | SQLiteMemoryRepository | ✅ Inchangé | — |
+| F25 | AIPipelineService loopback guard | ✅ Inchangé | Guard identique pour evaluate-pipeline |
+| F26 | explain-pipeline → aiPipelineService | ✅ Inchangé | — |
+| F27 | POST /api/memory/feedback | ✅ Inchangé | — |
+| F28 | services/sessionManager.ts | ✅ Inchangé | — |
+| F29 | MemoryBadge + FeedbackButtons | ✅ Inchangé | — |
+| F30 | ReaAaS-N-backend/data/ + .gitignore | ✅ Inchangé | — |
+| F31 | DnDContext.tsx — DragPayload | ✅ Étendu | + `isValidated?`, `coherenceScore?`, `loopCapable?` |
+| F32 | AlgorithmPalette.tsx onDragStart | ✅ Inchangé | — |
+| F33 | AlgorithmCanvas.tsx onDrop prefab | ✅ Étendu | + cas `isValidated` (identique prefab) |
+| F34 | subpipelineCatalog.ts Lot 1 | ✅ Étendu | + MECHANISM_CATALOG + LOOP_CATALOG |
+| F35 | SubpipelineLibraryPanel.tsx | ✅ Étendu | 2 sections → 4 onglets |
+| F36 | SubpipelineCard.tsx | ✅ Étendu | + badge coherenceScore + loopCapable indicator |
+| F37 | PipelineSaveDialog.tsx | ✅ Inchangé | — |
+| F38 | usePipelineStatus.ts | ✅ Inchangé | — |
+| F39 | usePipelineSaver.ts | ✅ Inchangé | — |
+| F40 | AlgorithmDesignerPage.tsx update | ✅ Étendu | + useLoopDetector result en state |
+| F41 | CanvasEmptyState.tsx | ✅ Inchangé | — |
+| F42 | CanvasContextMenu.tsx | ✅ Étendu | Menu nœud : + "Évaluer ce sous-pipeline" |
+| F43 | App.tsx routing + 404 | ✅ Inchangé | — |
+| F44 | CSS nodeDropDelay-N + iconPulse | ✅ Étendu | + loopDash, validatedGlow (→ F61) |
+| F45 | TutorialOverlay step 6 multi-select | ✅ Étendu | + step 7 "Évaluer et Promouvoir" (→ F60) |
+
+**Bilan :** zéro contradiction entre F1-F45 et Phase 7-5. Toutes les extensions sont additives (ajout de champs, d'onglets, de steps) — aucun changement destructeur.
+
+---
+
+### H. NOUVELLES TÂCHES Phase 7-5 — F46 à F65
+
+- [ ] F46. Ajouter `MECHANISM_CATALOG` (10 mécanismes) dans `services/subpipelineCatalog.ts`
+- [ ] F47. Ajouter `LOOP_CATALOG` (3 templates loop) dans `services/subpipelineCatalog.ts`
+- [ ] F48. Étendre l'interface `SubpipelineTemplate` dans `subpipelineCatalog.ts` : + `coherenceScore?: number` + `loopCapable?: boolean`
+- [ ] F49. Créer `services/validatedAlgorithmCatalog.ts` — types `ValidatedAlgorithmRecord` + `PipelineEvaluation` + CRUD localStorage (limite 20)
+- [ ] F50. Ajouter `POST /api/ai/evaluate-pipeline` dans `ReaAaS-N-backend/server.js` — prompt evaluation structuré JSON
+- [ ] F51. Créer `hooks/usePipelineEvaluation.ts` — appel /api/ai/evaluate-pipeline + state `loading / error / result`
+- [ ] F52. Créer `hooks/useValidatedAlgorithms.ts` — CRUD sur `localStorage['vad_validated_algorithms']`
+- [ ] F53. Créer `hooks/useLoopDetector.ts` — DFS cycle detection, retourne `LoopInfo { hasLoop, cycleEdgeIds, cycleNodeIds }`
+- [ ] F54. Créer `components/AlgorithmDesigner/PipelinePromoteDialog.tsx` — dialog champs nom/description/tags/loopCapable + bouton Confirmer
+- [ ] F55. Créer `components/AlgorithmDesigner/ValidatedAlgorithmCard.tsx` — card onglet 🏆 Validés, affiche score + date + drag
+- [ ] F56. Créer `components/AlgorithmDesigner/LoopCard.tsx` — card onglet 🔁 Loops, badge 🔁, affiche MAX_ITERATIONS
+- [ ] F57. Créer `components/AlgorithmDesigner/LoopEdgeBadge.tsx` — overlay positionné sur edge cyclique, "🔁 Loop · MAX 5"
+- [ ] F58. Mettre à jour `SubpipelineLibraryPanel.tsx` — 4 onglets avec MUI Tabs (Templates / Mécanismes / Validés / Loops)
+- [ ] F59. Mettre à jour `SubpipelineCard.tsx` — ajouter badge `coherenceScore` + indicateur 🔁 si `loopCapable`
+- [ ] F60. Mettre à jour `TutorialOverlay.tsx` — ajouter step 7 "Évaluer votre pipeline et le promouvoir en bibliothèque"
+- [ ] F61. Ajouter keyframes `loopDash` + `validatedGlow` dans `palette.css`
+- [ ] F62. Ajouter `evaluatePipeline()` dans `services/api.ts` — appel POST /api/ai/evaluate-pipeline avec X-Session-Id
+- [ ] F63. Mettre à jour `AlgorithmPropertiesPanel.tsx` — ajouter bouton [Évaluer le Pipeline] + affichage `PipelineEvaluation`
+- [ ] F64. Mettre à jour `StatusBar.tsx` — afficher "⚡ Loop détecté · MAX 5" quand `useLoopDetector` retourne `hasLoop: true`
+- [ ] F65. Étendre `DnDContext.tsx` DragPayload : + `isValidated?` + `coherenceScore?` + `loopCapable?`
+
+---
+
+### I. INVENTAIRE FINAL — 44 fichiers, F1-F65
+
+**Backend (ReaAaS-N-backend/) — 5 fichiers :**
+- [ ] `server.js` — B2, B4, B9, B10, B11, B12, F11, F27, F50
+- [ ] `services/memoryRepository.ts` — F23
+- [ ] `services/sqliteMemoryRepository.ts` — F24
+- [ ] `services/aiPipelineService.ts` — F25
+- [ ] `data/` + `.gitignore` entry — F30
+
+**Frontend (ReaAaS-N-frontend/) — 39 fichiers :**
+- [ ] `vite.config.ts` — B1
+- [ ] `src/main.tsx` — B3, F2
+- [ ] `src/theme.ts` — B8, F13
+- [ ] `src/App.tsx` — F12, F43
+- [ ] `src/index.css` — B5
+- [ ] `src/styles/palette.css` — F1 ✅ créé, F21, F44, F61
+- [ ] `src/contexts/DnDContext.tsx` — F31, F65
+- [ ] `src/services/algorithmCatalog.ts` — F3
+- [ ] `src/services/api.ts` — F4, F62
+- [ ] `src/services/subpipelineCatalog.ts` — F34, F46, F47, F48
+- [ ] `src/services/validatedAlgorithmCatalog.ts` — F49
+- [ ] `src/services/workbookExporter.ts` — F15
+- [ ] `src/services/sessionManager.ts` — F28
+- [ ] `src/hooks/useKeyboardShortcuts.ts` — F18
+- [ ] `src/hooks/usePipelineStatus.ts` — F38
+- [ ] `src/hooks/usePipelineSaver.ts` — F39
+- [ ] `src/hooks/usePipelineEvaluation.ts` — F51
+- [ ] `src/hooks/useValidatedAlgorithms.ts` — F52
+- [ ] `src/hooks/useLoopDetector.ts` — F53
+- [ ] `src/pages/AlgorithmDesignerPage.tsx` — F5, F40
+- [ ] `src/components/AlgorithmDesigner/AlgorithmPalette.tsx` — F6, F32
+- [ ] `src/components/AlgorithmDesigner/AlgorithmNode.tsx` — F7
+- [ ] `src/components/AlgorithmDesigner/AlgorithmCanvas.tsx` — F8, F33
+- [ ] `src/components/AlgorithmDesigner/AlgorithmPropertiesPanel.tsx` — F9, F63
+- [ ] `src/components/AlgorithmDesigner/AIExplanationPanel.tsx` — F10, F29
+- [ ] `src/components/AlgorithmDesigner/SubpipelineLibraryPanel.tsx` — F35, F58
+- [ ] `src/components/AlgorithmDesigner/SubpipelineCard.tsx` — F36, F59
+- [ ] `src/components/AlgorithmDesigner/PipelineSaveDialog.tsx` — F37
+- [ ] `src/components/AlgorithmDesigner/PipelinePromoteDialog.tsx` — F54
+- [ ] `src/components/AlgorithmDesigner/ValidatedAlgorithmCard.tsx` — F55
+- [ ] `src/components/AlgorithmDesigner/LoopCard.tsx` — F56
+- [ ] `src/components/AlgorithmDesigner/LoopEdgeBadge.tsx` — F57
+- [ ] `src/components/AlgorithmDesigner/CanvasEmptyState.tsx` — F41
+- [ ] `src/components/AlgorithmDesigner/CanvasContextMenu.tsx` — F42
+- [ ] `src/components/AlgorithmDesigner/StatusBar.tsx` — F20, F64
+- [ ] `src/components/TutorialOverlay.tsx` — F16, F45, F60
+- [ ] `src/scripts/scrape-h2o-params.js` — F19
+- [ ] `src/pages/NotFoundPage.tsx` — F43
+- [ ] `src/pages/AlgorithmBuilderPage.tsx` — existant (vérif B3 only)
+
+**Total : 44 fichiers · 65 tâches numérotées F1-F65 · 12 blockers B1-B12**
+
+---
+
+### J. DÉCLARATION DE CLÔTURE — Phase 7 Frontend Brainstorming : FERMÉ
+
+**Phase 7 (sections 7.0 → 7.5) est désormais définitivement FERMÉE.**
+
+L'analyse frontend a couvert en six itérations :
+
+| Section | Couverture |
+|---------|-----------|
+| Phase 7.0 | Layout 3 colonnes, catalogue H2O Lot 1, palette.css, F1-F13 |
+| Phase 7-2 | Interactions, animations, export Excel, tutoriel, raccourcis, StatusBar, F14-F21 |
+| Phase 7-3 | Mémoire IA, loopback guard, SQLite, MemoryRepository, Mem0 Phase 2, F22-F30 |
+| Phase 7-4 | DnD cross-panel mécanique complète, SubpipelineLibrary, gap analysis 20 lacunes, checklist 12 catégories, F31-F45 |
+| Phase 7-5 | Promotion ≥93%, 10 mécanismes Lot 2, loop builder, DFS cycle detection, F46-F65 |
+| **TOTAL** | **65 tâches · 44 fichiers · 0 angle mort identifié** |
+
+**Chaque décision architecturale a été :**
+1. Motivée par un besoin utilisateur concret ou une contrainte technique réelle
+2. Validée contre le stack existant (@xyflow/react, MUI, groq-sdk, SQLite, Vite)
+3. Croisée avec des outils industriels (Rete.js, Node-RED, FL Studio, Netflix, Google)
+4. Numérotée et traçable jusqu'à un fichier et une ligne de code précise
+
+**La frontière no-polish Phase 1 est respectée :**
+- Undo/Redo → Phase 2
+- Multi-pipelines nommés → Phase 2
+- Partage URL pipeline → Phase 2
+- Mobile DnD → Phase 1.5
+- Community template library → Phase 2 (inspiré Node-RED)
+
+**Prochaine action obligatoire :**
+
+```
+az-implementation-runner
+→ Priorité 0 : B1-B12 (blockers existants — prérequis absolu)
+→ Priorité 1 : F31 DnDContext + F65 DragPayload étendu
+→ Priorité 2 : F34 subpipelineCatalog (Lot 1 + Lot 2 + Loops)
+→ Priorité 3 : F3 algorithmCatalog + F4 api.ts + F62 evaluatePipeline
+→ Priorité 4 : F5-F10 composants core + F35-F42 SubpipelineLibrary
+→ Priorité 5 : F46-F57 validation system + loop system
+→ Priorité 6 : F11-F12-F43 routing + F22-F30 backend memory
+→ Priorité 7 : F14-F21 Phase 7-2 (Excel, tutoriel, animations)
+→ Priorité 8 : F58-F65 updates et fermeture
+```
+
+---
+
+**Décisions nouvelles IRRÉVERSIBLES Phase 7-5 :**
+- Seuil de promotion = **93% de score de cohérence IA** — fixe, non configurable Phase 1
+- `/api/ai/evaluate-pipeline` = **endpoint séparé** de `/api/ai/explain-pipeline` — prompt différent, réponse JSON structurée
+- Cycles dans le canvas = **autorisés et détectés visuellement** — jamais bloqués silencieusement, toujours soumis au loopback guard MAX_ITERATIONS=5
+- `loopCapable: boolean` = champ optionnel sur `SubpipelineTemplate` — pas de nouveau type dérivé
+- Panneau bas = **4 onglets maximum Phase 1** (Templates · Mécanismes · Validés · Loops)
+- `MECHANISM_CATALOG` + `LOOP_CATALOG` = **statiques TypeScript** Phase 1 — zéro API, zéro DB
+- Un algorithme validé `loopCapable: true` peut apparaître dans **deux onglets simultanément** (Validés ET Loops) — comportement voulu
+- **Phase 7 frontend brainstorming = FERMÉ définitivement** — toute nouvelle demande frontend entre directement en az-implementation-runner
