@@ -2362,3 +2362,970 @@ export class Mem0MemoryRepository implements MemoryRepository {
 - `MAX_ITERATIONS = 5` pour le loopback guard — valeur fixe, pas configurable en Phase 1
 - `better-sqlite3` synchrone (pas `sqlite3` async) — choix délibéré pour la simplicité
 - Migration vers Mem0 en Phase 2 = swap d'implémentation derrière l'interface — zéro autre changement
+
+---
+
+## PHASE 7-4 — AZ-FRONTEND : ANALYSE FINALE — DnD CROSS-PANEL, PANEL BAS "CHANNEL RACK", GAP ANALYSIS EXHAUSTIVE ET CHECKLIST PHASE 7
+
+> Date analyse : 26 avril 2026  
+> Contexte : Quatrième et dernière couche d'analyse frontend. Répond à deux nouvelles demandes UX : (1) mécanique DnD cross-panel avec ghost image, (2) panneau bas "FL Studio-style" comme bibliothèque de pipelines préfabriqués. Effectue ensuite une re-analyse des Phases 7, 7-2, 7-3 pour identifier les lacunes, puis constitue une checklist exhaustive avant implémentation.
+
+---
+
+### A. MÉCANIQUE DnD CROSS-PANEL — "Click, Hold, Drag, Drop"
+
+#### La question : Comment l'élément sélectionné dans le panneau gauche se déplace-t-il vers le canvas ?
+
+La mécanique complète utilise l'**HTML Drag and Drop API** (native, aucune librairie additionnelle) en combinaison avec le **DnDContext** de @xyflow/react.
+
+#### Flux complet — Du clic à la création de nœud
+
+```
+PANNEAU GAUCHE (AlgorithmPalette)
+────────────────────────────────────────────────────────────────────────
+
+1. L'utilisateur HOVER sur une carte algorithme
+   → CSS: .palette-card:hover { box-shadow: 0 0 8px var(--color-primary); }
+   → Curseur change en grab via cursor: grab
+
+2. L'utilisateur MOUSEDOWN (click hold)
+   → Rien ne se passe encore côté React
+   → Le navigateur attend un mouvement de >5px pour déclencher le drag
+
+3. L'utilisateur COMMENCE À DRAGGING (>5px de mouvement)
+   → onDragStart se déclenche sur la carte
+   → event.dataTransfer.setData('application/vad-node', JSON.stringify({
+       type: algo.id,          // ex: 'gbm'
+       algorithmId: algo.id,
+       label: algo.label,
+       category: algo.category,
+     }))
+   → event.dataTransfer.effectAllowed = 'copy'
+   → setDragType(algo.id) dans DnDContext (React state partagé)
+
+4. GHOST IMAGE (aperçu visuel pendant le drag)
+   → Par défaut : le navigateur crée une copie semi-transparente de la carte
+   → Pour personnaliser (optionnel Phase 1) :
+     const dragPreview = document.getElementById('drag-preview-ghost')
+     // Div caché dans le DOM, stylisé comme une carte miniature
+     event.dataTransfer.setDragImage(dragPreview, 60, 20)
+
+5. L'utilisateur TRAVERSE les panneaux
+   → Passage panneau gauche → canvas centre
+   → Panneau gauche : opacity 0.5 sur la carte originale (CSS :active isDragging)
+   → Canvas centre : onDragEnter → classe 'canvas-drop-target' → border dashed glow
+
+PANNEAU CENTRE (AlgorithmCanvas)
+────────────────────────────────────────────────────────────────────────
+
+6. onDragOver (se déclenche ~30 fois/seconde pendant le survol)
+   → event.preventDefault()              // ← OBLIGATOIRE sinon drop refusé
+   → event.dataTransfer.dropEffect = 'copy'
+
+7. L'utilisateur RELÂCHE (drop)
+   → onDrop se déclenche
+   → const payload = JSON.parse(event.dataTransfer.getData('application/vad-node'))
+   → const position = screenToFlowPosition({
+       x: event.clientX,
+       y: event.clientY,
+     })
+   → const newNode = {
+       id: `node_${Date.now()}`,
+       type: 'algorithmNode',           // type de nœud custom @xyflow
+       position,
+       data: {
+         algorithmId: payload.algorithmId,
+         label: payload.label,
+         category: payload.category,
+         params: getDefaultParams(payload.algorithmId),
+       },
+       className: 'node-drop-in',       // animation CSS
+     }
+   → setNodes(nds => nds.concat(newNode))
+
+8. NETTOYAGE post-drop
+   → setDragType(null) dans DnDContext
+   → Retrait classe 'canvas-drop-target' du canvas
+   → Classe 'node-drop-in' retirée après 250ms (setTimeout)
+   → Carte originale dans palette retrouve opacity: 1
+```
+
+#### DnDContext — Implémentation
+
+```tsx
+// contexts/DnDContext.tsx
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+
+interface DnDContextType {
+  dragType: string | null;
+  dragPayload: DragPayload | null;
+  setDrag: (type: string, payload: DragPayload) => void;
+  clearDrag: () => void;
+}
+
+interface DragPayload {
+  algorithmId: string;
+  label: string;
+  category: string;
+  isPrefab?: boolean;           // true si vient du panneau bas
+  prefabNodes?: SubpipelineNode[]; // si isPrefab = true
+  prefabEdges?: SubpipelineEdge[];
+}
+
+const DnDContext = createContext<DnDContextType | null>(null);
+
+export const DnDProvider = ({ children }: { children: ReactNode }) => {
+  const [dragType, setDragType] = useState<string | null>(null);
+  const [dragPayload, setDragPayload] = useState<DragPayload | null>(null);
+
+  return (
+    <DnDContext.Provider value={{
+      dragType,
+      dragPayload,
+      setDrag: (type, payload) => { setDragType(type); setDragPayload(payload); },
+      clearDrag: () => { setDragType(null); setDragPayload(null); },
+    }}>
+      {children}
+    </DnDContext.Provider>
+  );
+};
+
+export const useDnD = () => {
+  const ctx = useContext(DnDContext);
+  if (!ctx) throw new Error('useDnD must be used within DnDProvider');
+  return ctx;
+};
+```
+
+#### Feedback visuel pendant le drag — CSS
+
+```css
+/* palette.css — section DRAG STATES */
+
+/* Carte en cours de drag : opacity réduite */
+.palette-card[data-dragging='true'] {
+  opacity: 0.45;
+  transform: scale(0.97);
+  transition: opacity 0.1s, transform 0.1s;
+}
+
+/* Canvas quand une carte est survolée */
+.react-flow__renderer.canvas-drop-target {
+  outline: 2px dashed var(--color-primary);
+  outline-offset: -4px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(61, 138, 136, 0.06) 0%,
+    transparent 70%
+  );
+}
+
+/* Nœud qui vient d'être dropped — animation burst */
+@keyframes nodeDropIn {
+  0%   { transform: scale(0.6); opacity: 0; }
+  70%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1.0); opacity: 1; }
+}
+.node-drop-in {
+  animation: nodeDropIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+```
+
+#### Support tactile — Pointer Events (Phase 1.5)
+
+L'HTML DnD API ne fonctionne pas sur mobile/tactile. Solution Phase 1.5 :
+
+| Approche | Effort | Support |
+|----------|--------|---------|
+| **Neodrag** (github.com/puruvj/neodrag) | Faible — 1.2k stars, MIT | Mouse + Touch + Pointer |
+| **Pointer Events manuels** | Moyen — `onPointerDown/Move/Up` | Mouse + Touch |
+| **react-dnd + touch backend** | Élevé — lourd | Mouse + Touch |
+
+**Décision Phase 1 :** HTML DnD API (desktop only, acceptable pour MVP éducatif desktop). **Phase 1.5 :** Ajouter `Neodrag` si retour mobile signalé.
+
+#### Piège à éviter — `ReactFlowProvider` obligatoire
+
+`screenToFlowPosition` ne fonctionne que si `AlgorithmCanvas` est un enfant de `ReactFlowProvider`. La hiérarchie requise :
+
+```tsx
+// AlgorithmDesignerPage.tsx
+<ReactFlowProvider>
+  <DnDProvider>
+    <Box sx={{ display: 'flex', height: '100vh' }}>
+      <AlgorithmPalette />        {/* panneau gauche */}
+      <AlgorithmCanvas />         {/* panneau centre — contient ReactFlow */}
+      <AlgorithmPropertiesPanel /> {/* panneau droit */}
+    </Box>
+    <SubpipelineLibraryPanel />   {/* panneau bas — NOUVEAU Phase 7-4 */}
+  </DnDProvider>
+</ReactFlowProvider>
+```
+
+---
+
+### B. PANNEAU BAS — "CHANNEL RACK" = SubpipelineLibraryPanel
+
+#### Analogie FL Studio confirmée par recherche
+
+FL Studio (Image-Line) **Channel Rack** UX pattern (source primaire: image-line.com/fl-studio, 26 avril 2026) :
+- Panneau horizontal en bas de l'interface
+- Chaque "channel" = un instrument (bloc réutilisable)
+- Patterns = séquences sauvegardées réutilisables à volonté
+- Mixer = où les instruments se connectent et interagissent
+- Le Channel Rack est le "starter pack" — tu y choisis tes instruments avant de mixer
+
+**Notre adaptation VAD :**
+
+| FL Studio | VAD |
+|-----------|-----|
+| Channel Rack (panneau bas) | SubpipelineLibraryPanel (panneau bas) |
+| Instrument individuel | AlgorithmCard dans palette gauche |
+| Pattern pré-rempli | SubpipelineTemplate (prefab multi-nœuds) |
+| Mixer | Canvas @xyflow/react |
+| Step Sequencer | AlgorithmBuilderPage (étapes manuelles) |
+| "Enter the mix" | "Drop the prefab on canvas" |
+
+**Autres références confirmées :**
+- **Node-RED** (Flow Library, 5000+ flows) — concept de bibliothèque de flows partageables ✅
+- **Rete.js** (12k stars, MIT) — framework node-based avec concept de groupes de nœuds ✅
+- **React-Diagrams** (9.4k stars, MIT) — inspiré Blender/LabView/Unreal Engine, supporte les "node groups" ✅
+- **Grasshopper (Rhino3D)** — Compound components : groupes de nœuds encapsulés comme blocs réutilisables ✅
+
+#### Layout révisé — 4 zones
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│  AppBar — "VAD" [Builder] [Designer] [Circuit]                 [?] [⚙]  │
+├──────────────┬───────────────────────────────────┬───────────────────────┤
+│  PALETTE     │            CANVAS                 │  PROPERTIES + AI      │
+│  (240px)     │   (@xyflow/react, flex-grow)       │  (300px)              │
+│              │                                   │                       │
+│ [Search...]  │    ┌─────────┐    ┌──────────┐   │  GBM — Paramètres     │
+│              │    │  GBM    │───▶│  AutoML  │   │  ntrees: [50]         │
+│ Supervised   │    │  Node   │    │  Node    │   │  learn_rate: [0.1]    │
+│ ─ GBM        │    └─────────┘    └──────────┘   │                       │
+│ ─ GLM        │                                   │  [Explain Pipeline ▶] │
+│ ─ XGBoost    │    [EMPTY STATE: Drop here]       │                       │
+│ ─ RF         │                                   │  AI: "GBM at step 2  │
+│              │                                   │   compares trees..."  │
+│ Unsupervised │                                   │  [👍] [👎]            │
+│ ─ K-Means    │                                   │                       │
+│ ─ PCA        │                                   │  🧠 Basé sur 3        │
+│              │                                   │  sessions précédentes │
+├──────────────┴───────────────────────────────────┴───────────────────────┤
+│  PIPELINE TEMPLATES                              [🔍 Search] [+ Save Now] │
+│  ──────────────────────────────────────────────────────────────────────── │
+│  📦 ML Classic        📦 PageRank Simple     📦 Anomaly Chain             │
+│  GBM→AutoML→Stack     Link→Weight→Rank       IsoForest→Thresh→Alert       │
+│  3 nœuds · Supervised 4 nœuds · Search       2 nœuds · Anomaly           │
+│  [Drag→Canvas]        [Drag→Canvas]           [Drag→Canvas]               │
+│                                                                            │
+│  📦 Recommandation    📦 NLP Sentiment        📦 Mon Pipeline (Custom)    │
+│  KMeans→GLM→Matrix    Token→GLM→Class         [Vos nœuds actuels]         │
+│  3 nœuds · RecSys     3 nœuds · NLP           Sauvegardé il y a 2h        │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+**Hauteur du panneau bas :** 160px (2 rangées de cards) — collapsible via toggle à gauche de la barre titre.
+
+#### Pourquoi le panneau bas est indispensable pour les algorithmes complexes
+
+Pour un algorithme comme **Google PageRank** ou une **chaîne de traitement longue**, l'utilisateur ne peut pas reconstituer manuellement 8–12 nœuds à chaque session. La bibliothèque de templates résout :
+
+1. **Algorithmes complexes** (15+ nœuds) → Drop d'un template = gain de 5 min
+2. **Chaînes de commandes enchaînées** → Loops, gather, sort, merge préfabriqués
+3. **Réutilisation** → Sauvegarder son pipeline du jour pour le réutiliser demain
+4. **Apprentissage** → Les templates pré-définis montrent des exemples réels d'architectures
+
+#### SubpipelineTemplate — Type et catalogue
+
+```typescript
+// services/subpipelineCatalog.ts
+
+export interface SubpipelineNode {
+  relativeId: string;                        // 'node_0', 'node_1', etc.
+  algorithmId: string;                       // référence ALGORITHM_CATALOG
+  relativePosition: { x: number; y: number }; // position relative au point de drop
+  params?: Partial<AlgorithmParams>;          // paramètres custom si différents des défauts
+}
+
+export interface SubpipelineEdge {
+  source: string;  // relativeId
+  target: string;  // relativeId
+}
+
+export interface SubpipelineTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: 'ml' | 'search' | 'recommendation' | 'anomaly' | 'nlp' | 'custom' | 'logic';
+  nodeCount: number;
+  tags: string[];                   // ['loop', 'classification', 'complex', 'google']
+  nodes: SubpipelineNode[];
+  edges: SubpipelineEdge[];
+  createdAt?: number;               // timestamp si pipeline custom sauvegardé
+  isUserCreated?: boolean;          // true = sauvegardé par l'utilisateur
+}
+
+// Catalogue Lot 1 — 5 templates pré-définis + 1 slot custom
+export const SUBPIPELINE_CATALOG: SubpipelineTemplate[] = [
+  {
+    id: 'ml-classic',
+    name: 'ML Classification Classic',
+    description: 'GBM → AutoML → StackedEnsemble',
+    category: 'ml',
+    nodeCount: 3,
+    tags: ['classification', 'supervised', 'ensemble'],
+    nodes: [
+      { relativeId: 'n0', algorithmId: 'gbm',    relativePosition: { x: 0,   y: 0   } },
+      { relativeId: 'n1', algorithmId: 'automl', relativePosition: { x: 220, y: 0   } },
+      { relativeId: 'n2', algorithmId: 'stacked', relativePosition: { x: 440, y: 0  } },
+    ],
+    edges: [
+      { source: 'n0', target: 'n1' },
+      { source: 'n1', target: 'n2' },
+    ],
+  },
+  {
+    id: 'pagerank-simple',
+    name: 'Google PageRank Simplifié',
+    description: 'Chargement liens → Analyse poids → Calcul rang → Tri',
+    category: 'search',
+    nodeCount: 4,
+    tags: ['search', 'loop', 'google', 'complex', 'ranking'],
+    nodes: [
+      { relativeId: 'n0', algorithmId: 'glm',      relativePosition: { x: 0,   y: 0   } },
+      { relativeId: 'n1', algorithmId: 'glrm',     relativePosition: { x: 220, y: 0   } },
+      { relativeId: 'n2', algorithmId: 'rf',        relativePosition: { x: 440, y: 0   } },
+      { relativeId: 'n3', algorithmId: 'automl',   relativePosition: { x: 660, y: 0   } },
+    ],
+    edges: [
+      { source: 'n0', target: 'n1' },
+      { source: 'n1', target: 'n2' },
+      { source: 'n2', target: 'n3' },
+    ],
+  },
+  {
+    id: 'anomaly-chain',
+    name: 'Anomaly Detection Chain',
+    description: 'IsolationForest → Threshold → Alert',
+    category: 'anomaly',
+    nodeCount: 2,
+    tags: ['anomaly', 'detection', 'unsupervised'],
+    nodes: [
+      { relativeId: 'n0', algorithmId: 'isoforest', relativePosition: { x: 0,   y: 0 } },
+      { relativeId: 'n1', algorithmId: 'kmeans',    relativePosition: { x: 220, y: 0 } },
+    ],
+    edges: [{ source: 'n0', target: 'n1' }],
+  },
+  {
+    id: 'recommendation-engine',
+    name: 'Recommendation Engine',
+    description: 'KMeans clustering → GLM scoring → Matrix output',
+    category: 'recommendation',
+    nodeCount: 3,
+    tags: ['recommendation', 'collaborative-filtering', 'matrix'],
+    nodes: [
+      { relativeId: 'n0', algorithmId: 'kmeans', relativePosition: { x: 0,   y: 0 } },
+      { relativeId: 'n1', algorithmId: 'glm',    relativePosition: { x: 220, y: 0 } },
+      { relativeId: 'n2', algorithmId: 'pca',    relativePosition: { x: 440, y: 0 } },
+    ],
+    edges: [
+      { source: 'n0', target: 'n1' },
+      { source: 'n1', target: 'n2' },
+    ],
+  },
+  {
+    id: 'nlp-sentiment',
+    name: 'NLP Sentiment Pipeline',
+    description: 'GLM vectorization → Classification → Output',
+    category: 'nlp',
+    nodeCount: 3,
+    tags: ['nlp', 'sentiment', 'text', 'classification'],
+    nodes: [
+      { relativeId: 'n0', algorithmId: 'glm',   relativePosition: { x: 0,   y: 0 } },
+      { relativeId: 'n1', algorithmId: 'gbm',   relativePosition: { x: 220, y: 0 } },
+      { relativeId: 'n2', algorithmId: 'rf',    relativePosition: { x: 440, y: 0 } },
+    ],
+    edges: [
+      { source: 'n0', target: 'n1' },
+      { source: 'n1', target: 'n2' },
+    ],
+  },
+];
+```
+
+#### Expansion du prefab sur le canvas
+
+Quand un `SubpipelineTemplate` est droppé sur le canvas, la logique d'expansion génère tous les nœuds et edges d'un coup :
+
+```typescript
+// Dans AlgorithmCanvas.tsx — onDrop étendu pour les prefabs
+const onDrop = useCallback((event: DragEvent) => {
+  event.preventDefault();
+  const rawData = event.dataTransfer.getData('application/vad-node');
+  if (!rawData) return;
+
+  const payload: DragPayload = JSON.parse(rawData);
+  const dropPosition = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+
+  if (payload.isPrefab && payload.prefabNodes && payload.prefabEdges) {
+    // Expansion prefab : créer tous les nœuds avec offset depuis le drop point
+    const idMap: Record<string, string> = {};
+    const newNodes = payload.prefabNodes.map((pNode, idx) => {
+      const uniqueId = `node_${Date.now()}_${idx}`;
+      idMap[pNode.relativeId] = uniqueId;
+      return {
+        id: uniqueId,
+        type: 'algorithmNode',
+        position: {
+          x: dropPosition.x + pNode.relativePosition.x,
+          y: dropPosition.y + pNode.relativePosition.y,
+        },
+        data: {
+          algorithmId: pNode.algorithmId,
+          label: ALGORITHM_CATALOG.find(a => a.id === pNode.algorithmId)?.label ?? pNode.algorithmId,
+          params: getDefaultParams(pNode.algorithmId),
+        },
+        className: `node-drop-in node-drop-delay-${idx}`,  // delay animé
+      };
+    });
+
+    const newEdges = payload.prefabEdges.map((pEdge, idx) => ({
+      id: `edge_${Date.now()}_${idx}`,
+      source: idMap[pEdge.source],
+      target: idMap[pEdge.target],
+      animated: true,
+    }));
+
+    setNodes(nds => [...nds, ...newNodes]);
+    setEdges(eds => [...eds, ...newEdges]);
+
+  } else {
+    // Nœud simple (logique existante)
+    const newNode = {
+      id: `node_${Date.now()}`,
+      type: 'algorithmNode',
+      position: dropPosition,
+      data: { algorithmId: payload.algorithmId, label: payload.label,
+              params: getDefaultParams(payload.algorithmId) },
+      className: 'node-drop-in',
+    };
+    setNodes(nds => [...nds, newNode]);
+  }
+}, [screenToFlowPosition, setNodes, setEdges]);
+```
+
+#### Animation d'expansion prefab en cascade
+
+```css
+/* palette.css — section PREFAB EXPANSION */
+@keyframes nodeDropDelay {
+  0%   { transform: scale(0.4) translateY(-20px); opacity: 0; }
+  70%  { transform: scale(1.05) translateY(0); opacity: 1; }
+  100% { transform: scale(1.0); opacity: 1; }
+}
+
+/* Chaque nœud du prefab apparaît avec un délai croissant */
+.node-drop-delay-0 { animation: nodeDropDelay 0.25s 0ms   cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.node-drop-delay-1 { animation: nodeDropDelay 0.25s 80ms  cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.node-drop-delay-2 { animation: nodeDropDelay 0.25s 160ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.node-drop-delay-3 { animation: nodeDropDelay 0.25s 240ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.node-drop-delay-4 { animation: nodeDropDelay 0.25s 320ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+```
+
+#### Fonctionnalité "Save Current Pipeline as Template"
+
+Le bouton `[+ Save Now]` dans la barre de titre du panneau bas :
+1. Lit le state nodes + edges courant du canvas
+2. Calcule les positions relatives (normalise à partir du nœud le plus à gauche)
+3. Génère un `SubpipelineTemplate` avec `isUserCreated: true`
+4. Le sauvegarde dans `localStorage` (tableau JSON `vad_user_templates`)
+5. L'affiche comme dernière card dans le panneau bas
+
+```typescript
+// hooks/usePipelineSaver.ts
+export function saveCurrentPipeline(
+  nodes: Node[],
+  edges: Edge[],
+  name: string
+): void {
+  if (nodes.length === 0) return;
+
+  // Normaliser les positions relatives
+  const minX = Math.min(...nodes.map(n => n.position.x));
+  const minY = Math.min(...nodes.map(n => n.position.y));
+
+  const template: SubpipelineTemplate = {
+    id: `custom_${Date.now()}`,
+    name,
+    description: `${nodes.map(n => n.data.algorithmId).join(' → ')}`,
+    category: 'custom',
+    nodeCount: nodes.length,
+    tags: ['custom', 'user-created'],
+    nodes: nodes.map((n, i) => ({
+      relativeId: `n${i}`,
+      algorithmId: n.data.algorithmId,
+      relativePosition: {
+        x: n.position.x - minX,
+        y: n.position.y - minY,
+      },
+    })),
+    edges: edges.map(e => ({
+      source: `n${nodes.findIndex(n => n.id === e.source)}`,
+      target: `n${nodes.findIndex(n => n.id === e.target)}`,
+    })),
+    createdAt: Date.now(),
+    isUserCreated: true,
+  };
+
+  const stored = JSON.parse(localStorage.getItem('vad_user_templates') ?? '[]');
+  stored.push(template);
+  localStorage.setItem('vad_user_templates', JSON.stringify(stored));
+}
+```
+
+#### SubpipelineLibraryPanel — Composant
+
+```
+ReaAaS-N-frontend/src/components/AlgorithmDesigner/
+  SubpipelineLibraryPanel.tsx      (NOUVEAU — panneau bas)
+    ├── SubpipelineCard.tsx        (NOUVEAU — card draggable individuelle)
+    └── PipelineSaveDialog.tsx     (NOUVEAU — dialog pour nommer le template)
+```
+
+---
+
+### C. RE-ANALYSE DES PHASES 7, 7-2, 7-3 — Identification des Lacunes
+
+#### Ce qui a été couvert (résumé)
+
+**Phase 7 :** Layout 3-colonnes harpoon-style · Catalogue H2O Lot 1 · DnD mentionné mais pas détaillé · palette.css · Arbre de composants F1-F13
+
+**Phase 7-2 :** Inventaire interactions · Animations CSS · Export Excel · Tutoriel contextuel · IDE 3-panneaux react-resizable-panels · Raccourcis clavier · Script scraping RST · StatusBar · F14-F21
+
+**Phase 7-3 :** Mémoire IA · Garde anti-boucle · 4 approches · SQLite+MiniSearch · Interface MemoryRepository · AIExplanationPanel mémoire · Mem0 Phase 2 · F22-F30
+
+#### Lacunes identifiées — 20 points non couverts
+
+| # | Lacune | Criticité | Phase proposée |
+|---|--------|-----------|----------------|
+| L1 | **DnD mechanics détaillées** — ghost image, DnDContext, CSS feedback | BLOQUANT | 7-4 ✅ ci-dessus |
+| L2 | **Panneau bas SubpipelineLibrary** | HAUTE | 7-4 ✅ ci-dessus |
+| L3 | **Validation de compatibilité des connexions** — quels nœuds peuvent se connecter ? | HAUTE | 7-4 ✅ ci-dessous |
+| L4 | **State de pipeline incomplet** — avertissement visuel si pipeline invalide avant Explain | HAUTE | 7-4 ✅ ci-dessous |
+| L5 | **Persistance pipeline** — localStorage schema exact pour save/restore | HAUTE | 7-4 ✅ ci-dessous |
+| L6 | **Empty state design** — mentionné mais jamais spécifié en détail | MOYEN | 7-4 ✅ ci-dessous |
+| L7 | **Context menu** — clic droit nœud / canvas / edge | MOYEN | 7-4 ✅ ci-dessous |
+| L8 | **Routing et 404** — App.tsx routing complet jamais conçu | MOYEN | 7-4 ✅ ci-dessous |
+| L9 | **Bannière offline** — backend unavailable state | MOYEN | 7-4 ✅ ci-dessous |
+| L10 | **Multi-select** — sélectionner plusieurs nœuds pour bouger/supprimer en groupe | MOYEN | 7-4 ✅ ci-dessous |
+| L11 | **Pipeline naming** — nommer/gérer plusieurs pipelines | FAIBLE | Phase 2 |
+| L12 | **Undo/Redo** — déféré Phase 7 mais jamais planifié | FAIBLE | Phase 2 |
+| L13 | **Responsive/Mobile** — canvas ne fonctionne pas bien < 768px | FAIBLE | Phase 2 |
+| L14 | **Accessibilité clavier canvas** — navigation Tab dans le graph | FAIBLE | Phase 2 |
+| L15 | **Virtualisation** — 50+ nœuds sur canvas | FAIBLE | Phase 3+ |
+| L16 | **Copy/Paste nœuds** — Ctrl+C / Ctrl+V | FAIBLE | Phase 2 |
+| L17 | **URL share** — pipeline encodé dans URL | FAIBLE | Phase 2 |
+| L18 | **Node search rapide** — Ctrl+Space pour chercher sans retourner à palette | FAIBLE | Phase 2 |
+| L19 | **Performance canvas** — @xyflow/react virtualization > 30 nœuds | FAIBLE | Phase 2+ |
+| L20 | **DnD depuis canvas vers zone de suppression** — drag-to-trash | FAIBLE | Phase 2 |
+
+#### 5 lacunes critiques traitées en Phase 7-4
+
+Les lacunes L1-L10 sont couvertes dans les sections ci-dessous. L11-L20 sont déférées.
+
+---
+
+### D. LACUNES CRITIQUES — Solutions Phase 7-4
+
+#### L3 — Validation de compatibilité des connexions
+
+Règle Phase 1 : **tout algorithme peut se connecter à tout algorithme** (validation permissive). L'objectif éducatif prime sur la correction technique. L'IA explique le pipeline même si incohérent — c'est une occasion d'apprentissage.
+
+Phase 2 : Ajouter une matrice de compatibilité (supervised → supervised valide, supervised → unsupervised = warning, etc.) affichée comme badge amber sur l'edge incompatible.
+
+#### L4 — Indicateur de pipeline complet/invalide
+
+```typescript
+// hooks/usePipelineStatus.ts
+export function usePipelineStatus(nodes: Node[], edges: Edge[]) {
+  return useMemo(() => {
+    if (nodes.length === 0) return 'empty';
+    if (nodes.length === 1) return 'single-node';  // pas d'edge → pas de pipeline
+
+    // Vérifier que chaque nœud a au moins 1 edge connecté
+    const connectedIds = new Set([
+      ...edges.map(e => e.source),
+      ...edges.map(e => e.target),
+    ]);
+    const disconnectedCount = nodes.filter(n => !connectedIds.has(n.id)).length;
+
+    if (disconnectedCount > 0) return 'disconnected';  // nœuds isolés
+    return 'ready';   // pipeline complet — bouton Explain activé
+  }, [nodes, edges]);
+}
+
+// Dans AlgorithmPropertiesPanel :
+// status === 'ready'        → Bouton Explain vert, actif
+// status === 'disconnected' → Bouton Explain grisé + tooltip "X nœuds non connectés"
+// status === 'empty'        → Bouton Explain caché
+// status === 'single-node'  → Bouton Explain grisé + tooltip "Ajoutez au moins 2 algorithmes"
+```
+
+#### L5 — Persistance localStorage (schema exact)
+
+```typescript
+// Clé localStorage : 'vad_pipeline'
+// Format JSON :
+interface StoredPipeline {
+  version: 1;
+  savedAt: number;                          // timestamp
+  nodes: Array<{
+    id: string;
+    type: string;
+    position: { x: number; y: number };
+    data: {
+      algorithmId: string;
+      label: string;
+      params: Record<string, unknown>;
+    };
+  }>;
+  edges: Array<{
+    id: string;
+    source: string;
+    target: string;
+    animated: boolean;
+  }>;
+}
+
+// Sauvegarde automatique via useEffect dans AlgorithmDesignerPage
+useEffect(() => {
+  if (nodes.length === 0) return;
+  const toStore: StoredPipeline = { version: 1, savedAt: Date.now(), nodes, edges };
+  localStorage.setItem('vad_pipeline', JSON.stringify(toStore));
+}, [nodes, edges]);   // Autosave à chaque changement
+
+// Restauration au mount
+const loadSavedPipeline = (): Partial<StoredPipeline> | null => {
+  try {
+    const raw = localStorage.getItem('vad_pipeline');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as StoredPipeline;
+    if (parsed.version !== 1) return null;  // migration future
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+```
+
+#### L6 — Empty State design complet
+
+```
+ÉTAT VIDE DU CANVAS (0 nœuds)
+──────────────────────────────────────────────────────────────────
+
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│                    [Icône circuit pulsante]                     │
+│                    @keyframes iconPulse (2s loop)               │
+│                                                                 │
+│          Construisez votre premier pipeline IA                  │
+│    Glissez un algorithme depuis la gauche →  ici               │
+│         ou choisissez un modèle en bas ↓                        │
+│                                                                 │
+│         [ Commencer avec ML Classic ▶ ]                         │
+│         Bouton = drop automatique du prefab ml-classic          │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+
+Implémentation :
+- Détecté via nodes.length === 0
+- Rendu comme enfant de <ReactFlow> via <Panel position="center">
+- Le bouton "Commencer avec ML Classic" appelle directement
+  la logique d'expansion du prefab sans drag
+```
+
+#### L7 — Context Menu (clic droit)
+
+```tsx
+// Implémentation légère — aucune librairie supplémentaire
+// useRef + onContextMenu + position absolue dans le DOM
+
+const [contextMenu, setContextMenu] = useState<{
+  type: 'node' | 'canvas' | 'edge';
+  x: number; y: number;
+  targetId?: string;
+} | null>(null);
+
+// Sur le canvas ReactFlow
+onContextMenu={(e) => {
+  e.preventDefault();
+  setContextMenu({ type: 'canvas', x: e.clientX, y: e.clientY });
+}}
+
+// Sur chaque nœud custom
+onContextMenu={(e) => {
+  e.stopPropagation();
+  e.preventDefault();
+  setContextMenu({ type: 'node', x: e.clientX, y: e.clientY, targetId: id });
+}}
+
+// Menu nœud :   Supprimer | Dupliquer | Réinitialiser params
+// Menu canvas : Coller (Phase 2) | Sélectionner tout | Nettoyer canvas
+// Menu edge :   Supprimer connexion | Inverser sens
+```
+
+#### L8 — Routing App.tsx complet
+
+```tsx
+// App.tsx — routing complet Phase 1
+<BrowserRouter>
+  <Routes>
+    <Route path="/"          element={<Navigate to="/designer" replace />} />
+    <Route path="/designer"  element={<AlgorithmDesignerPage />} />
+    <Route path="/builder"   element={<AlgorithmBuilderPage />} />
+    <Route path="/circuit"   element={<CircuitDesignerPage />} />
+    <Route path="*"          element={<NotFoundPage />} />  {/* 404 */}
+  </Routes>
+</BrowserRouter>
+
+// NotFoundPage.tsx — minimal
+// "Page non trouvée — Retour au Designer"
+// Aucune infrastructure supplémentaire
+```
+
+#### L9 — Bannière Backend Offline
+
+```tsx
+// Dans App.tsx ou AlgorithmDesignerPage — polling health endpoint
+const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
+
+useEffect(() => {
+  const checkHealth = async () => {
+    try {
+      const res = await fetch('/api/health', { signal: AbortSignal.timeout(3000) });
+      setBackendOnline(res.ok);
+    } catch {
+      setBackendOnline(false);
+    }
+  };
+  checkHealth();
+  const interval = setInterval(checkHealth, 30_000);  // vérif toutes les 30s
+  return () => clearInterval(interval);
+}, []);
+
+// Si backendOnline === false :
+<Alert severity="warning" sx={{ borderRadius: 0 }}>
+  Backend indisponible — l'explication IA n'est pas disponible. Vérifiez que le serveur tourne.
+</Alert>
+```
+
+#### L10 — Multi-select
+
+@xyflow/react v12 supporte le multi-select **natif** :
+- `Shift + clic` = ajouter à la sélection
+- `Ctrl + A` = sélectionner tous les nœuds
+- Drag sur canvas vide = lasso de sélection
+- Une fois sélectionnés : déplacer en groupe, `Delete` = supprimer tous
+
+Aucun code nécessaire — activé par défaut dans @xyflow/react. Simplement documenter dans le tutoriel (ajouter step 6 dans TutorialOverlay).
+
+---
+
+### E. OUTILS DÉCOUVERTS PAR RECHERCHE — Référence comparative
+
+| Outil | Stars | Type | Leçon applicable à VAD |
+|-------|-------|------|------------------------|
+| **@xyflow/react** | 27k | Canvas node-based React | NOTRE STACK — DnD, screenToFlowPosition, DnDContext confirmé |
+| **Rete.js** | 12k | Visual programming framework | Concept "node groups" pour prefabs → adapté en SubpipelineTemplate |
+| **React-Diagrams** | 9.4k | Diagrams (Blender/LabView/Unreal inspired) | "Designed for process" = confirmation de notre approche |
+| **Node-RED** | Actif | Flow library, 5000+ pre-built flows | Bibliothèque community = inspiration Phase 2 partage templates |
+| **FL Studio Channel Rack** | N/A | Audio DAW | Pattern "instrument rack" = notre panneau bas SubpipelineLibrary |
+| **Neodrag** | 1.2k | Cross-platform DnD | Option Phase 1.5 pour support mobile |
+
+**Décision :** aucun de ces outils n'est adopté dans le stack. @xyflow/react couvre tous les besoins canvas. Les patterns architecturaux sont empruntés sans dépendance.
+
+---
+
+### F. CHECKLIST EXHAUSTIVE — TOUT CE QUI DOIT ÊTRE PENSÉ POUR LE FRONTEND PHASE 7
+
+> Cette checklist est le filet de sécurité final avant implémentation. Chaque ligne doit être cochée avant de déclarer la Phase 7 complète.
+
+#### F.1 Architecture & Structure
+
+- [x] Layout 3-colonnes (harpoon-style) avec panneau bas (7-4 ✅)
+- [x] Arbre de composants complet
+- [x] Hiérarchie ReactFlowProvider > DnDProvider > Composants
+- [x] Routes App.tsx (/, /designer, /builder, /circuit, 404)
+- [x] palette.css comme source unique de vérité couleur
+- [x] TypeScript strict — interfaces pour tous les types de données
+
+#### F.2 États UI (SKILL boundary)
+
+- [x] Empty state canvas (aucun nœud) — design complet (7-4 ✅)
+- [x] Loading state — shimmer pendant explainPipeline
+- [x] Error state — API erreur + backend offline banner (7-4 ✅)
+- [x] Success state — texte AI affiché avec fadeIn
+- [x] Disconnected pipeline state — bouton Explain grisé (7-4 ✅)
+- [x] Dragging state — palette card opacity + canvas glow
+
+#### F.3 Données & Catalogue
+
+- [x] ALGORITHM_CATALOG — 6 algos H2O Lot 1
+- [x] SUBPIPELINE_CATALOG — 5 templates prefab Lot 1 (7-4 ✅)
+- [x] SubpipelineTemplate type + interface (7-4 ✅)
+- [x] getDefaultParams() — valeurs H2O par défaut
+- [x] Pipeline persistence (localStorage schema exact) (7-4 ✅)
+- [x] User templates persistence (localStorage 'vad_user_templates') (7-4 ✅)
+
+#### F.4 Drag and Drop
+
+- [x] DnDContext — dragType + dragPayload + setDrag + clearDrag (7-4 ✅)
+- [x] Palette card onDragStart — dataTransfer.setData (7-4 ✅)
+- [x] Canvas onDragOver — preventDefault (7-4 ✅)
+- [x] Canvas onDrop — screenToFlowPosition + setNodes (7-4 ✅)
+- [x] Canvas onDrop pour prefabs — expansion multi-nœuds (7-4 ✅)
+- [x] Ghost image CSS — palette card opacity + canvas glow (7-4 ✅)
+- [x] Animation cascade prefab drop — node-drop-delay-N (7-4 ✅)
+- [x] ReactFlowProvider wrappant tout le module Designer
+
+#### F.5 Canvas & Nœuds
+
+- [x] AlgorithmNode.tsx — custom node avec handles H2O
+- [x] AlgorithmCanvas.tsx — ReactFlow wrapper
+- [x] Connexions edges — animated: true + CSS strokeDashoffset
+- [x] usePipelineStatus hook — empty/single/disconnected/ready (7-4 ✅)
+- [x] Context menu — node/canvas/edge (7-4 ✅)
+- [x] Multi-select — natif @xyflow/react, documenter dans tutoriel (7-4 ✅)
+- [x] Delete nœud — touche Delete, nœud sélectionné
+- [x] Autosave localStorage — useEffect sur nodes/edges (7-4 ✅)
+- [x] Restore au mount — loadSavedPipeline() (7-4 ✅)
+
+#### F.6 Panneau Bas (SubpipelineLibrary)
+
+- [x] SubpipelineLibraryPanel.tsx — composant panneau bas collapsible (7-4 ✅)
+- [x] SubpipelineCard.tsx — card draggable individuelle (7-4 ✅)
+- [x] PipelineSaveDialog.tsx — dialog nommer et sauvegarder (7-4 ✅)
+- [x] SUBPIPELINE_CATALOG Lot 1 — 5 templates (7-4 ✅)
+- [x] "Save Now" → usePipelineSaver hook → localStorage (7-4 ✅)
+- [x] Affichage templates custom sauvegardés en fin de liste
+
+#### F.7 Propriétés & AI
+
+- [x] AlgorithmPropertiesPanel.tsx — H2OParamField par param
+- [x] H2OParamField — integer/float/boolean/enum
+- [x] AIExplanationPanel.tsx — loading/error/success + MemoryBadge + FeedbackButtons
+- [x] Bouton Explain activé/grisé selon pipelineStatus (7-4 ✅)
+- [x] Excel export (SheetJS workbookExporter)
+
+#### F.8 Mémoire & Backend
+
+- [x] MemoryRepository interface (Phase 7-3)
+- [x] SQLiteMemoryRepository (Phase 7-3)
+- [x] AIPipelineService avec loopback guard MAX_ITER=5 (Phase 7-3)
+- [x] POST /api/ai/explain-pipeline endpoint
+- [x] POST /api/memory/feedback endpoint
+- [x] GET /api/health endpoint (Phase 0 B12)
+- [x] Backend health polling 30s dans frontend (7-4 ✅)
+- [x] X-Session-Id header dans chaque appel API
+
+#### F.9 Animations & CSS
+
+- [x] nodeDropIn keyframe (Phase 7-2)
+- [x] nodeDropDelay-N cascade keyframes (7-4 ✅)
+- [x] handlePulse keyframe (Phase 7-2)
+- [x] textFadeIn keyframe (Phase 7-2)
+- [x] edgeDrawIn / animated edge (Phase 7-2)
+- [x] iconPulse keyframe pour empty state (7-4 ✅)
+- [x] prefers-reduced-motion media query (Phase 7-2)
+
+#### F.10 UX & Accessibilité
+
+- [x] Tutoriel contextuel 6 steps (Phase 7-2)
+- [x] Raccourcis clavier useKeyboardShortcuts (Phase 7-2)
+- [x] StatusBar (Phase 7-2)
+- [x] WCAG AA — contraste vérifié dans palette.css
+- [x] Multi-select documenté dans tutoriel (7-4 ✅)
+- [x] Tooltip sur Explain button grisé (7-4 ✅)
+
+#### F.11 Sécurité
+
+- [x] CORS origines explicites backend (Phase 0 B9)
+- [x] express-rate-limit sur POST /api/ai/explain (Phase 0 B11)
+- [x] Erreur middleware global Express (Phase 0 B10)
+- [x] Pas de hex raw dans composants — palette.css only
+- [x] JSON.parse localStorage dans try/catch (7-4 ✅)
+
+#### F.12 Déféré Phase 2+ (ne pas implémenter en Phase 1)
+
+- [ ] Undo/Redo (trop complexe pour MVP)
+- [ ] Pipeline naming multi-pipelines
+- [ ] Responsive/Mobile
+- [ ] Copy/Paste nœuds
+- [ ] URL shareable pipeline
+- [ ] Node search rapide Ctrl+Space
+- [ ] Drag-to-trash zone
+- [ ] Accessibilité clavier canvas (Tab navigation dans graph)
+- [ ] Virtualisation 50+ nœuds
+
+---
+
+### G. NOUVELLES TÂCHES Phase 7-4
+
+- [ ] F31. Créer `contexts/DnDContext.tsx` — DnDProvider + useDnD avec DragPayload typé
+- [ ] F32. Mettre à jour `AlgorithmPalette.tsx` — onDragStart avec dataTransfer.setData + CSS dragging state
+- [ ] F33. Mettre à jour `AlgorithmCanvas.tsx` — onDrop étendu pour single node + prefab expansion
+- [ ] F34. Créer `services/subpipelineCatalog.ts` — 5 templates Lot 1 + types SubpipelineTemplate
+- [ ] F35. Créer `components/AlgorithmDesigner/SubpipelineLibraryPanel.tsx` — panneau bas collapsible
+- [ ] F36. Créer `components/AlgorithmDesigner/SubpipelineCard.tsx` — card draggable prefab
+- [ ] F37. Créer `components/AlgorithmDesigner/PipelineSaveDialog.tsx` — dialog nommer + sauvegarder
+- [ ] F38. Créer `hooks/usePipelineStatus.ts` — hook retourne 'empty'|'single-node'|'disconnected'|'ready'
+- [ ] F39. Créer `hooks/usePipelineSaver.ts` — saveCurrentPipeline() + loadSavedPipeline()
+- [ ] F40. Mettre à jour `AlgorithmDesignerPage.tsx` — intégrer SubpipelineLibraryPanel + health check
+- [ ] F41. Créer `components/AlgorithmDesigner/CanvasEmptyState.tsx` — état vide avec bouton "Commencer"
+- [ ] F42. Créer `components/AlgorithmDesigner/CanvasContextMenu.tsx` — clic droit node/canvas/edge
+- [ ] F43. Mettre à jour `App.tsx` — routing complet + NotFoundPage + health banner
+- [ ] F44. Ajouter CSS cascade prefab dans `palette.css` — nodeDropDelay-0 à nodeDropDelay-4 + iconPulse
+- [ ] F45. Ajouter step 6 "Multi-select" dans `TutorialOverlay.tsx`
+
+---
+
+### H. RÉCAPITULATIF STACK CONFIRMÉ — Phase 7-4
+
+| Couche | Technologie | Rôle Phase 7-4 |
+|--------|-------------|----------------|
+| DnD | HTML Drag and Drop API natif | Cross-panel drag, ghost image |
+| DnD Context | React Context (custom) | Partage du payload drag entre panels |
+| Prefab Library | TypeScript statique | 5 templates pré-définis + custom user |
+| Prefab Persistence | localStorage | Templates user sauvegardés |
+| Pipeline Persistence | localStorage | Autosave nodes + edges |
+| Context Menu | React state + CSS absolue | 0 librairie supplémentaire |
+| Pipeline Status | React useMemo hook | Valide le pipeline avant Explain |
+| Empty State | ReactFlow `<Panel>` | Intégré dans canvas @xyflow |
+| Health Check | fetch polling 30s | Bannière offline automatique |
+| Mobile DnD | Phase 1.5 Neodrag | Déféré, option documentée |
+
+**Aucune nouvelle dépendance npm ajoutée en Phase 7-4** — toutes les fonctionnalités sont construites avec ce qui est déjà en stack.
+
+---
+
+### Stack — Validations Phase 7-4 (26 avril 2026)
+
+| Validation | Source | Résultat |
+|------------|--------|---------|
+| @xyflow/react DnD — `screenToFlowPosition` + `onDrop` + `DnDContext` pattern | reactflow.dev/examples/interaction/drag-and-drop (26 avril 2026) | ✅ Confirmé, 3 approches documentées : HTML DnD API, Pointer Events, Neodrag |
+| Rete.js node groups concept | github.com/retejs/rete (12k stars, MIT) | ✅ Confirme faisabilité des node groups = base SubpipelineTemplate |
+| Node-RED Flow Library (5000+ flows) | nodered.org | ✅ Valide le concept bibliothèque de pipelines partageables (Phase 2) |
+| FL Studio Channel Rack pattern | image-line.com (26 avril 2026) | ✅ Pattern "instruments → rack → mix" = notre palette → panneau bas → canvas |
+| HTML Drag and Drop API mobile : non supporté | MDN, reactflow.dev docs | ✅ Confirmé — Neodrag comme solution Phase 1.5 |
+
+**Décisions nouvelles IRRÉVERSIBLES Phase 7-4 :**
+- `DnDContext` = unique canal de communication entre panneau gauche, panneau bas et canvas — jamais de props drilling entre panneaux
+- Panneau bas = `SubpipelineLibraryPanel` est une 4e zone distincte de l'IDE (collapsible, hauteur fixe 160px)
+- Templates prefab = **catalogue statique TypeScript** Lot 1 — pas d'API runtime, pas de base de données Phase 1
+- User templates = **localStorage uniquement** Phase 1 — aucune sync serveur
+- Pipeline autosave = déclenché sur chaque changement `nodes`/`edges` — pas de bouton "Sauvegarder" manuel Phase 1
+- Validation pipeline = **permissive Phase 1** (tout nœud peut se connecter à tout nœud) — éducatif > strict
+- Mobile DnD = **hors scope Phase 1** — accepté et documenté
