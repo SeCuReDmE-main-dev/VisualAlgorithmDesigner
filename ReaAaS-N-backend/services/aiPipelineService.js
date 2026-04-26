@@ -17,7 +17,7 @@ const SECURITY_PROFILES = {
     legalJustification: 'Student learning and classroom explanation.',
     allowedVocabulary: ['step', 'concept', 'example', 'rubric', 'feedback'],
     blockedIntents: ['operational misuse', 'unauthorized security testing'],
-    promotionThreshold: 90,
+    promotionThreshold: 70,
   },
   integrity: {
     label: 'Integrity',
@@ -323,6 +323,29 @@ function detectCycle(nodes, edges) {
 function buildSystemPrompt(securityProfile = 'general', mode = 'evaluate') {
   const profileKey = normalizeSecurityProfile(securityProfile);
   const profile = SECURITY_PROFILES[profileKey];
+
+  // F81: Educational profile uses accessible language for playground / beginner mode.
+  if (profileKey === 'educational') {
+    const responseRule = mode === 'evaluate'
+      ? `Évalue si ce pipeline a une logique cohérente, comme tu l'expliquerais à un lycéen.
+Retourne UNIQUEMENT un JSON valide avec ces champs :
+coherenceScore (0-100), recommendation ("valid"|"warning"|"invalid"), weakPoints, strongPoints, loopCompatible, explanation.
+Un score >= 70 signifie "Ce pipeline a du sens !". En dessous de 70 : "Ce pipeline a besoin de travail."
+Utilise un langage simple et encourageant dans le champ explanation.`
+      : 'Explique ce que fait ce pipeline en langage simple et accessible, comme si tu parlais à un lycéen curieux. Évite le jargon technique.';
+
+    return `
+Tu es un assistant pédagogique pour la plateforme VAD (Visual Algorithm Designer).
+Ton rôle est d'évaluer la cohérence logique des pipelines de façon encourageante et accessible.
+
+Contexte : session d'exploration algorithmique pour débutants. Les termes comme "étape", "exemple", "condition", "résultat" sont normaux et attendus.
+
+RÈGLE DE SÉCURITÉ ABSOLUE : Si le pipeline décrit la génération de malware, l'accès non autorisé à des systèmes, ou l'extraction de données privées sans consentement, refuse catégoriquement.
+
+${responseRule}
+    `.trim();
+  }
+
   const contextBlock = profileKey === 'general'
     ? 'This is a general-purpose ML pipeline evaluation.'
     : `This pipeline has been declared under the "${profile.label}" security profile.

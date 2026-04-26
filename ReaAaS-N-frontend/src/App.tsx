@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Alert, Box, Container, Typography } from '@mui/material';
+import { Alert, Box } from '@mui/material';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import AlgorithmDesignerPage from './pages/AlgorithmDesignerPage';
 import AlgorithmBuilderPage from './pages/AlgorithmBuilderPage';
 import CircuitDesignerPage from './pages/CircuitDesignerPage';
 import NotFoundPage from './pages/NotFoundPage';
 import { DnDProvider } from './contexts/DnDContext';
+import { useSessionMode } from './hooks/useSessionMode';
+import { ModeSelectionDialog } from './components/ModeSelectionDialog';
 
 const HEALTH_POLL_MS = 30_000;
 const HEALTH_TIMEOUT_MS = 3_000;
@@ -48,10 +50,24 @@ function useBackendHealth() {
 
 function App() {
   const backendOnline = useBackendHealth();
+  const { config, switchToPlayground, switchToWorkbench } = useSessionMode();
+  const [modeSelected, setModeSelected] = useState(() => {
+    try {
+      return localStorage.getItem('vad_session_mode') !== null;
+    } catch {
+      return true; // Assume selected if storage is inaccessible
+    }
+  });
 
   return (
     <DnDProvider>
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+        <ModeSelectionDialog
+          open={!modeSelected}
+          onPlayground={switchToPlayground}
+          onWorkbench={() => switchToWorkbench(config?.mode === 'workbench' ? config.securityProfile : 'general')}
+          onSelect={() => setModeSelected(true)}
+        />
         {backendOnline === false && (
           <Alert severity="warning" sx={{ borderRadius: 0 }}>
             Backend unavailable. AI explanation and evaluation are offline until the server is running.
