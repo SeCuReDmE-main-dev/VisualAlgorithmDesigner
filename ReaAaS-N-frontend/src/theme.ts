@@ -1,47 +1,73 @@
 // src/theme.ts
 import { createTheme } from '@mui/material/styles';
 
+const paletteToken = {
+  primary: '#3D8A88',
+  secondary: '#E8856A',
+  background: '#1A1B2E',
+  paper: '#242540',
+  text: '#DDE8EC',
+  textMuted: '#9FE8FF',
+  warning: '#C07A20',
+  error: '#C0392B',
+  success: '#1A8A5A',
+};
+
 const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#00A99D', // Teal
+      main: paletteToken.primary,
     },
     secondary: {
-      main: '#F76C6C', // Orange - Alert / Emotional
+      main: paletteToken.secondary,
     },
     background: {
-      default: '#1B263B', // Deep Blue
-      paper: '#000000',    // Pure Black
+      default: paletteToken.background,
+      paper: paletteToken.paper,
     },
     text: {
-      primary: '#E0E0E0',
-      secondary: '#9FE8FF',
+      primary: paletteToken.text,
+      secondary: paletteToken.textMuted,
     },
-    warning: { // Using warning for the Electric Purple Glow as an example
-      main: '#B45EFF', 
+    warning: {
+      main: paletteToken.warning,
     },
-    // You might want to add more specific color definitions here if needed
-    // e.g., for code/brain inspired, or other specific UI elements
+    error: {
+      main: paletteToken.error,
+    },
+    success: {
+      main: paletteToken.success,
+    },
   },
   typography: {
-    fontFamily: 'Source Sans Pro, sans-serif', // Ensure this font is available or add a fallback
+    fontFamily: 'Inter, Source Sans Pro, Arial, sans-serif',
   },
   components: {
-    MuiButton: {
+    MuiCssBaseline: {
       styleOverrides: {
-        root: {
-          borderRadius: '6px',
-          fontWeight: 600,
-          textTransform: 'none',
-          '&:hover': {
-            backgroundColor: '#00A99D', // Teal
-            color: '#000000',          // Pure Black for text on hover
-          },
+        body: {
+          backgroundColor: 'var(--color-bg)',
+          color: 'var(--color-text)',
         },
       },
     },
-    // You can add more component overrides here
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 'var(--radius-sm)',
+          fontWeight: 600,
+          textTransform: 'none',
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundImage: 'none',
+        },
+      },
+    },
   },
 });
 
