@@ -2,10 +2,15 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
+const { SQLiteMemoryRepository } = require('./services/sqliteMemoryRepository');
+const { AIPipelineService } = require('./services/aiPipelineService');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001; // Backend port
+const dbPath = path.resolve(__dirname, process.env.DB_PATH || './data/memory.sqlite');
+const memoryRepository = new SQLiteMemoryRepository(dbPath);
+const aiPipelineService = new AIPipelineService({ memoryRepository });
 
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
 app.use(cors({
@@ -34,6 +39,18 @@ const aiLimiter = rateLimit({
   },
 });
 
+const evaluateLimiter = rateLimit({
+  windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60000),
+  max: Number(process.env.EVALUATE_RATE_LIMIT_MAX || 10),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    status: 'error',
+    error: 'TOO_MANY_REQUESTS',
+    message: 'Too many evaluation requests. Try again shortly.',
+  },
+});
+
 // --- Serve Static React App ---
 // Define the path to the React app's build directory
 // This assumes the backend is started from its own directory,
@@ -53,7 +70,26 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });
 });
 
-app.post('/api/ai/explain', aiLimiter, (req, res) => {
+app.post('/api/ai/explain-pipeline', aiLimiter, asyncHandler(async (req, res) => {
+  const data = await aiPipelineService.explainPipeline(req.body, {
+    sessionId: getSessionId(req),
+  });
+
+  res.json({
+    status: 'success',
+    data,
+  });
+}));
+
+app.post('/api/ai/explain', aiLimiter, asyncHandler(async (req, res) => {
+  if (Array.isArray(req.body?.nodes)) {
+    const data = await aiPipelineService.explainPipeline(req.body, {
+      sessionId: getSessionId(req),
+    });
+    res.json({ status: 'success', data });
+    return;
+  }
+
   res.json({
     status: 'success',
     data: {
@@ -62,7 +98,30 @@ app.post('/api/ai/explain', aiLimiter, (req, res) => {
       latency_ms: 0,
     },
   });
-});
+}));
+
+app.post('/api/ai/evaluate-pipeline', evaluateLimiter, asyncHandler(async (req, res) => {
+  const data = await aiPipelineService.evaluatePipeline(req.body, {
+    sessionId: getSessionId(req),
+  });
+
+  res.json({
+    status: 'success',
+    data,
+  });
+}));
+
+app.post('/api/memory/feedback', asyncHandler(async (req, res) => {
+  const data = memoryRepository.addFeedback({
+    ...req.body,
+    sessionId: getSessionId(req) || req.body?.sessionId,
+  });
+
+  res.status(201).json({
+    status: 'success',
+    data,
+  });
+}));
 
 // --- Catch-all for Frontend Routing ---
 // For any other GET request, serve the React app's index.html
@@ -87,7 +146,7 @@ app.use((err, req, res, next) => {
   const statusCode = err.status || err.statusCode || 500;
   res.status(statusCode).json({
     status: 'error',
-    error: statusCode === 403 ? 'FORBIDDEN' : 'INTERNAL_ERROR',
+    error: err.code || (statusCode === 403 ? 'FORBIDDEN' : 'INTERNAL_ERROR'),
     message: isProd ? 'Internal server error' : err.message,
   });
 });
@@ -96,3 +155,11 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
+
+function getSessionId(req) {
+  return req.get('X-Session-Id') || req.body?.sessionId || 'anonymous';
+}
+
+function asyncHandler(handler) {
+  return (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
+}
