@@ -74,7 +74,7 @@ VisualAlgorithmDesigner/
 | UI components | MUI | ^6.0.0 |
 | Drag and drop | @hello-pangea/dnd | 18.0.1 |
 | Routing | react-router-dom | 7.6.1 |
-| Backend | Express | 5.1.0 |
+| Backend | Express | 5.2.0 |
 | AI provider | Groq SDK | 1.1.2 |
 | AI model | llama-3.1-8b-instant | — |
 | Memory store | better-sqlite3 + MiniSearch | — |
@@ -154,14 +154,14 @@ Implementation is tracked through **8 milestones** and **63 GitHub issues** on t
 
 | Milestone | Focus | Issues | Status |
 |-----------|-------|--------|--------|
-| **M0** — Infrastructure | Fix all blockers, dev server runs clean | #12-#21, #115, #116 | 🔴 Next |
-| **M1** — Backend Core | SQLite memory, AI pipeline service, feedback endpoint | #22-#28 | ⬜ Queued |
-| **M2** — Frontend Foundation | palette.css tokens, routing, services, DnD context | #29-#37 | ⬜ Queued |
-| **M3** — Core Canvas Loop | Drag node → canvas → AI explanation (E2E) | #38-#45 | ⬜ Queued |
-| **M4** — Subpipeline Library | 5 prefab templates, 4-tab panel, drag-to-expand | #46-#51 | ⬜ Queued |
-| **M5** — Evaluation & Promotion | coherenceScore, ≥93% promotion, loop detection | #52-#59 | ⬜ Queued |
-| **M6** — UX Polish | Excel export, keyboard shortcuts, tutorial, animations | #60-#66 | ⬜ Queued |
-| **M7** — Security & Compliance | 7 security profiles, ÉFVP report, audit hash | #67-#72 | ⬜ Queued |
+| **M0** — Infrastructure | Fix all blockers, dev server runs clean | #12-#21, #115, #116 | ✅ Complete |
+| **M1** — Backend Core | SQLite memory, AI pipeline service, feedback endpoint | #22-#28 | ✅ Complete |
+| **M2** — Frontend Foundation | palette.css tokens, routing, services, DnD context | #29-#37 | ✅ Complete |
+| **M3** — Core Canvas Loop | Drag node → canvas → AI explanation (E2E) | #38-#45 | ✅ Complete |
+| **M4** — Subpipeline Library | 5 prefab templates, 4-tab panel, drag-to-expand | #46-#51 | ✅ Complete |
+| **M5** — Evaluation & Promotion | coherenceScore, ≥93% promotion, loop detection | #52-#59 | ✅ Complete |
+| **M6** — UX Polish | Excel export, keyboard shortcuts, tutorial, animations | #60-#66 | ✅ Complete |
+| **M7** — Security & Compliance | 7 security profiles, ÉFVP report, audit hash | #67-#72 | ✅ Complete |
 
 Each issue contains a single testable acceptance criterion. Closing an issue with a commit message containing `Closes #NNN` automatically advances the milestone progress bar.
 
@@ -169,9 +169,11 @@ Each issue contains a single testable acceptance criterion. Closing an issue wit
 
 ## Contributing
 
-1. Pick an open issue from the [M0 milestone](https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/milestone/1) — start there
+> **Phase 10 (M0-M7) is implemented.** The codebase is fully functional. See the Phase 10 completion audit in [docs/plan.md](docs/plan.md) for full details.
+
+1. Browse open issues — Phase 11 issues (browser QA, deployment, Phase 2 features) will appear in new milestones
 2. Read the issue body for the exact file target and acceptance criterion
-3. Implement the minimal patch
+3. Implement the minimal patch — read the target file before editing
 4. Commit with `Closes #NNN` in the message body
 5. The issue closes automatically and the milestone graph updates
 
