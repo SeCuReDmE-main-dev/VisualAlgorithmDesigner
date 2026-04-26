@@ -1001,3 +1001,682 @@ POST /api/ai/explain-pipeline
 - @xyflow/react gère `nodes` et `edges` state (useNodesState, useEdgesState) — pas useState custom
 - Pas de canvas 2D natif (builder-app Canvas.js style) — @xyflow/react seulement
 - palette.css = source unique de vérité couleur — pas de hex dans les composants
+
+---
+
+## PHASE 7-2 — AZ-FRONTEND : ANALYSE ERGONOMIE, EFFETS, DIFFÉRENCIATION ET ANNEXES
+
+> Date analyse : 26 avril 2026  
+> Contexte : Approfondissement de la Phase 7. Couvre l'inventaire d'interactions, les effets de chaîne, l'automatisation Excel, le système de tutoriel, la disposition IDE 3-panneaux, la différenciation marché, les alternatives à H2O, et le scraping RST.
+
+---
+
+### A. INVENTAIRE D'INTERACTIONS — Compte exact par panneau
+
+L'objectif est de savoir combien d'éléments interactifs existent dans une session type pour calibrer la densité UX et ne pas surcharger l'utilisateur.
+
+#### Panneau Gauche — AlgorithmPalette (240px)
+
+| Élément | Type | Quantité | Notes |
+|---------|------|----------|-------|
+| SearchInput | Text field | 1 | Filtre en temps réel |
+| CategoryToggle | Bouton toggle | ~6 | Supervised / Unsupervised / AutoML / Anomaly / Time Series / NLP |
+| AlgorithmCard drag handle | Zone draggable | ~6–20 selon filtre | Chaque carte = 1 cible DnD |
+| **Total Palette** | | **~13–27** | Variable selon filtres actifs |
+
+#### Panneau Centre — AlgorithmCanvas (flex-grow)
+
+| Élément | Type | Quantité | Notes |
+|---------|------|----------|-------|
+| Zoom In | Bouton | 1 | Controls built-in @xyflow |
+| Zoom Out | Bouton | 1 | Controls built-in |
+| Fit View | Bouton | 1 | Controls built-in |
+| Background toggle | Bouton icône | 1 | Toggle grille / dots |
+| MiniMap toggle | Bouton icône | 1 | Afficher/cacher minimap |
+| Canvas pan | Geste | N/A | Molette + drag natif |
+| Canvas zoom | Geste | N/A | Pinch + molette natif |
+| Node drag (repositionner) | Geste | N nœuds | 1 par nœud présent |
+| Handle (connexion source) | Zone cliquable | N×2 nœuds | 1 source + 1 target par nœud |
+| Node sélection (clic) | Clic | N nœuds | Active PropertiesPanel |
+| Node suppression (Delete key) | Raccourci clavier | 1 global | Nœud sélectionné |
+| Pipeline Save | Bouton icône (toolbar) | 1 | localStorage |
+| Pipeline Clear | Bouton icône (toolbar) | 1 | Reset canvas |
+| **Total Canvas** | | **~8 fixes + N×4 par nœud** | |
+
+#### Panneau Droit — AlgorithmPropertiesPanel + AIExplanationPanel (300px)
+
+| Élément | Type | Quantité | Notes |
+|---------|------|----------|-------|
+| H2OParamField integer | NumberInput + Slider | ~3–5 par algo | ntrees, max_depth, nbins |
+| H2OParamField float | NumberInput + Slider | ~3–5 par algo | learn_rate, sample_rate |
+| H2OParamField boolean | Toggle switch | ~2–4 par algo | standardize, ignore_const_cols |
+| H2OParamField enum | Select dropdown | ~1–3 par algo | distribution, histogram_type |
+| Reset Params | Bouton secondaire | 1 | Remet les valeurs par défaut H2O |
+| Download Workbook | Bouton secondaire | 1 | Export Excel (F14-F15) |
+| Explain Pipeline | Bouton primaire CTA | 1 | Déclenche POST /api/ai/explain-pipeline |
+| **Total Properties** | | **~12–20 par algo sélectionné** | |
+
+#### Barre de Statut (bottom, 32px)
+
+| Élément | Type | Quantité | Notes |
+|---------|------|----------|-------|
+| Compteur nœuds | Texte | 1 | read-only |
+| Compteur edges | Texte | 1 | read-only |
+| Dernière latence Explain | Texte | 1 | ex: "1.2s" |
+| Indicateur connexion backend | Icône colored | 1 | vert/rouge |
+| **Total Status Bar** | | **4** | Tous read-only sauf indicateur |
+
+#### Barre AppBar (top, 48px)
+
+| Élément | Type | Quantité | Notes |
+|---------|------|----------|-------|
+| Logo / titre | Lien navigation | 1 | Retour Home |
+| Navigation tab "Designer" | Tab | 1 | Actif sur /designer |
+| Navigation tab "Algorithm Builder" | Tab | 1 | Route /builder |
+| Navigation tab "Circuit Designer" | Tab | 1 | Route /circuit |
+| Toggle tutoriel "?" | Bouton icône | 1 | Ouvre TutorialOverlay |
+| **Total AppBar** | | **5** | |
+
+#### TOTAL GÉNÉRAL
+
+| Session type (5 nœuds sur canvas) | Éléments interactifs |
+|-------------------------------------|----------------------|
+| Fixes (palette, canvas controls, AppBar, status) | ~32 |
+| Variables (handles, nodes, param fields) | ~40–60 |
+| **TOTAL ESTIMÉ** | **~72–92** |
+
+**Règle de conception déduite :** L'interface est dense mais pas surchargée car les éléments variables (paramètres, handles) apparaissent en contexte — uniquement quand un nœud est sélectionné ou présent sur le canvas. La palette est le seul panneau toujours visible avec haute densité.
+
+**Principe directeur :** Reveal on need. Le panneau Properties reste vide (état "Sélectionnez un algorithme") jusqu'à sélection. L'AIExplanationPanel reste caché jusqu'à premier Explain.
+
+---
+
+### B. EFFETS DE CHAÎNE ET FLUIDITÉ — Animations ergonomiques
+
+#### Philosophie d'animation VAD
+Ne pas tomber dans le piège des outils no-code saturés (OpenClaw/Base44) qui n'ont aucun retour visuel. Ne pas non plus tomber dans l'excès d'Orange3 (aucune animation du tout). Trouver un équilibre : **chaque action importante a un retour visuel, les actions répétitives sont silencieuses.**
+
+#### Catalogue d'effets
+
+| Déclencheur | Animation | Durée | Implémentation |
+|-------------|-----------|-------|----------------|
+| Drop nœud sur canvas | `scale(0.8)→scale(1.0)` + `box-shadow` glow couleur catégorie | 200ms ease-out | CSS keyframe `@keyframes nodeDropIn` sur `.react-flow__node` |
+| Hover nœud | `scale(1.02)` + `box-shadow` elevation +4px | 150ms ease | CSS `:hover` sur `.algorithm-node` |
+| Handle hover (zone de connexion) | Pulsation `scale(1.0)→scale(1.4)→scale(1.0)` + couleur `--color-accent` | 600ms repeat | CSS `@keyframes handlePulse` sur `.react-flow__handle:hover` |
+| Edge créé (connexion réussie) | Edge animé SVG `strokeDashoffset` → 0 (ligne se dessine) | 400ms ease-in | `animated: true` + CSS `@keyframes drawEdge` |
+| Pipeline complet (tous connectés) | Tous les nœuds : border glow `--color-accent` permanent subtil | continu | Classe `.node-complete` ajoutée via `updateNode` |
+| Clic "Explain" | Ripple `@keyframes rippleOut` sur bouton + shimmer sur `AIExplanationPanel` | 300ms ripple, shimmer pendant loading | CSS + état `isLoading` dans composant |
+| Réponse AI reçue | `opacity: 0 → 1` + `translateY(8px → 0)` sur texte | 300ms ease-out | CSS `@keyframes textFadeIn` |
+| Nœud supprimé | `scale(1.0)→scale(0)` + `opacity: 1→0` | 200ms ease-in | Géré via `onNodesChange` + classe CSS |
+| Tour tutoriel step | Tooltip flotte vers le haut `translateY(-4px)→translateY(0)` | 300ms | CSS transition sur `TutorialOverlay` |
+| Download Workbook | Icône téléchargement spin 1× | 400ms | CSS `@keyframes downloadSpin` |
+
+#### Règles d'implémentation
+
+1. **Toutes les keyframes dans `palette.css`** — section dédiée `/* === ANIMATIONS === */`
+2. **Jamais de JavaScript pour les transitions hover** — CSS pur
+3. **JavaScript uniquement pour les animations d'état** (nodeDropIn, edgeDrawIn, textFadeIn) via ajout de classes CSS
+4. **Durées :** micro-interactions ≤ 200ms, transitions d'état 200–400ms, animations continues subtiles (≤ 3% de mouvement)
+5. **Respecter `prefers-reduced-motion`** — wrapper global dans `palette.css` :
+   ```css
+   @media (prefers-reduced-motion: reduce) {
+     *, *::before, *::after {
+       animation-duration: 0.01ms !important;
+       transition-duration: 0.01ms !important;
+     }
+   }
+   ```
+
+#### Implémentation @xyflow spécifique
+
+```typescript
+// Edge animé — appliqué à tous les edges lors de onConnect
+const onConnect = useCallback((params) => {
+  setEdges((eds) => addEdge({ ...params, animated: true, className: 'vad-edge' }, eds));
+}, []);
+```
+
+```typescript
+// Drop nœud — animation via classe CSS
+const onDrop = useCallback((event) => {
+  // ... screenToFlowPosition ...
+  const newNode = {
+    id: getId(),
+    type,
+    position,
+    data: { label: type, animating: true },
+    className: 'node-drop-in',
+  };
+  setNodes((nds) => nds.concat(newNode));
+  // Retire la classe après animation
+  setTimeout(() => {
+    setNodes((nds) =>
+      nds.map((n) => n.id === newNode.id ? { ...n, className: '' } : n)
+    );
+  }, 250);
+}, [screenToFlowPosition, type]);
+```
+
+#### Effets particules — Décision NON
+
+Les effets particules (sparkle burst sur connexion) sont séduisants mais :
+- Ajoutent ~15kB de librairie (react-particles / tsparticles)
+- Ralentissent sur machines d'étudiants (GPU limité)
+- Ont l'air "amateur" si mal calibrés
+- **Décision : SVG `<animateMotion>` léger sur connexion réussie** (cercle qui part de source vers target, 1 fois, 600ms) — via custom edge type `AnimatedConnectionEdge`. Implémenté en CSS/SVG pur, 0 librairie supplémentaire.
+
+---
+
+### C. AUTOMATISATION EXCEL — Export de workbooks H2O
+
+#### Justification
+Les étudiants en ML et data analysts vivent dans Excel. Un export workbook pré-rempli avec les plages de valeurs H2O est un différenciateur pratique fort. Aucun concurrent open-source (Orange3, Mercury, KNIME web) ne propose ça.
+
+#### Stack Excel côté client
+
+| Option | Stars | Licence | Bundle | Verdict |
+|--------|-------|---------|--------|---------|
+| **SheetJS (xlsx)** | 35k | Apache 2.0 | ~220kB (CDN) / ~120kB (tree-shaken) | ✅ CHOISI |
+| ExcelJS | 12k | MIT | ~400kB | Trop lourd pour MVP |
+| Luckysheet | 15k | MIT | >1MB + serveur | Éditeur complet, overkill |
+
+```bash
+npm install xlsx
+# Ajout dans ReaAaS-N-frontend/package.json
+```
+
+#### Architecture workbookExporter.ts
+
+```typescript
+// services/workbookExporter.ts
+import * as XLSX from 'xlsx';
+
+export interface WorkbookTemplate {
+  algorithmId: string;
+  algorithmName: string;
+  params: Array<{
+    name: string;
+    type: 'integer' | 'float' | 'boolean' | 'enum';
+    defaultValue: number | boolean | string;
+    minValue?: number;
+    maxValue?: number;
+    description: string;
+  }>;
+}
+
+export function generateWorkbook(template: WorkbookTemplate): void {
+  const wb = XLSX.utils.book_new();
+
+  // Feuille 1 : Paramètres avec plages
+  const paramsData = [
+    ['Paramètre', 'Valeur par défaut', 'Min', 'Max', 'Type', 'Description'],
+    ...template.params.map((p) => [
+      p.name,
+      p.defaultValue,
+      p.minValue ?? '',
+      p.maxValue ?? '',
+      p.type,
+      p.description,
+    ]),
+  ];
+  const wsParams = XLSX.utils.aoa_to_sheet(paramsData);
+  XLSX.utils.book_append_sheet(wb, wsParams, 'Paramètres H2O');
+
+  // Feuille 2 : Grid d'expérimentation (5 runs vides)
+  const gridHeaders = ['Run #', ...template.params.map((p) => p.name), 'Score (AUC)', 'Notes'];
+  const gridData = [
+    gridHeaders,
+    ...Array.from({ length: 5 }, (_, i) => [i + 1, ...template.params.map((p) => p.defaultValue), '', '']),
+  ];
+  const wsGrid = XLSX.utils.aoa_to_sheet(gridData);
+  XLSX.utils.book_append_sheet(wb, wsGrid, 'Expériences');
+
+  XLSX.writeFile(wb, `${template.algorithmName}_params.xlsx`);
+}
+```
+
+#### Workbooks pré-définis Lot 1 (F15)
+
+| Algorithme | Paramètres inclus | Feuilles |
+|------------|-------------------|---------|
+| GBM | ntrees, max_depth, learn_rate, sample_rate, col_sample_rate | Paramètres + Expériences |
+| Random Forest | ntrees, max_depth, mtries, sample_rate, nbins | Paramètres + Expériences |
+| GLM | alpha, lambda, solver, standardize, family | Paramètres + Expériences |
+| Deep Learning | epochs, hidden, rate, activation, dropout_ratio | Paramètres + Expériences |
+| K-Means | k, max_iterations, init, seed, estimate_k | Paramètres + Expériences |
+| AutoML | max_models, max_runtime_secs, include_algos, sort_metric, seed | Paramètres + Expériences |
+
+**Point d'entrée UI :** Bouton "Télécharger Workbook Excel" dans `AlgorithmPropertiesPanel`, section footer. Icône `DownloadIcon` (MUI). Déclenché uniquement quand un algorithme est sélectionné.
+
+---
+
+### D. SYSTÈME DE TUTORIEL — Réactif et non-intrusif
+
+#### Philosophie : Tutoriel contextuel vs modal overlay
+
+| Approche | Pros | Cons | Verdict |
+|----------|------|------|---------|
+| Modal overlay (Shepherd.js) | Facile, 5min setup | Bloque canvas, obscure le contexte | ❌ |
+| Vidéo tutorial | Complet | Statique, pas réactif | ❌ |
+| **Tooltip flottant contextuel** | Ancré aux vrais éléments, non-bloquant | Plus complexe à implémenter | ✅ CHOISI |
+| Highlight overlay + tooltip | Mix — highlight zone + tooltip | Librairie driver.js 5kB | ✅ OPTION BONUS |
+
+#### Architecture TutorialOverlay.tsx
+
+```typescript
+// components/AlgorithmDesigner/TutorialOverlay.tsx
+// État dans AlgorithmDesignerPage (local state)
+const [tutorialStep, setTutorialStep] = useState<number | null>(null);
+
+// Initialisation — premier visite
+useEffect(() => {
+  const seen = localStorage.getItem('vad_tutorial_seen');
+  if (!seen) setTutorialStep(0);
+}, []);
+
+const TUTORIAL_STEPS = [
+  {
+    targetAttr: 'data-tutorial-palette',    // attribut sur AlgorithmPalette
+    message: 'Glissez un algorithme depuis ici vers le canvas →',
+    position: 'right',
+  },
+  {
+    targetAttr: 'data-tutorial-canvas',     // attribut sur AlgorithmCanvas vide
+    message: 'Déposez l\'algorithme ici pour créer un nœud',
+    position: 'center',
+  },
+  {
+    targetAttr: 'data-tutorial-handle',     // attribut sur premier handle nœud
+    message: 'Connectez deux nœuds en tirant ce point vers un autre nœud',
+    position: 'right',
+  },
+  {
+    targetAttr: 'data-tutorial-properties', // attribut sur PropertiesPanel
+    message: 'Configurez les paramètres H2O de l\'algorithme sélectionné',
+    position: 'left',
+  },
+  {
+    targetAttr: 'data-tutorial-explain',    // attribut sur bouton Explain
+    message: 'Cliquez pour obtenir une explication IA de votre pipeline',
+    position: 'top',
+  },
+];
+```
+
+#### Avancement automatique du tutoriel
+
+Le tutoriel est **réactif** : il avance seul quand l'utilisateur effectue l'action attendue.
+
+| Step | Action attendue | Déclencheur |
+|------|----------------|-------------|
+| 0 (Palette) | Drag d'un algo depuis palette | `onDragStart` dans AlgorithmPalette |
+| 1 (Canvas vide) | Drop sur canvas | `onDrop` dans AlgorithmCanvas |
+| 2 (Handle) | Début connexion (mousedown sur handle) | `onConnectStart` de @xyflow |
+| 3 (Properties) | Nœud sélectionné | `onSelectionChange` de @xyflow |
+| 4 (Explain) | Clic "Explain" | `onClick` sur ExplainButton |
+
+```typescript
+// Complétion automatique du tutoriel
+useEffect(() => {
+  if (tutorialStep === TUTORIAL_STEPS.length) {
+    localStorage.setItem('vad_tutorial_seen', 'true');
+    setTutorialStep(null); // Ferme le tutoriel
+  }
+}, [tutorialStep]);
+```
+
+#### Styling TutorialOverlay (palette.css)
+
+```css
+/* === TUTORIAL === */
+.tutorial-tooltip {
+  position: fixed;
+  z-index: 9999;
+  background: var(--color-surface-alt);
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  max-width: 240px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  animation: tooltipFloat 300ms ease-out;
+}
+
+.tutorial-skip {
+  display: block;
+  margin-top: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  text-align: right;
+}
+```
+
+**Bouton "?" dans AppBar** — rouvre le tutoriel depuis l'étape 0 si l'utilisateur veut revoir. `localStorage.removeItem('vad_tutorial_seen')` + `setTutorialStep(0)`.
+
+---
+
+### E. DISPOSITION IDE 3-PANNEAUX — Style VS Code / DevTools
+
+#### Analyse des IDEs de référence
+
+| IDE / Outil | Disposition | Raccourcis | Resizable | Persistent |
+|-------------|-------------|-----------|-----------|-----------|
+| VS Code | 3 panneaux (Activity+Sidebar+Editor+Panel) | Ctrl+B sidebar, Ctrl+J terminal | Oui, drag | Workspace settings |
+| Chrome DevTools | Tabs + panneau bottom | Ctrl+Shift+J | Oui | Oui |
+| Figma | Left palette + canvas + right properties | Ctrl+\ hide UI | Oui | Non |
+| Orange3 (concurrent) | Left category + canvas + right params | Aucun | Non | Non |
+
+**Notre cible :** VS Code / Figma pattern — **palette gauche + canvas centre + propriétés droite**, sans panneau bottom qui bloquerait la canvas (sauf status bar 32px).
+
+#### Implémentation CSS Grid + react-resizable-panels
+
+```typescript
+// F17 — npm install react-resizable-panels
+// Docs: https://github.com/bvaughn/react-resizable-panels (3.5k stars, MIT)
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+
+// Dans AlgorithmDesignerPage.tsx
+<PanelGroup direction="horizontal" onLayout={saveLayout} autoSaveId="vad-layout">
+  <Panel defaultSize={22} minSize={15} maxSize={35} id="palette">
+    <AlgorithmPalette />
+  </Panel>
+  <PanelResizeHandle className="resize-handle" />
+  <Panel defaultSize={56} minSize={30} id="canvas">
+    <AlgorithmCanvas />
+  </Panel>
+  <PanelResizeHandle className="resize-handle" />
+  <Panel defaultSize={22} minSize={15} maxSize={40} id="properties">
+    <AlgorithmPropertiesPanel />
+    <AIExplanationPanel />
+  </Panel>
+</PanelGroup>
+```
+
+**Fallback sans react-resizable-panels (Phase 1 MVP) :** CSS Grid fixe `grid-template-columns: 240px 1fr 300px`. Migration vers react-resizable-panels en Phase 2.
+
+#### Raccourcis clavier (F18)
+
+| Raccourci | Action | Référence |
+|-----------|--------|-----------|
+| `Ctrl+B` | Toggle panneau gauche (palette) | VS Code |
+| `Ctrl+J` | Toggle panneau droit (properties) | VS Code |
+| `Ctrl+Shift+E` | Focus palette search | VS Code Explorer |
+| `Delete` | Supprimer nœud/edge sélectionné | @xyflow natif |
+| `Ctrl+Z` | Undo (Phase 2) | Universel |
+| `Ctrl+S` | Sauvegarder pipeline | Universel |
+| `Ctrl+Shift+P` | Command palette (Phase 2) | VS Code |
+| `Escape` | Désélectionner tout | @xyflow natif |
+| `?` | Ouvrir tutoriel | VAD-specific |
+
+```typescript
+// useKeyboardShortcuts.ts (hook dédié)
+useEffect(() => {
+  const handler = (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key === 'b') {
+      e.preventDefault();
+      toggleLeftPanel();
+    }
+    if (e.ctrlKey && e.key === 'j') {
+      e.preventDefault();
+      toggleRightPanel();
+    }
+    if (e.ctrlKey && e.key === 's') {
+      e.preventDefault();
+      savePipeline();
+    }
+  };
+  window.addEventListener('keydown', handler);
+  return () => window.removeEventListener('keydown', handler);
+}, [toggleLeftPanel, toggleRightPanel, savePipeline]);
+```
+
+#### Persistence des layouts (localStorage)
+
+```typescript
+// autoSaveId="vad-layout" dans PanelGroup = persistence automatique
+// react-resizable-panels gère nativement via localStorage
+// Clés : "react-resizable-panels:vad-layout"
+```
+
+#### Status Bar (F20)
+
+```tsx
+// StatusBar.tsx — barre 32px en bas
+<Box component="footer" sx={{
+  height: 32,
+  bgcolor: 'var(--color-surface-alt)',
+  borderTop: '1px solid var(--color-border)',
+  display: 'flex',
+  alignItems: 'center',
+  px: 2,
+  gap: 3,
+  fontSize: 'var(--font-size-xs)',
+  color: 'var(--color-text-secondary)',
+}}>
+  <span>Nœuds: {nodeCount}</span>
+  <span>Connexions: {edgeCount}</span>
+  <span>Explain: {lastLatency ? `${lastLatency}ms` : '—'}</span>
+  <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+    <Circle sx={{ fontSize: 8, color: isConnected ? '#4CAF50' : '#F44336' }} />
+    <span>{isConnected ? 'Connecté' : 'Hors ligne'}</span>
+  </Box>
+</Box>
+```
+
+---
+
+### F. DIFFÉRENCIATION MARCHÉ — Éviter les pièges des outils du moment
+
+#### Analyse des outils à éviter de cloner
+
+| Outil | Pattern typique | Ce qu'il manque | Notre différence |
+|-------|----------------|-----------------|-----------------|
+| **Base44** | Box générique + form CRUD blanc | Aucun contexte domaine, pas d'animation, interface plate | Nœuds ML conscients de leur domaine, thème sombre cosmique |
+| **OpenClaw** | Workflow rectangles + arrows + config sidebar | Generic, pas d'IA intégrée, UX 2015 | AI explanation inline, palette thématique |
+| **Hermes** | Agent builder, blocs colorés basiques | Requiert compte, focus LLM uniquement, pas de ML statistique | Accès anonyme, catalogue H2O statistique + DL |
+| **Mercury (mljar)** | Notebook → webapp, sidebar widgets | Pas visuel pipeline, pas drag-drop nodes | Interface canvas pipeline, drag-drop natif |
+| **n8n** | Workflow automation, centré intégrations | Pas ML, pas paramètres statistiques, trop technique | Focus éducatif ML, paramètres documentés inline |
+| **Orange3** | Visual ML desktop app Python | Desktop non-web, UI 2010, aucune animation, pas d'IA | Web-native, dark cosmic, AI explanation, animations |
+
+#### Les 6 différenciateurs VAD non-copiables en 1 sprint
+
+1. **Thème cosmique sombre** — Immédiatement distinct de 100% des concurrents qui sont blancs/gris. Première impression mémorable. `--color-surface: #1A1B2E`, `--color-primary: #3D8A88`.
+
+2. **Nœuds ML contextuels** — Chaque nœud connaît sa catégorie (Supervised/Unsupervised/AutoML), ses paramètres par défaut H2O réels, et sa couleur. Pas un bloc générique renommé "GBM".
+
+3. **AI Explanation inline** — L'explication Groq/Llama apparaît dans l'interface, pas dans une fenêtre externe. "Pourquoi GBM → GLM dans ce pipeline ?" directement visible.
+
+4. **Paramètres H2O documentés inline** — Dans le PropertiesPanel, chaque paramètre affiche sa description RST extraite de h2o-3. Pas de lien externe, pas de documentation séparée.
+
+5. **Excel workbook intégré** — Export en 1 clic d'un workbook structuré pour documenter ses expériences. Bridge avec l'outillage académique existant.
+
+6. **Zéro login en Phase 1** — Core loop fonctionnel sans compte. Réduction du friction maximal. Mercury exige un deploy, Base44 exige un compte, Orange3 exige Python installé.
+
+#### Ce que nous NE faisons PAS (pour ne pas copier le mauvais pattern)
+
+```
+❌ Pas de sidebar à onglets multiples comme n8n (complexité de navigation)
+❌ Pas de marketplace de plugins dès Phase 1 (scope creep)
+❌ Pas de collaboration temps-réel dès Phase 1 (overkill, @xyflow Pro)
+❌ Pas de light mode dès Phase 1 (effort double de design)
+❌ Pas d'export PNG/SVG dès Phase 1 (utile mais pas dans core loop)
+❌ Pas de version history UI dès Phase 1 (complexity)
+```
+
+---
+
+### G. ALTERNATIVES À H2O — Analyse comparative bibliothèques
+
+#### Pourquoi rester sur H2O pour le catalogue
+
+| Critère | H2O.ai | scikit-learn | MLflow | Orange3 | PyCaret | Weka |
+|---------|--------|-------------|--------|---------|---------|------|
+| Documentation paramètres en RST/structurée | ✅ GitHub RST | ✅ docstrings Python | ❌ tracking only | ✅ XML schemas | ⚠️ README | ✅ Java Javadoc |
+| Licence scraping | ✅ Apache 2.0 | ✅ BSD-3 | ✅ Apache 2.0 | ✅ GPL-3 | ✅ MIT | ⚠️ GPL-3 |
+| Couverture algorithmes ML | ✅ 25+ algos | ✅ 50+ algos | ❌ (pas d'algos) | ✅ 20+ | ✅ 30+ | ✅ 40+ |
+| Format param exploitable | ✅ RST structuré | ⚠️ Docstrings Python (variable) | N/A | ⚠️ XML interne | ⚠️ README | ⚠️ XML |
+| Facilité d'extraction | ✅ `raw.githubusercontent.com` | ⚠️ Sphinx autodoc | N/A | ❌ Pas de format central | ❌ Dispersé | ❌ Complexe |
+| Audience cible (éducation) | ✅ AutoML académique | ✅ Cours ML universel | ❌ DataOps | ✅ Académique | ⚠️ Compétition ML | ✅ Académique |
+
+**Conclusion : H2O reste le meilleur choix** pour sa documentation RST structurée et accessible via GitHub raw URLs. Toutefois, une **extension Phase 2 avec scikit-learn** est envisageable via extraction des docstrings Python avec `ast.parse()`.
+
+#### Orange3 — Analyse détaillée (concurrent direct)
+
+- **GitHub :** https://github.com/biolab/orange3 — 5k stars, actif, Python/Qt desktop
+- **Interface :** Canvas visual drag-drop (widgets = nœuds), connexions entre widgets
+- **Forces :** Large catalogue, documenté, académique
+- **Faiblesses critiques :**
+  - Desktop uniquement (PyQt5) — pas de web
+  - UX datée (2010-style, flat gray, aucune animation)
+  - Aucune IA explicative intégrée
+  - Installation Python requise (barrière pour non-tech)
+  - Pas de thème sombre
+- **Ce qu'on emprunte :** Métaphore "widget = algorithm node with inputs/outputs"
+- **Ce qu'on améliore :** Web-native, dark, AI, animations, Excel export
+
+#### Scikit-learn — Potentiel Phase 2
+
+```typescript
+// Futur: services/sklearnCatalog.ts
+// Source: https://scikit-learn.org/stable/modules/classes.html
+// Extraction: fetch HTML + parser les paramètres depuis les docstrings
+// ~50 estimateurs → GradientBoostingClassifier, RandomForestClassifier, SVC, KMeans...
+// Avantage: couverture universelle, reconnu dans tous les cours ML
+```
+
+---
+
+### H. ANNEXE — SCRAPING RST H2O GITHUB
+
+#### Approche validée
+
+```
+URL pattern: https://raw.githubusercontent.com/h2oai/h2o-3/master/h2o-docs/src/product/data-science/algo-params/{param}.rst
+Status: ✅ Confirmé fonctionnel (alpha.rst testé et contenu extrait)
+Licence: Apache 2.0 — usage éducatif et attribution permis
+```
+
+#### Script de scraping — F19
+
+```javascript
+// scripts/scrape-h2o-params.js (Node.js, exécuté une fois en dev)
+// Produit: src/data/h2oParams/{param}.json
+
+const BASE_URL = 'https://raw.githubusercontent.com/h2oai/h2o-3/master/h2o-docs/src/product/data-science/algo-params';
+
+// Format RST → JSON extraction
+function parseRST(content, paramName) {
+  const result = {
+    name: paramName,
+    availableIn: [],
+    hyperparameter: false,
+    description: '',
+    relatedParams: [],
+    defaultValue: null,
+  };
+
+  // Available in: "GLM, GBM, DRF"
+  const availMatch = content.match(/Available in:\s*([^\n]+)/);
+  if (availMatch) {
+    result.availableIn = availMatch[1].split(',').map((s) => s.trim());
+  }
+
+  // Hyperparameter: "Y" or "N"
+  const hyperMatch = content.match(/Hyperparameter:\s*([YN])/i);
+  if (hyperMatch) {
+    result.hyperparameter = hyperMatch[1].toUpperCase() === 'Y';
+  }
+
+  // Description: texte entre "Description" et "Related Parameters" ou "Example"
+  const descMatch = content.match(/Description\n[-=]+\n([\s\S]*?)(?:\nRelated Parameters|\nExample)/);
+  if (descMatch) {
+    result.description = descMatch[1].trim().replace(/\s+/g, ' ');
+  }
+
+  // Related parameters: "- `lambda`_\n- `solver`_\n"
+  const relatedMatch = content.match(/Related Parameters\n[-=]+\n([\s\S]*?)(?:\nExample|$)/);
+  if (relatedMatch) {
+    const matches = relatedMatch[1].matchAll(/`([^`]+)`_/g);
+    result.relatedParams = Array.from(matches, (m) => m[1]);
+  }
+
+  return result;
+}
+```
+
+#### Liste complète des RST à scraper (Lot 1 — 30 paramètres prioritaires)
+
+Les 30 paramètres les plus utilisés pour les 6 algorithmes du Lot 1 :
+
+```
+alpha, balance_classes, col_sample_rate, col_sample_rate_per_tree,
+distribution, early_stopping, family, fold_column, ignore_const_cols,
+k, keep_cross_validation_models, lambda, lambda_search, learn_rate,
+learn_rate_annealing, max_depth, max_models, max_runtime_secs,
+min_rows, missing_values_handling, mtries, nbins, nfolds, ntrees,
+sample_rate, seed, sort_metric, standardize, stopping_metric, stopping_rounds
+```
+
+**Lot 2 (Phase 2) :** Les 80+ paramètres restants de la liste complète fournie.
+
+#### Intégration dans algorithmCatalog.ts
+
+```typescript
+// Après scraping, les JSON sont importés statiquement
+// services/algorithmCatalog.ts
+
+import alphaParam from '../data/h2oParams/alpha.json';
+import ntreesParam from '../data/h2oParams/ntrees.json';
+// ...
+
+export const H2O_PARAMS: Record<string, H2OParamDef> = {
+  alpha: alphaParam,
+  ntrees: ntreesParam,
+  // ...
+};
+
+// Chaque AlgorithmNode référence ses paramètres par nom
+export const GBM_ALGORITHM: AlgorithmDef = {
+  id: 'gbm',
+  name: 'Gradient Boosting Machine',
+  category: 'supervised',
+  params: ['ntrees', 'max_depth', 'learn_rate', 'sample_rate', 'col_sample_rate'],
+};
+```
+
+---
+
+### Nouvelles Tâches Phase 7-2 (suite de la série F)
+
+- [ ] F14. Installer `xlsx` (SheetJS) dans `ReaAaS-N-frontend/package.json` — `npm install xlsx`
+- [ ] F15. Créer `services/workbookExporter.ts` — generateWorkbook() avec templates Lot 1
+- [ ] F16. Créer `components/AlgorithmDesigner/TutorialOverlay.tsx` — 5 étapes réactives
+- [ ] F17. Installer `react-resizable-panels` — `npm install react-resizable-panels`
+- [ ] F18. Créer `hooks/useKeyboardShortcuts.ts` — Ctrl+B, Ctrl+J, Ctrl+S
+- [ ] F19. Créer `scripts/scrape-h2o-params.js` — scraping RST → JSON (exécuté une fois)
+- [ ] F20. Créer `components/AlgorithmDesigner/StatusBar.tsx` — nodeCount, edgeCount, latency
+- [ ] F21. Ajouter section `/* === ANIMATIONS === */` dans `palette.css` — nodeDropIn, handlePulse, drawEdge, textFadeIn, rippleOut
+
+---
+
+### Stack — Validations Complémentaires Phase 7-2 (26 avril 2026)
+
+| Décision | Validation | Source |
+|----------|------------|--------|
+| SheetJS (xlsx) pour export Excel | ✅ 35k stars, Apache 2.0, client-side, tree-shakeable | npmjs.com |
+| react-resizable-panels pour panels redimensionnables | ✅ 3.5k stars, MIT, zero deps, autoSave localStorage | github.com/bvaughn |
+| Tutoriel contextuel (custom) vs Shepherd.js | ✅ Custom léger préféré — pas de 15kB dépendance externe | decision locale |
+| CSS @keyframes pour toutes les animations | ✅ 0 lib JS animation (Framer Motion overkill pour MVP) | perf budget |
+| SVG `<animateMotion>` pour effet connexion | ✅ Native SVG, 0 lib, compatible @xyflow BaseEdge | xyflow docs |
+| H2O RST scraping via raw.githubusercontent.com | ✅ Confirmé fonctionnel, Apache 2.0 | test live |
+| Orange3 étudié comme concurrent direct | ✅ Analysé: web-native + AI = différenciateurs absents chez Orange3 | github.com/biolab |
+| Scikit-learn en catalogue Phase 2 (pas Phase 1) | ✅ Scope Phase 1 = H2O seulement, extension planifiée | singularité Phase 1 |
+
+**Décisions nouvelles IRRÉVERSIBLES Phase 7-2 :**
+- SheetJS (xlsx) = librairie Excel client — pas de génération backend
+- Tutoriel = état local dans AlgorithmDesignerPage, pas de store global
+- `react-resizable-panels` = Phase 1 optionnel (fallback CSS Grid fixe acceptable pour MVP)
+- Animations = CSS keyframes dans palette.css — jamais Framer Motion en Phase 1
+- Script scraping RST = exécuté une seule fois en dev, résultat committé en JSON statique
