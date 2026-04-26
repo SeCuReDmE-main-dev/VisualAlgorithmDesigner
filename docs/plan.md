@@ -1680,3 +1680,685 @@ export const GBM_ALGORITHM: AlgorithmDef = {
 - `react-resizable-panels` = Phase 1 optionnel (fallback CSS Grid fixe acceptable pour MVP)
 - Animations = CSS keyframes dans palette.css — jamais Framer Motion en Phase 1
 - Script scraping RST = exécuté une seule fois en dev, résultat committé en JSON statique
+
+---
+
+## PHASE 7-3 — AZ-FRONTEND : MÉMOIRE IA, PRÉVENTION DES BOUCLES ET SYSTÈME RAG
+
+> Date analyse : 26 avril 2026  
+> Contexte : Troisième couche d'analyse frontend. Couvre l'architecture mémoire pour l'agent IA, le mécanisme anti-boucle (loopback guard), l'évaluation de 4 approches (OpenClaw/Hermes, Codex, VS Code, custom), le choix du système RAG, et l'alimentation du backend mémoire.
+
+---
+
+### A. CLARIFICATION — LoopBack Next vs Loopback Mechanism
+
+Le lien fourni ([github.com/loopbackio/loopback-next](https://github.com/loopbackio/loopback-next)) pointe vers **LoopBack 4** — un framework REST API TypeScript d'IBM (5.1k stars, MIT, actif). Ce n'est **pas** un système de mémoire IA.
+
+**Ce que LoopBack Next EST :**
+- Framework Node.js/TypeScript pour construire des APIs REST
+- Système IoC/DI (Inversion of Control) avec `@inject`, `@bind`, `Context`
+- Pattern Repository pour la persistance (LoopBack Repository = interface générique)
+- Intercepteurs de requêtes (Request Interceptor Chain)
+
+**Ce que LoopBack Next N'EST PAS :**
+- Un système de mémoire IA
+- Un garde anti-boucle pour agents
+- Un framework RAG
+
+**Décision concernant LoopBack Next :**
+
+| Question | Réponse |
+|----------|---------|
+| Remplacer Express par LoopBack 4 ? | ❌ — Refactoring massif, risque B-series, Express déjà en stack |
+| Utiliser LoopBack 4 comme inspiration architecturale ? | ✅ — Ses patterns IoC, intercepteurs, et Repository sont excellents à copier |
+| Utiliser LoopBack 4 dans Phase 2 si backend devient complexe ? | ✅ — Option viable si l'API dépasse 15 endpoints |
+
+**Ce qu'on emprunte de LoopBack sans l'adopter :**
+1. Pattern **Context Interceptor** → implémenté comme middleware Express pour logger chaque appel IA
+2. Pattern **Repository** → `MemoryRepository` interface générique pour découpler le stockage
+3. Pattern **Service Binding** → `memoryService` injecté comme propriété dans le router Express
+
+---
+
+### B. SCHÉMA LOOPBACK — Mécanisme anti-boucle pour l'agent IA
+
+#### Le problème : Boucles infinies dans les pipelines IA
+
+Sans garde, un agent IA (Groq + Llama) peut appeler la même fonction à l'infini :
+
+```
+Appel 1: explainGBM("ntrees=100") → "Appelle aussi explainGBM pour ntrees=50"
+Appel 2: explainGBM("ntrees=50")  → "Appelle aussi explainGBM pour ntrees=100"
+→ BOUCLE INFINIE → Erreur Groq rate limit + UX bloquée
+```
+
+#### Solution : Visited-Set + Iteration Cap (pattern ReAct guard)
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    AI PIPELINE CALL FLOW                             │
+│                                                                      │
+│  Frontend                 Express                  Groq              │
+│  ─────────                ───────                  ────              │
+│  [Explain] ──POST────────→ /api/ai/explain-pipeline                 │
+│                               │                                      │
+│                         ┌─────▼──────────────────────────────┐     │
+│                         │   AIPipelineService                 │     │
+│                         │                                     │     │
+│                         │  callStack = new Set<string>()      │     │
+│                         │  iteration = 0                      │     │
+│                         │  MAX_ITER = 5                       │     │
+│                         │                                     │     │
+│                         │  ┌─────────────────────────────┐   │     │
+│                         │  │  LOOP                       │   │     │
+│                         │  │  ──────                     │   │     │
+│                         │  │  1. Build prompt + memories  │   │     │
+│                         │  │  2. Call Groq ─────────────────────→  │
+│                         │  │                             │   │     │
+│                         │  │  3. Groq returns toolCall ? │   │←───  │
+│                         │  │     ↓ YES                   │   │     │
+│                         │  │  4. funcKey = name+args     │   │     │
+│                         │  │  5. callStack.has(funcKey)? │   │     │
+│                         │  │     ↓ YES → BREAK (loop!)   │   │     │
+│                         │  │     ↓ NO  → callStack.add   │   │     │
+│                         │  │  6. Execute tool            │   │     │
+│                         │  │  7. iteration++             │   │     │
+│                         │  │  8. iteration >= MAX? BREAK │   │     │
+│                         │  └─────────────────────────────┘   │     │
+│                         │                                     │     │
+│                         │  9. Save to MemoryService           │     │
+│                         └─────────────────────────────────────┘     │
+│                               │                                      │
+│  ←──────────────────── response { explanation, memories }           │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+#### Implémentation — `services/aiPipelineService.ts` (backend)
+
+```typescript
+// ReaAaS-N-backend/services/aiPipelineService.ts
+
+interface PipelineCall {
+  name: string;
+  args: Record<string, unknown>;
+}
+
+const MAX_ITERATIONS = 5;
+
+export async function explainPipeline(
+  pipeline: AlgorithmNode[],
+  userId: string,
+  memoryService: MemoryRepository
+): Promise<{ explanation: string; iterationsUsed: number }> {
+
+  // 1. Récupérer les souvenirs pertinents
+  const memories = await memoryService.search(
+    `pipeline ${pipeline.map((n) => n.algorithmId).join(' ')}`,
+    userId
+  );
+
+  // 2. Construire le prompt avec les souvenirs
+  const systemPrompt = buildSystemPrompt(memories);
+  const userPrompt = buildPipelinePrompt(pipeline);
+
+  // 3. Garde anti-boucle
+  const callStack = new Set<string>();
+  const messages: Message[] = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt },
+  ];
+
+  let iteration = 0;
+  let finalExplanation = '';
+
+  while (iteration < MAX_ITERATIONS) {
+    const response = await groq.chat.completions.create({
+      model: 'llama-3.1-8b-instant',
+      messages,
+      tools: PIPELINE_TOOLS, // outils disponibles (getAlgoDetails, compareAlgos...)
+    });
+
+    const choice = response.choices[0];
+
+    // Pas de tool call = réponse finale
+    if (!choice.message.tool_calls?.length) {
+      finalExplanation = choice.message.content ?? '';
+      break;
+    }
+
+    // Traitement des tool calls
+    for (const toolCall of choice.message.tool_calls) {
+      const funcKey = `${toolCall.function.name}:${toolCall.function.arguments}`;
+
+      // GARDE ANTI-BOUCLE : même appel détecté → arrêt propre
+      if (callStack.has(funcKey)) {
+        finalExplanation = buildFallbackExplanation(pipeline, messages);
+        iteration = MAX_ITERATIONS; // Force la sortie
+        break;
+      }
+
+      callStack.add(funcKey);
+      const toolResult = await executeToolCall(toolCall);
+
+      messages.push(
+        { role: 'assistant', content: null, tool_calls: [toolCall] },
+        { role: 'tool', tool_call_id: toolCall.id, content: toolResult }
+      );
+    }
+
+    iteration++;
+  }
+
+  // 4. Sauvegarder en mémoire
+  await memoryService.add(userId, {
+    pipeline: pipeline.map((n) => n.algorithmId),
+    explanation: finalExplanation,
+    timestamp: Date.now(),
+  });
+
+  return { explanation: finalExplanation, iterationsUsed: iteration };
+}
+```
+
+---
+
+### C. SYSTÈME MÉMOIRE — Évaluation des 4 approches
+
+#### Approche 1 : Pattern OpenClaw / Hermes
+
+**Comment OpenClaw/Hermes gèrent la mémoire :**
+- Actions de l'agent enregistrées dans une DB relationnelle (historique linéaire)
+- Mémoire = liste ordonnée de (action, résultat) injectée en début de prompt
+- Déduplication : simple hash de l'action, skip si déjà vu dans la session
+- Pas de vectorisation, pas de sémantique — simple lookup exact
+
+| Aspect | OpenClaw/Hermes | Pour VAD |
+|--------|----------------|---------|
+| Complexité | Faible | ✅ Bon |
+| Pertinence retrieval | Faible (lookup exact) | ❌ Manque de sémantique |
+| Persistance multi-session | Variable | ❌ Souvent session-only |
+| Différenciation | Médiocre UX répétitive | ❌ L'utilisateur repose les mêmes questions |
+
+**Verdict : Éviter** — Pas de vraie mémoire sémantique, utilisateur se répète.
+
+---
+
+#### Approche 2 : Pattern Codex App (OpenAI)
+
+**Comment Codex gère la mémoire :**
+- Stateless per call — tout le contexte (fichiers workspace, historique) est envoyé à chaque appel
+- Pas de persistance cross-session native (version de base)
+- Compression via summary: quand le contexte dépasse la fenêtre, un résumé est généré
+- Fort sur le contexte workspace (fichiers) — faible sur l'historique utilisateur long terme
+
+| Aspect | Codex | Pour VAD |
+|--------|-------|---------|
+| Complexité | Très faible | ✅ |
+| Coût tokens | Très élevé | ❌ Groq free tier limité (14,400 RPD) |
+| Mémoire long terme | ❌ Absente | ❌ |
+| Personnalisation | Faible | ❌ |
+
+**Verdict : Éviter** — Coût tokens prohibitif avec Groq free tier. Pas de mémoire persistante.
+
+---
+
+#### Approche 3 : Pattern VS Code (GitHub Copilot Chat)
+
+**Comment Copilot Chat gère la mémoire :**
+- Conversation window = contexte de session (4K–16K tokens selon modèle)
+- Workspace context = fichiers ouverts, symboles détectés (pas de mémoire user)
+- Mémoire cross-session = absente (chaque chat démarre vierge)
+- `copilot-instructions.md` = mémoire statique pré-définie (pas dynamique)
+
+| Aspect | VS Code Copilot | Pour VAD |
+|--------|----------------|---------|
+| Contexte session | Bon (rolling window) | ✅ À copier |
+| Mémoire long terme user | ❌ Absente | ❌ |
+| Accès workspace (fichiers) | ✅ Fort | N/A (notre workspace = pipelines, pas code) |
+| Personnalisation | Faible | ❌ |
+
+**Ce qu'on emprunte du pattern VS Code :**
+- **Rolling window** de la session courante → `sessionMessages[]` dans le service
+- **Instructions statiques** (`copilot-instructions.md` pattern) → `systemPrompt` construit depuis H2O param docs + user prefs
+- Pas le reste.
+
+**Verdict : Emprunter le rolling window, rejeter le reste.**
+
+---
+
+#### Approche 4 : Solution custom (notre recommandation)
+
+**Architecture recommandée pour VAD Phase 1 :**
+
+```
+Mémoire légère 100% Node.js :
+  - Stockage : SQLite via better-sqlite3 (0 Python, 0 Docker, 0 infra)
+  - Recherche : MiniSearch (BM25 text search, pure JS, 6kB gzip)
+  - Structure : 3 tables (user_memories, session_context, pipeline_history)
+  - API : MemoryRepository interface (swappable → Mem0 en Phase 2)
+```
+
+Pas de dépendance externe gérée, pas de Python, tourne sur Express immédiatement.
+
+---
+
+### D. COMPARAISON DES SYSTÈMES DE MÉMOIRE IA
+
+| Système | Stars | Licence | SDK JS/TS | Self-host | Coût | MVP fit |
+|---------|-------|---------|-----------|-----------|------|---------|
+| **Mem0 OSS** | 54k | Apache 2.0 | ✅ `npm install mem0ai` | ✅ Docker | Gratuit OSS | ✅ Phase 2 |
+| **Zep Cloud** | 4.5k | Apache 2.0 | ✅ `@getzep/zep-cloud` | ❌ Cloud only | Free tier | ✅ Phase 2 |
+| **LangChain.js** | 13k | MIT | ✅ `@langchain/core` | ✅ | Gratuit | ⚠️ Lourd |
+| **Custom SQLite+MiniSearch** | N/A | MIT | ✅ natif Node.js | ✅ | Gratuit | ✅ **Phase 1** |
+| **Pinecone** | — | Propriétaire | ✅ | ❌ Cloud | $70/mo | ❌ Overkill |
+
+#### Pourquoi Mem0 pour Phase 2 (pas Phase 1)
+
+**Mem0** (54k stars, YC S24, actif — dernière release il y a 13h au 26 avril 2026) :
+- `npm install mem0ai` — SDK TypeScript disponible
+- Multi-level memory : User (cross-session) + Session + Agent state
+- Algorithme April 2026 : 93.4% accuracy sur LongMemEval
+- Self-hosted via Docker : `cd server && docker compose up -d`
+- Intègre avec OpenAI, Groq, Anthropic, Ollama
+
+**Pourquoi Phase 2 :** nécessite Docker pour le self-hosted ou une clé API cloud. Pour Phase 1 MVP sur machine locale, notre SQLite+MiniSearch suffit et respecte le principe "boring technology".
+
+#### Pourquoi Zep pour Phase 2 (option alternative Mem0)
+
+**Zep** (getzep.com) :
+- Temporal knowledge graph (Graphiti, open source)
+- <200ms P95 retrieval latency
+- `npm install @getzep/zep-cloud`
+- TypeScript/Python/Go SDKs
+- Mais : Community Edition dépréciée — cloud only pour la vraie version
+
+**Verdict Phase 2 :** Mem0 OSS préféré à Zep pour self-hosted. Zep Cloud si on veut temporal graph sans infra.
+
+---
+
+### E. ARCHITECTURE MÉMOIRE PHASE 1 — SQLite + MiniSearch
+
+#### Structure de données
+
+```
+ReaAaS-N-backend/
+  data/
+    memory.db          ← SQLite database (gitignore'd)
+  services/
+    memoryRepository.ts  ← Interface + SQLite impl
+    aiPipelineService.ts ← Agent avec loopback guard
+```
+
+#### Schéma SQLite (3 tables)
+
+```sql
+-- Mémoires persistantes par utilisateur
+CREATE TABLE user_memories (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id     TEXT NOT NULL,          -- 'anonymous' ou UUID session
+  content     TEXT NOT NULL,          -- fait mémorisé en langage naturel
+  category    TEXT NOT NULL,          -- 'pipeline_pref' | 'algo_param' | 'feedback'
+  created_at  INTEGER NOT NULL,       -- Unix timestamp
+  access_count INTEGER DEFAULT 0     -- pour scoring de pertinence
+);
+CREATE INDEX idx_user_memories_user ON user_memories(user_id);
+
+-- Contexte de session courante (TTL 24h)
+CREATE TABLE session_context (
+  session_id  TEXT PRIMARY KEY,
+  user_id     TEXT NOT NULL,
+  messages    TEXT NOT NULL,          -- JSON array de { role, content }
+  pipeline    TEXT,                   -- JSON du dernier pipeline expliqué
+  created_at  INTEGER NOT NULL,
+  expires_at  INTEGER NOT NULL        -- created_at + 86400000
+);
+
+-- Historique des pipelines expliqués
+CREATE TABLE pipeline_history (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id     TEXT NOT NULL,
+  pipeline_json TEXT NOT NULL,        -- JSON array d'AlgorithmNode
+  explanation TEXT NOT NULL,
+  latency_ms  INTEGER,
+  created_at  INTEGER NOT NULL
+);
+CREATE INDEX idx_pipeline_history_user ON pipeline_history(user_id);
+```
+
+#### MemoryRepository interface (swappable)
+
+```typescript
+// services/memoryRepository.ts
+export interface MemoryRepository {
+  // Ajouter un souvenir persistant
+  add(userId: string, memory: MemoryEntry): Promise<void>;
+
+  // Recherche sémantique/BM25 dans les souvenirs
+  search(query: string, userId: string, topK?: number): Promise<MemoryEntry[]>;
+
+  // Sauvegarder contexte session
+  saveSession(sessionId: string, userId: string, messages: Message[]): Promise<void>;
+
+  // Récupérer contexte session
+  getSession(sessionId: string): Promise<SessionContext | null>;
+
+  // Historique pipelines
+  savePipeline(userId: string, pipeline: AlgorithmNode[], explanation: string, latencyMs: number): Promise<void>;
+  getPipelineHistory(userId: string, limit?: number): Promise<PipelineHistoryEntry[]>;
+}
+```
+
+#### SQLiteMemoryRepository (implémentation Phase 1)
+
+```typescript
+// services/sqliteMemoryRepository.ts
+import Database from 'better-sqlite3';
+import MiniSearch from 'minisearch';
+
+export class SQLiteMemoryRepository implements MemoryRepository {
+  private db: Database.Database;
+  private index: MiniSearch;
+
+  constructor(dbPath: string) {
+    this.db = new Database(dbPath);
+    this.initSchema();
+    this.index = new MiniSearch({
+      fields: ['content', 'category'],
+      storeFields: ['id', 'user_id', 'content', 'category', 'created_at'],
+    });
+    this.loadIndex();
+  }
+
+  async add(userId: string, memory: MemoryEntry): Promise<void> {
+    const stmt = this.db.prepare(
+      'INSERT INTO user_memories (user_id, content, category, created_at) VALUES (?, ?, ?, ?)'
+    );
+    const result = stmt.run(userId, memory.content, memory.category, Date.now());
+
+    // Mise à jour de l'index MiniSearch en mémoire
+    this.index.add({ id: result.lastInsertRowid, ...memory, user_id: userId });
+  }
+
+  async search(query: string, userId: string, topK = 5): Promise<MemoryEntry[]> {
+    const results = this.index.search(query, {
+      filter: (result) => result.user_id === userId,
+    });
+    return results.slice(0, topK).map((r) => ({
+      content: r.content,
+      category: r.category,
+      createdAt: r.created_at,
+    }));
+  }
+}
+```
+
+#### Packages à installer (backend)
+
+```bash
+cd ReaAaS-N-backend
+npm install better-sqlite3 minisearch
+npm install --save-dev @types/better-sqlite3
+```
+
+| Package | Stars | Licence | Taille | Rôle |
+|---------|-------|---------|--------|------|
+| `better-sqlite3` | 6.2k | MIT | 0 dep | SQLite synchrone, performant |
+| `minisearch` | 4.5k | MIT | 6kB gzip | BM25 text search, 0 dep, pure JS |
+
+---
+
+### F. SCHÉMA RAG COMPLET — Comment le backend alimente la mémoire
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│                    FLUX MÉMOIRE COMPLET VAD                          │
+│                                                                      │
+│  FRONTEND                                                            │
+│  ──────────────────────────────────────────────────────────────────  │
+│  Utilisateur :                                                       │
+│  [Drag GBM] → [Connect → GLM] → [Explain] → [Feedback 👍]          │
+│                    │                │                │               │
+│                    │                │                │               │
+│  BACKEND : Express                                                   │
+│  ──────────────────────────────────────────────────────────────────  │
+│                    │                │                │               │
+│     WRITE ─────────┼────────────────┼────────────────┘               │
+│                    ▼                ▼                                 │
+│           pipeline_history    user_memories                          │
+│           (chaque explain)    (préférences,                          │
+│                               feedbacks)                             │
+│                                                                      │
+│     READ ─────────────────────────────────────────────────────────── │
+│                    │                                                  │
+│            AIPipelineService                                         │
+│                    │                                                  │
+│           1. search(query, userId) ── MiniSearch BM25 ──→ top 5      │
+│           2. Build context :                                         │
+│              "User previously preferred GBM with ntrees=200          │
+│               User gave 👍 to GBM→RF pipeline"                      │
+│           3. Inject in systemPrompt                                  │
+│           4. Call Groq (avec loopback guard, MAX 5 iterations)       │
+│           5. Save explanation + pipeline                             │
+│                    │                                                  │
+│            ←── { explanation, memories_used, iterations }           │
+│                                                                      │
+│  FRONTEND                                                            │
+│  ──────────────────────────────────────────────────────────────────  │
+│  AIExplanationPanel affiche :                                        │
+│  - Explication générée                                               │
+│  - Badges "Basé sur vos 3 derniers pipelines"                        │
+│  - Bouton 👍/👎 (feedback → write en mémoire)                        │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+#### Les 3 types de mémoire dans VAD
+
+| Type | Stockage | Durée | Contenu |
+|------|----------|-------|---------|
+| **User Memory** | SQLite `user_memories` | Persistant | Préférences params, algos favoris, feedbacks |
+| **Session Memory** | SQLite `session_context` (TTL 24h) | Session | Messages échangés, pipeline en cours |
+| **Pipeline History** | SQLite `pipeline_history` | Persistant | Pipelines expliqués + résultats |
+
+#### Alimentation automatique des souvenirs
+
+Le backend extrait automatiquement des faits mémorisables depuis les interactions :
+
+```typescript
+// Après chaque appel explain-pipeline réussi
+function extractMemoriesToSave(
+  pipeline: AlgorithmNode[],
+  explanation: string,
+  userFeedback?: 'positive' | 'negative'
+): MemoryEntry[] {
+  const memories: MemoryEntry[] = [];
+
+  // Fait 1 : Pipeline utilisé
+  memories.push({
+    content: `User built pipeline: ${pipeline.map((n) => n.algorithmId).join(' → ')}`,
+    category: 'pipeline_pref',
+  });
+
+  // Fait 2 : Paramètres utilisés (s'ils diffèrent des défauts H2O)
+  pipeline.forEach((node) => {
+    const nonDefaultParams = getModifiedParams(node);
+    if (nonDefaultParams.length > 0) {
+      memories.push({
+        content: `User set ${node.algorithmId} params: ${nonDefaultParams.join(', ')}`,
+        category: 'algo_param',
+      });
+    }
+  });
+
+  // Fait 3 : Feedback utilisateur
+  if (userFeedback) {
+    memories.push({
+      content: `User rated ${pipeline.map((n) => n.algorithmId).join('→')} pipeline as ${userFeedback}`,
+      category: 'feedback',
+    });
+  }
+
+  return memories;
+}
+```
+
+---
+
+### G. COMPOSANTS FRONTEND — Mémoire visible pour l'utilisateur
+
+L'utilisateur doit **voir** que l'IA se souvient de lui. C'est un différenciateur UX fort.
+
+#### MemoryBadge — Dans AIExplanationPanel
+
+```tsx
+// Affiché quand des souvenirs ont été utilisés
+{memoriesUsed.length > 0 && (
+  <Box sx={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: 1,
+    mt: 1,
+    p: 1,
+    borderRadius: 'var(--radius-sm)',
+    bgcolor: 'rgba(61, 138, 136, 0.15)',  // --color-primary avec alpha
+    border: '1px solid var(--color-primary)',
+  }}>
+    <MemoryIcon sx={{ fontSize: 14, color: 'var(--color-primary)' }} />
+    <Typography variant="caption" sx={{ color: 'var(--color-primary)' }}>
+      Basé sur {memoriesUsed.length} souvenir{memoriesUsed.length > 1 ? 's' : ''} de vos sessions précédentes
+    </Typography>
+  </Box>
+)}
+```
+
+#### FeedbackButtons — Dans AIExplanationPanel
+
+```tsx
+// 👍 / 👎 envoie le feedback au backend qui le mémorise
+<Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+  <IconButton
+    size="small"
+    onClick={() => submitFeedback('positive')}
+    sx={{ color: feedbackSent === 'positive' ? '#4CAF50' : 'var(--color-text-secondary)' }}
+  >
+    <ThumbUpIcon fontSize="small" />
+  </IconButton>
+  <IconButton
+    size="small"
+    onClick={() => submitFeedback('negative')}
+    sx={{ color: feedbackSent === 'negative' ? '#F44336' : 'var(--color-text-secondary)' }}
+  >
+    <ThumbDownIcon fontSize="small" />
+  </IconButton>
+  <Typography variant="caption" sx={{ color: 'var(--color-text-secondary)', alignSelf: 'center' }}>
+    {feedbackSent ? 'Mémorisé ✓' : 'Cette explication était utile ?'}
+  </Typography>
+</Box>
+```
+
+#### SessionId management (anonymous users)
+
+```typescript
+// services/sessionManager.ts (frontend)
+export function getOrCreateSessionId(): string {
+  let sessionId = localStorage.getItem('vad_session_id');
+  if (!sessionId) {
+    sessionId = crypto.randomUUID();
+    localStorage.setItem('vad_session_id', sessionId);
+  }
+  return sessionId;
+}
+
+// Envoyé dans chaque appel API comme header
+// 'X-Session-Id': getOrCreateSessionId()
+// Backend l'utilise comme userId (anonymous mode Phase 1)
+```
+
+---
+
+### H. COMPARAISON FINALE DES 4 APPROCHES
+
+| Critère | OpenClaw/Hermes | Codex App | VS Code | **Custom (notre choix)** |
+|---------|----------------|-----------|---------|--------------------------|
+| Mémoire cross-session | ❌ Session only | ❌ Stateless | ❌ Session only | ✅ SQLite persistant |
+| Coût tokens | Moyen | ❌ Très élevé | Moyen | ✅ Minimal (top 5 mémoires) |
+| Self-hosted | Variable | ❌ Cloud | N/A | ✅ 100% local |
+| Loop prevention | Basique (hash) | Aucun | N/A | ✅ Visited-set + MAX_ITER |
+| Upgrade Path | ❌ Vendor lock | ❌ OpenAI | N/A | ✅ → Mem0 Phase 2 |
+| Dépendances | Haute | Haute | N/A | ✅ 2 packages (better-sqlite3, minisearch) |
+| Personnalisation | Faible | Nulle | Faible | ✅ Totale |
+| Complexité implémentation | Faible | Très faible | N/A | Moyen |
+
+**Verdict : Custom Phase 1 + Mem0 Phase 2.** La migration de `SQLiteMemoryRepository` vers `Mem0MemoryRepository` ne change que l'implémentation derrière l'interface `MemoryRepository` — le reste de l'app est inchangé.
+
+---
+
+### I. MIGRATION VERS MEM0 EN PHASE 2 (plan de migration)
+
+```typescript
+// services/mem0MemoryRepository.ts (Phase 2)
+import { MemoryClient } from 'mem0ai';
+
+export class Mem0MemoryRepository implements MemoryRepository {
+  private client: MemoryClient;
+
+  constructor() {
+    // Option A : Cloud Mem0
+    this.client = new MemoryClient({ apiKey: process.env.MEM0_API_KEY });
+
+    // Option B : Self-hosted (Docker)
+    // this.client = new MemoryClient({ host: 'http://localhost:3000' });
+  }
+
+  async add(userId: string, memory: MemoryEntry): Promise<void> {
+    await this.client.add(memory.content, { user_id: userId });
+  }
+
+  async search(query: string, userId: string, topK = 5): Promise<MemoryEntry[]> {
+    const results = await this.client.search(query, { user_id: userId, top_k: topK });
+    return results.results.map((r) => ({
+      content: r.memory,
+      category: 'general',
+      createdAt: new Date(r.created_at).getTime(),
+    }));
+  }
+}
+
+// Swap en 1 ligne dans server.js :
+// Phase 1 : const memory = new SQLiteMemoryRepository('./data/memory.db');
+// Phase 2 : const memory = new Mem0MemoryRepository();
+```
+
+---
+
+### Nouvelles Tâches Phase 7-3 (suite de la série F)
+
+- [ ] F22. Installer `better-sqlite3` + `minisearch` dans `ReaAaS-N-backend/package.json`
+- [ ] F23. Créer `ReaAaS-N-backend/services/memoryRepository.ts` — interface + types
+- [ ] F24. Créer `ReaAaS-N-backend/services/sqliteMemoryRepository.ts` — impl SQLite+MiniSearch
+- [ ] F25. Créer `ReaAaS-N-backend/services/aiPipelineService.ts` — explainPipeline avec loopback guard (MAX_ITER=5, visited-set)
+- [ ] F26. Modifier `POST /api/ai/explain-pipeline` dans `server.js` pour utiliser aiPipelineService + memoryRepository
+- [ ] F27. Ajouter `POST /api/memory/feedback` endpoint dans `server.js` — reçoit 👍/👎 et mémorise
+- [ ] F28. Créer `services/sessionManager.ts` (frontend) — getOrCreateSessionId() via crypto.randomUUID()
+- [ ] F29. Ajouter `MemoryBadge` + `FeedbackButtons` dans `AIExplanationPanel.tsx`
+- [ ] F30. Créer `ReaAaS-N-backend/data/` dossier + ajouter à `.gitignore` (la DB ne se committe pas)
+
+---
+
+### Stack — Validations Complémentaires Phase 7-3 (26 avril 2026)
+
+| Décision | Validation | Source |
+|----------|------------|--------|
+| LoopBack Next = framework API, pas système mémoire | ✅ Confirmé — 5.1k stars, TypeScript/Node.js REST framework | github.com/loopbackio |
+| Mem0 OSS npm SDK disponible | ✅ `npm install mem0ai` — TypeScript 34.8%, actif, YC S24 | github.com/mem0ai, 54k stars |
+| Zep Community Edition dépréciée | ✅ Confirmé — cloud only désormais | blog.getzep.com |
+| better-sqlite3 synchrone (pas async) | ✅ Performance maximale pour lecture mémoire dans hot path | npmjs.com, 6.2k stars |
+| MiniSearch BM25 pure JS | ✅ 4.5k stars, MIT, 6kB gzip, zéro dépendance | npmjs.com |
+| Interface MemoryRepository = pattern Repository LoopBack | ✅ Découplage complet — swap SQLite → Mem0 sans toucher l'agent | pattern architectural |
+| Visited-set + MAX_ITER=5 comme loopback guard | ✅ Standard ReAct agent pattern, confirmé dans littérature | Yao et al. 2022 ReAct paper |
+
+**Décisions nouvelles IRRÉVERSIBLES Phase 7-3 :**
+- `MemoryRepository` = interface obligatoire — jamais d'appel direct à SQLite depuis le router
+- `userId` Phase 1 = `X-Session-Id` header (UUID localStorage) — pas d'auth
+- `MAX_ITERATIONS = 5` pour le loopback guard — valeur fixe, pas configurable en Phase 1
+- `better-sqlite3` synchrone (pas `sqlite3` async) — choix délibéré pour la simplicité
+- Migration vers Mem0 en Phase 2 = swap d'implémentation derrière l'interface — zéro autre changement
