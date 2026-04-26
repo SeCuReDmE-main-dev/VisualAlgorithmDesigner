@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import { Node, Edge, Viewport } from '@xyflow/react';
 
-import CircuitDesignerPage, { CircuitNodeData, calculateCircuitState as actualCalculateCircuitState } from './CircuitDesignerPage'; 
+import CircuitDesignerPage, { CircuitNodeData } from './CircuitDesignerPage'; 
 // Assuming calculateCircuitState can be exported or is replicated below for testing.
 // For this test, I will replicate it to avoid altering source file structure if not necessary for the task.
 

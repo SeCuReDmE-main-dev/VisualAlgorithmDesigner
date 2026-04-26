@@ -1,12 +1,38 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const rateLimit = require('express-rate-limit');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001; // Backend port
 
-app.use(cors()); // Enable CORS for all routes
+const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || origin === corsOrigin) {
+      callback(null, true);
+      return;
+    }
+    callback(Object.assign(new Error('Not allowed by CORS'), { status: 403 }));
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Session-Id'],
+  credentials: true,
+}));
 app.use(express.json()); // Middleware to parse JSON bodies
+
+const aiLimiter = rateLimit({
+  windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60000),
+  max: Number(process.env.RATE_LIMIT_MAX || 20),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    status: 'error',
+    error: 'TOO_MANY_REQUESTS',
+    message: 'Too many AI requests. Try again shortly.',
+  },
+});
 
 // --- Serve Static React App ---
 // Define the path to the React app's build directory
@@ -23,12 +49,27 @@ app.get('/api/hello', (req, res) => {
   res.json({ message: 'Hello from the backend!' });
 });
 
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: Date.now() });
+});
+
+app.post('/api/ai/explain', aiLimiter, (req, res) => {
+  res.json({
+    status: 'success',
+    data: {
+      explanation: 'AI explanation endpoint is ready.',
+      stepIndex: req.body?.stepIndex ?? null,
+      latency_ms: 0,
+    },
+  });
+});
+
 // --- Catch-all for Frontend Routing ---
 // For any other GET request, serve the React app's index.html
 // This allows client-side routing to work.
 // The original instructions had a check for index.html existence, 
 // I'm using a slightly modified version from the prompt.
-app.get('*', (req, res) => {
+app.get(/.*/, (req, res) => {
   const indexPath = path.join(frontendBuildPath, 'index.html');
   // Check if index.html exists. If not, it might mean the frontend hasn't been built.
   if (require('fs').existsSync(indexPath)) {
@@ -39,6 +80,16 @@ app.get('*', (req, res) => {
       '<code>cd ../ReaAaS-N-frontend && npm run build</code>'
     );
   }
+});
+
+app.use((err, req, res, next) => {
+  const isProd = process.env.NODE_ENV === 'production';
+  const statusCode = err.status || err.statusCode || 500;
+  res.status(statusCode).json({
+    status: 'error',
+    error: statusCode === 403 ? 'FORBIDDEN' : 'INTERNAL_ERROR',
+    message: isProd ? 'Internal server error' : err.message,
+  });
 });
 
 // Start the server

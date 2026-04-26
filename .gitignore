@@ -7,6 +7,8 @@ build/
 
 # Environment variables
 .env
+.env.*
+!.env.example
 
 # Logs
 logs/
@@ -14,3 +16,7 @@ logs/
 
 # Virtual environment
 .venv/
+
+# Local backend data
+ReaAaS-N-backend/data/*
+!ReaAaS-N-backend/data/.gitkeep

@@ -5,16 +5,14 @@ import { ThemeProvider } from '@mui/material/styles'; // Import ThemeProvider
 import theme from './theme'; // Import your theme
 
 describe('App', () => {
-  it('renders the AppBar with the application title "ReaAaS-N"', () => {
+  it('renders the algorithm builder screen', () => {
     render(
       <BrowserRouter>
-        <ThemeProvider theme={theme}> {/* Wrap with ThemeProvider */}
+        <ThemeProvider theme={theme}>
           <App />
         </ThemeProvider>
       </BrowserRouter>
     );
-    // Check for the AppBar title "ReaAaS-N"
-    // This text is within a Typography component in the AppBar
-    expect(screen.getByText(/ReaAaS-N/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Algorithm Builder/i })).toBeInTheDocument();
   });
 });

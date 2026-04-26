@@ -3,9 +3,9 @@ import userEvent from '@testing-library/user-event';
 import AlgorithmBuilderPage from './AlgorithmBuilderPage';
 import { vi } from 'vitest';
 
-// Mock react-beautiful-dnd
-vi.mock('react-beautiful-dnd', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('react-beautiful-dnd')>();
+// Mock @hello-pangea/dnd
+vi.mock('@hello-pangea/dnd', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@hello-pangea/dnd')>();
   return {
     ...actual,
     DragDropContext: ({ children }: { children: React.ReactNode }) => <div data-testid="dnd-context">{children}</div>,

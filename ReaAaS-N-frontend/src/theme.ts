@@ -15,8 +15,8 @@ const theme = createTheme({
       paper: '#000000',    // Pure Black
     },
     text: {
-      primary: '#4F5D75',   // Metallic Silver
-      secondary: '#9FFFFF', // Light Cyan - Light Glow Variant
+      primary: '#E0E0E0',
+      secondary: '#9FE8FF',
     },
     warning: { // Using warning for the Electric Purple Glow as an example
       main: '#B45EFF', 

@@ -14,7 +14,7 @@ import {
   Droppable,
   Draggable,
   DropResult,
-} from 'react-beautiful-dnd';
+} from '@hello-pangea/dnd';
 import { v4 as uuidv4 } from 'uuid';
 
 interface Step {
@@ -130,12 +130,13 @@ const AlgorithmBuilderPage: React.FC = () => { // Changed function name
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="steps">
           {(provided) => (
-            <Box {...provided.droppableProps} ref={provided.innerRef} sx={{mb: 2, p:1, border: '1px solid grey.700', borderRadius: 1, minHeight: '100px'}}>
+            <Box data-testid="droppable-steps" {...provided.droppableProps} ref={provided.innerRef} sx={{mb: 2, p:1, border: '1px solid grey.700', borderRadius: 1, minHeight: '100px'}}>
               {steps.length === 0 && <Typography sx={{color: 'text.secondary', textAlign: 'center', mt:2}}>Drag and drop steps here, or add new ones above.</Typography>}
               {steps.map((step, index) => (
                 <Draggable key={step.id} draggableId={step.id} index={index}>
                   {(providedDraggable, snapshot) => (
                     <Card
+                      data-testid={`draggable-${step.id}`}
                       ref={providedDraggable.innerRef}
                       {...providedDraggable.draggableProps}
                       {...providedDraggable.dragHandleProps}
@@ -192,6 +193,8 @@ const AlgorithmBuilderPage: React.FC = () => { // Changed function name
           <Typography variant="h6" gutterBottom sx={{ color: 'text.secondary' }}>AI Tools</Typography>
           <TextField
             fullWidth
+            multiline
+            rows={3}
             variant="outlined"
             label="Generate Algorithm with AI"
             value={llmInput}
