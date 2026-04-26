@@ -5790,3 +5790,199 @@ Issues GitHub: https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/mil
 - [ ] az-implementation-runner — exécution après contrat DB/API prêt
 + → PROCHAINE ACTION: az-implementation-runner — commencer par M0 (B1-B12)
 ```
+
+---
+
+## PHASE 10 — INSTRUCTIONS az-implementation-runner
+
+> **Date :** 26 avril 2026  
+> **Pré-requis satisfaits :** Singularité ✅ · Stack ✅ · Contrat DB/API ✅ · Environnement bootstrappé ✅ · 63 tickets avec critères PASS ✅  
+> **Condition d'entrée du skill :** `Exécution seulement après : singularité validée, stack choisie, contrat DB/API prêt, environnement vérifié, critères d'acceptation clairs.` → TOUS SATISFAITS.
+
+---
+
+### A. PROTOCOLE : ISSUE → CODE → CLOSE → MILESTONE
+
+#### Étape 1 — Lire l'issue avant de coder
+
+```
+Pour chaque issue à implémenter :
+1. Ouvrir https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/issues/NNN
+2. Lire le titre, le corps, et le label (milestone)
+3. Identifier le fichier cible (Section B, Phase 9 de ce plan)
+4. Lire le fichier existant avant de le modifier (read_file)
+5. Appliquer le patch minimal qui satisfait le critère PASS
+```
+
+#### Étape 2 — Convention de commit
+
+Chaque commit qui implémente une issue doit contenir la référence dans le message :
+
+```
+fix(M0): B1 - move deps out of scripts in package.json
+
+Closes #12
+```
+
+Format obligatoire : `<type>(<milestone>): <titre court>\n\nCloses #NNN`
+
+Quand le commit est poussé sur la branche `PaQBoT`, GitHub ferme automatiquement l'issue `#NNN` si la phrase `Closes #NNN` est présente. L'issue passe à l'état `closed` → **la barre de progression du milestone se met à jour en temps réel**.
+
+#### Étape 3 — Fermer une issue manuellement (si sans PR)
+
+Si l'implémentation ne passe pas par un PR (commit direct sur PaQBoT) :
+
+```powershell
+# Fermer une issue via API REST
+$t = "TON_TOKEN_ICI"
+$h = @{ "Authorization"="Bearer $t"; "Accept"="application/vnd.github+json"; "X-GitHub-Api-Version"="2022-11-28" }
+$body = '{"state":"closed","state_reason":"completed"}'
+Invoke-RestMethod "https://api.github.com/repos/SeCuReDmE-main-dev/VisualAlgorithmDesigner/issues/NNN" -Method PATCH -Headers $h -Body $body -ContentType "application/json"
+```
+
+Remplacer `NNN` par le numéro d'issue. L'état `state_reason: completed` (vs `not_planned`) est crucial — seul `completed` incrémente le compteur de milestone.
+
+#### Étape 4 — Quand un milestone est complété
+
+Quand toutes les issues d'un milestone sont fermées avec `state_reason: completed` :
+- GitHub ferme automatiquement le milestone
+- Le graphique **Closed issues / Total** atteint 100%
+- Le lien milestone affiche une barre verte pleine à : https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/milestones
+- Sur le Project Board (https://github.com/users/SeCuReDmE-main-dev/projects/3), les cartes passent de **Backlog → Done** via le workflow "Item closed → Status = Done"
+
+#### Étape 5 — Ordre d'exécution NON-NÉGOCIABLE
+
+```
+M0 (B1-B12) → valider critère PASS M0 → M1 → valider → M2 → valider → ... → M7
+```
+
+Ne jamais commencer M(N+1) si M(N) n'a pas passé son critère. Les issues M0 sont des **blockers** — sans elles, le dev server ne démarre pas et rien d'autre ne peut être testé.
+
+---
+
+### B. SETUP ENVIRONNEMENT — AVANT TOUTE IMPLÉMENTATION
+
+#### 1. Copier le template d'environnement
+
+```bash
+cp ReaAaS-N-backend/.env.example ReaAaS-N-backend/.env
+# Puis éditer .env et remplir GROQ_API_KEY
+```
+
+#### 2. Variables obligatoires dans `ReaAaS-N-backend/.env`
+
+| Variable | Valeur | Source |
+|----------|--------|--------|
+| `GROQ_API_KEY` | `gsk_...` | https://console.groq.com/keys |
+| `PORT` | `3001` | fixe |
+| `NODE_ENV` | `development` | fixe |
+| `CORS_ORIGIN` | `http://localhost:5173` | Vite dev server |
+| `GROQ_MODEL` | `llama-3.1-8b-instant` | modèle choisi Phase 3 |
+| `GROQ_MAX_TOKENS` | `1024` | limite Phase 3 |
+| `RATE_LIMIT_WINDOW_MS` | `60000` | 1 minute |
+| `RATE_LIMIT_MAX` | `20` | 20 req/min par IP |
+| `DB_PATH` | `./data/memory.sqlite` | créé par B12/F30 |
+
+#### 3. Vérification bootstrap
+
+```bash
+# Terminal 1 — Backend
+cd ReaAaS-N-backend && npm install && npm run dev
+# Attendre : "Server running on port 3001"
+
+# Terminal 2 — Frontend
+cd ReaAaS-N-frontend && npm install && npm run dev
+# Attendre : "Local: http://localhost:5173"
+
+# Terminal 3 — Sanity check
+curl http://localhost:3001/api/health
+# Attendu : {"status":"ok","timestamp":"..."}
+```
+
+Si l'une de ces étapes échoue → résoudre l'issue B correspondante avant de continuer.
+
+---
+
+### C. RÉFÉRENCE RAPIDE — ISSUES PAR FICHIER
+
+| Fichier | Issues GitHub | Milestone |
+|---------|---------------|-----------|
+| `ReaAaS-N-frontend/package.json` | #12 (B1), #116 (B6) | M0 |
+| `ReaAaS-N-frontend/vite.config.ts` | #13 (B2) | M0 |
+| `ReaAaS-N-frontend/src/main.tsx` | #14 (B3) | M0 |
+| `ReaAaS-N-backend/package.json` | #115 (B4) | M0 |
+| `ReaAaS-N-backend/.env` | #15 (B5) | M0 |
+| `ReaAaS-N-backend/server.js` | #18 (B9), #19 (B10), #20 (B11), #21 (B12) | M0 |
+| `src/pages/CircuitDesignerPage.test.tsx` | #16 (B7) | M0 |
+| `src/theme.ts` | #17 (B8), #33 (F13) | M0, M2 |
+| `src/styles/palette.css` | #29 (F1+F2), #51 (F44), #59 (F61), #66 (F21) | M2, M4, M5, M6 |
+| `src/services/algorithmCatalog.ts` | #30 (F3) | M2 |
+| `src/services/api.ts` | #31 (F4+F62) | M2 |
+| `src/App.tsx` | #32 (F12+F43) | M2 |
+| `src/services/sessionManager.ts` | #34 (F28) | M2 |
+| `src/contexts/DnDContext.tsx` | #35 (F31+F65) | M2 |
+| `src/hooks/usePipelineStatus.ts` | #36 (F38) | M2 |
+| `src/hooks/usePipelineSaver.ts` | #37 (F39) | M2 |
+| `src/pages/AlgorithmDesignerPage.tsx` | #38 (F5+F40), #62 (F17) | M3, M6 |
+| `src/components/AlgorithmDesigner/AlgorithmPalette.tsx` | #39 (F6+F32) | M3 |
+| `src/components/AlgorithmDesigner/AlgorithmNode.tsx` | #40 (F7) | M3 |
+| `src/components/AlgorithmDesigner/AlgorithmCanvas.tsx` | #41 (F8+F33) | M3 |
+| `src/components/AlgorithmDesigner/AlgorithmPropertiesPanel.tsx` | #42 (F9+F63) | M3 |
+| `src/components/AlgorithmDesigner/AIExplanationPanel.tsx` | #43 (F10+F29) | M3 |
+| `src/components/AlgorithmDesigner/CanvasEmptyState.tsx` | #44 (F41) | M3 |
+| `src/components/AlgorithmDesigner/CanvasContextMenu.tsx` | #45 (F42) | M3 |
+| `src/services/subpipelineCatalog.ts` | #46 (F34+F48), #50 (F46+F47) | M4 |
+| `src/components/AlgorithmDesigner/SubpipelineLibraryPanel.tsx` | #47 (F35+F58) | M4 |
+| `src/components/AlgorithmDesigner/SubpipelineCard.tsx` | #48 (F36+F59) | M4 |
+| `src/components/AlgorithmDesigner/PipelineSaveDialog.tsx` | #49 (F37) | M4 |
+| `src/services/validatedAlgorithmCatalog.ts` | #52 (F49) | M5 |
+| `src/hooks/usePipelineEvaluation.ts` | #53 (F51) | M5 |
+| `src/hooks/useValidatedAlgorithms.ts` | #54 (F52) | M5 |
+| `src/hooks/useLoopDetector.ts` | #55 (F53) | M5 |
+| `src/components/AlgorithmDesigner/PipelinePromoteDialog.tsx` | #56 (F54) | M5 |
+| `src/components/TutorialOverlay.tsx` | #58 (F45+F60), #61 (F16) | M5, M6 |
+| `src/services/workbookExporter.ts` | #60 (F14+F15) | M6 |
+| `src/hooks/useKeyboardShortcuts.ts` | #63 (F18) | M6 |
+| `src/scripts/scrape-h2o-params.js` | #64 (F19) | M6 |
+| `src/components/AlgorithmDesigner/StatusBar.tsx` | #65 (F20+F64) | M6 |
+| `src/services/securityProfileCatalog.ts` | #67 (F66) | M7 |
+| `src/components/AlgorithmDesigner/SecurityProfileSelector.tsx` | #68 (F67) | M7 |
+| `ReaAaS-N-backend/services/aiPipelineService.ts` | #24 (F25+F26), #28 (F75), #69 (F68) | M1, M7 |
+| `src/services/complianceReportGenerator.ts` | #72 (F74) | M7 |
+
+---
+
+### D. CRITÈRES PASS RAPPEL COMPLET
+
+```
+M0 PASS : npm install && npm run dev → OK frontend ET backend, 0 erreur TypeScript, curl /api/health → 200
+M1 PASS : curl -X POST http://localhost:3001/api/ai/explain-pipeline -H "Content-Type: application/json" \
+           -d '{"nodes":[{"id":"1","type":"GBM"}],"edges":[]}' → {status:"success", data:{explanation:"..."}} < 5s
+M2 PASS : npm run build → 0 errors, var(--color-primary)=#3D8A88 dans palette.css, DnDContext wrap sans crash
+M3 PASS : Drag GBM depuis palette → canvas → Properties Panel → clic [Expliquer] → texte IA avec animation fadeIn
+M4 PASS : Panneau bas 4 onglets visible, drag prefab "ML Classique" → 3 nœuds expansés sur canvas avec cascade
+M5 PASS : POST /api/ai/evaluate-pipeline → {coherenceScore:N, recommendation:"..."}, score ≥ 93 → [Promouvoir] visible
+M6 PASS : [Télécharger] → GBM_params.xlsx 2 feuilles, Ctrl+B toggle palette OK, tutoriel 7 étapes navigable
+M7 PASS : Dropdown profil → modal disclaimer red-team, score 96 → rapport ÉFVP généré avec SHA-256 hash
+```
+
+---
+
+### E. RÈGLES DE SÉCURITÉ POUR LE RUNNER
+
+1. **Ne jamais committer `.env`** — il est dans `.gitignore` (issue B5 #15 le vérifie)
+2. **Ne jamais mettre un token en dur dans le code** — utiliser `process.env.GROQ_API_KEY`
+3. **CORS explicite uniquement** — `http://localhost:5173` en dev, origin de production en prod (issue B9 #18)
+4. **Rate limiting actif** — 20 req/min via express-rate-limit (issue B11 #20)
+5. **Fermer chaque issue avec `state_reason: completed`** — `not_planned` ne compte PAS dans le milestone
+
+---
+
+### F. LIEN DE SUIVI
+
+- **Project board (kanban)** : https://github.com/users/SeCuReDmE-main-dev/projects/3
+- **Milestones** : https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/milestones
+- **Issues ouvertes** : https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/issues?q=is%3Aopen
+- **Branche active** : `PaQBoT`
+
+**Phase 10 = INSTRUCTIONS RUNNER — TERMINÉ — Prochaine action : lancer az-implementation-runner sur M0**

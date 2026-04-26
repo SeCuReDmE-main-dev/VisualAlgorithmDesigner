@@ -1,155 +1,195 @@
-# Visual Algorithm Designer 🎨🤖
+# Visual Algorithm Designer (VAD)
 
-Visual Algorithm Designer is a fun and easy-to-use app that lets you create, see, and run algorithms using a drag-and-drop interface. You can also use AI to help you make algorithms and fix visual problems. 😃✨
+> **Design, evaluate, and validate AI pipelines visually — from educational playground to professional compliance workbench.**
 
-## Cool Features 🎉
+[![Issues](https://img.shields.io/github/issues/SeCuReDmE-main-dev/VisualAlgorithmDesigner)](https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/issues)
+[![Milestones](https://img.shields.io/badge/milestones-M0--M7-blue)](https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/milestones)
+[![Project Board](https://img.shields.io/badge/project-kanban-purple)](https://github.com/users/SeCuReDmE-main-dev/projects/3)
+[![Branch](https://img.shields.io/badge/branch-PaQBoT-green)](https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/tree/PaQBoT)
 
-- Make and manage algorithm steps
-- Drag and drop steps to put them in order
-- Run algorithms step-by-step and watch them in action
-- Use AI to create algorithms
-- Use AI to fix visual problems
+---
 
-## How to Start 🚀
+## What is VAD?
 
-Follow these steps to set up the project and run the development server.
+Visual Algorithm Designer is a full-stack web application that lets you **build algorithm pipelines by dragging and dropping nodes on a canvas**, then **evaluate their coherence using AI** (Groq / llama-3.1-8b-instant), and optionally **generate compliance reports** aligned with privacy regulations (Loi 25 / ÉFVP).
 
-### What You Need 🛠️
+The application targets two user profiles on a single spectrum:
 
-- Node.js (v14 or higher)
-- npm (v6 or higher) or yarn (v1.22 or higher)
-- Python 3.10.11
+| Mode | User | Goal |
+|------|------|------|
+| **Playground** | Students, makers, game designers | Understand algorithmic logic with friendly vocabulary and visual feedback |
+| **Workbench** | Data scientists, ML engineers, compliance officers | Design production-grade H2O.ai pipelines with security profiles and audit reports |
 
-### Installation 📥
+---
 
-1. Clone the repository:
+## Core Features
 
-   ```bash
-   git clone https://github.com/Celebrum/VisualAlgorithmDesigner.git
-   cd VisualAlgorithmDesigner
-   ```
+- **Drag-and-drop canvas** powered by [@xyflow/react](https://reactflow.dev/) — build pipelines by connecting algorithm nodes (GBM, Random Forest, XGBoost, Deep Learning, GLM, Stacked Ensemble)
+- **AI explanation** — select any node and get a plain-language explanation of what it does and why it fits your pipeline, streamed from Groq
+- **Pipeline evaluation** — submit your full pipeline for a `coherenceScore` (0–100); pipelines scoring ≥ 93 can be promoted to the validated catalog
+- **Subpipeline library** — 5 pre-built templates (ML Classique, NLP Stack, Anomaly Detection, Time Series, Compliance Pipeline) draggable as prefab node groups
+- **Validated algorithm catalog** — locally persisted list of your promoted pipelines with loop detection (DFS) and version tracking
+- **Security profiles** — 7 profiles (Standard, Red Team, Privacy-First, Regulatory, Minimal, Research, Adversarial) that adjust AI prompt behavior and pipeline validation thresholds
+- **Compliance report generator** — produces ÉFVP-lite reports with SHA-256 hash for auditable pipeline documentation
+- **Excel export** — download H2O.ai parameter sheets (2-tab `.xlsx`) for any algorithm node via SheetJS
+- **Persistent memory** — AI conversations indexed with BM25 (MiniSearch + SQLite) for context-aware follow-up explanations
+- **Keyboard shortcuts** — `Ctrl+B` toggle palette · `Ctrl+J` toggle AI panel · `Ctrl+S` save pipeline
 
-2. Install the dependencies:
+---
 
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
+## Architecture
 
-3. Set up the Python virtual environment:
+```
+VisualAlgorithmDesigner/
+├── ReaAaS-N-frontend/          # React 18 + TypeScript + Vite
+│   └── src/
+│       ├── components/
+│       │   └── AlgorithmDesigner/   # Canvas, Palette, Panels, Nodes
+│       ├── contexts/               # DnDContext (drag payload)
+│       ├── hooks/                  # usePipelineEvaluation, useLoopDetector, ...
+│       ├── pages/                  # AlgorithmDesignerPage (3-column layout)
+│       ├── services/               # api.ts, algorithmCatalog, subpipelineCatalog
+│       └── styles/                 # palette.css (design tokens)
+│
+├── ReaAaS-N-backend/           # Express 5 + Groq SDK
+│   ├── server.js               # Routes: /api/ai/*, /api/memory/*, /api/health
+│   ├── services/
+│   │   ├── aiPipelineService.ts     # Groq prompts, loopback guard, security profiles
+│   │   └── sqliteMemoryRepository.ts # SQLite + MiniSearch BM25 memory
+│   └── data/                   # SQLite database (gitignored)
+│
+└── docs/
+    └── plan.md                 # Source of truth — all architecture decisions (Phases 1-10)
+```
 
-   ```bash
-   python3.10 -m venv .venv
-   source .venv/bin/activate
-   pip install -r requirements.txt
-   ```
+---
 
-### Running the Development Server 🖥️
+## Tech Stack
 
-1. Start the development server:
+| Layer | Technology | Version |
+|-------|-----------|---------|
+| Frontend framework | React + TypeScript | 18.2.0 + 5.0.2 |
+| Build tool | Vite | 6.3.5 |
+| Canvas / graph | @xyflow/react | 12.10.2 |
+| UI components | MUI | ^6.0.0 |
+| Drag and drop | @hello-pangea/dnd | 18.0.1 |
+| Routing | react-router-dom | 7.6.1 |
+| Backend | Express | 5.1.0 |
+| AI provider | Groq SDK | 1.1.2 |
+| AI model | llama-3.1-8b-instant | — |
+| Memory store | better-sqlite3 + MiniSearch | — |
+| Rate limiting | express-rate-limit | — |
+| Excel export | SheetJS (xlsx) | — |
 
-   ```bash
-   npm start
-   # or
-   yarn start
-   ```
+---
 
-2. Open your browser and go to `http://localhost:3000` to see the app.
+## Prerequisites
 
-## How to Use 🕹️
+- **Node.js** ≥ 20 (LTS)
+- **npm** ≥ 10
+- **Groq API key** — free at https://console.groq.com/keys
 
-### Making Algorithm Steps 🧩
+---
 
-1. Type a new step in the input box and click the "Add Step" button.
-2. Drag and drop steps to put them in the right order.
+## Setup
 
-### Running the Algorithm 🏃‍♂️
+### 1. Clone the repository
 
-1. Click the "Run Algorithm" button to run the algorithm step-by-step.
-2. The current step will be highlighted while running.
+```bash
+git clone https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner.git
+cd VisualAlgorithmDesigner
+git checkout PaQBoT
+```
 
-### Creating Algorithms with AI 🤖
+### 2. Configure the backend environment
 
-1. Describe your algorithm in the input box under "Generate Algorithm with AI".
-2. Click the "Generate Algorithm" button to let the AI create algorithm steps for you.
+```bash
+cp ReaAaS-N-backend/.env.example ReaAaS-N-backend/.env
+```
 
-### Fixing Visual Problems with AI 🐞
+Open `ReaAaS-N-backend/.env` and set your Groq API key:
 
-1. Describe the visual problem you're having in the textarea under "Debug Visual Issues with AI".
-2. Click the "Debug Issue" button to get suggestions from the AI to fix the problem.
+```env
+GROQ_API_KEY=gsk_your_key_here
+```
 
-## Integrating PandaAI for Data Analysis 🐼
+All other values have safe defaults for local development.
 
-To integrate PandaAI for data analysis and make it easy to use, follow these steps:
+### 3. Install dependencies
 
-* **Set up PandaAI** 🐼
-  * Install the `pandasai` package using `pip install pandasai`. 📦
-  * Set your PandaAI API key using `pai.api_key.set("PAI-********************************")`. 🔑
+```bash
+# Backend
+cd ReaAaS-N-backend && npm install
 
-* **Load and push data** 📊
-  * Use `pai.load("your-data-path")` to load your data. 📂
-  * Push the data to PandaAI using `df.push()`. 🚀
+# Frontend
+cd ../ReaAaS-N-frontend && npm install
+```
 
-* **Auto-generated dashboards** 📈
-  * PandaAI will automatically generate relevant questions, charts, and visualizations for your data. 🎨
-  * Access the pre-built dashboard with key insights and a conversational agent for dynamic analysis. 🗣️
+### 4. Start development servers
 
-* **Conversational data analysis** 💬
-  * Interact with your data using natural language through the chat interface. 🗨️
-  * Ask questions and get instant answers with explanatory visualizations. 📊
+Open two terminals:
 
-* **Dynamic analysis** 🔄
-  * Your dashboards and conversational agent stay synchronized with your data sources through code execution. 🧩
-  * Ensure results are always current by running code on live data. 🕒
+```bash
+# Terminal 1 — Backend (port 3001)
+cd ReaAaS-N-backend && npm run dev
 
-## Troubleshooting Common Installation Issues 🛠️
+# Terminal 2 — Frontend (port 5173)
+cd ReaAaS-N-frontend && npm run dev
+```
 
-### Common issues and solutions 🛠️
-* If you encounter an error during `npm install` or `yarn install`, make sure you have the correct versions of Node.js and npm/yarn installed. 📦
-* If the Python virtual environment setup fails, ensure you have Python 3.10.11 installed and that the `python3.10` command is available in your terminal. 🐍
-* If you see a "Module not found" error, double-check that all dependencies are listed in `requirements.txt` and installed correctly. 📜
+Open http://localhost:5173 in your browser.
 
-### Environment setup 🌍
-* Ensure that you have activated the virtual environment by running `source .venv/bin/activate` before installing Python dependencies. 🔄
-* If you encounter issues with environment variables, make sure you have a `.env` file with the necessary configurations. 🔧
+### 5. Verify the API
 
-### Running the development server 🚀
-* If the development server doesn't start, check for any error messages in the terminal and ensure all dependencies are installed. 🖥️
-* Make sure you are in the correct directory (`VisualAlgorithmDesigner`) before running `npm start` or `yarn start`. 📂
+```bash
+curl http://localhost:3001/api/health
+# Expected: {"status":"ok","timestamp":"..."}
+```
 
-### Browser issues 🌐
-* If the app doesn't load in the browser, try clearing the browser cache or using a different browser. 🧹
-* Ensure that you are accessing the correct URL: `http://localhost:3000`. 🔗
+---
 
-## Fun Challenges and Projects 🏆
+## Development Roadmap
 
-Here are some fun challenges and projects you can try with the Visual Algorithm Designer:
+Implementation is tracked through **8 milestones** and **63 GitHub issues** on the [project board](https://github.com/users/SeCuReDmE-main-dev/projects/3).
 
-1. **Create a Sorting Algorithm**: Design and visualize a sorting algorithm like Bubble Sort or Quick Sort. 🧩
-2. **Build a Calculator**: Create a simple calculator that can perform basic arithmetic operations. ➕➖
-3. **Maze Solver**: Design an algorithm to solve a maze. 🧩
-4. **Tic-Tac-Toe Game**: Create a Tic-Tac-Toe game and visualize the game logic. ❌⭕
-5. **Weather App**: Build a weather app that fetches and displays weather data. 🌦️
+| Milestone | Focus | Issues | Status |
+|-----------|-------|--------|--------|
+| **M0** — Infrastructure | Fix all blockers, dev server runs clean | #12-#21, #115, #116 | 🔴 Next |
+| **M1** — Backend Core | SQLite memory, AI pipeline service, feedback endpoint | #22-#28 | ⬜ Queued |
+| **M2** — Frontend Foundation | palette.css tokens, routing, services, DnD context | #29-#37 | ⬜ Queued |
+| **M3** — Core Canvas Loop | Drag node → canvas → AI explanation (E2E) | #38-#45 | ⬜ Queued |
+| **M4** — Subpipeline Library | 5 prefab templates, 4-tab panel, drag-to-expand | #46-#51 | ⬜ Queued |
+| **M5** — Evaluation & Promotion | coherenceScore, ≥93% promotion, loop detection | #52-#59 | ⬜ Queued |
+| **M6** — UX Polish | Excel export, keyboard shortcuts, tutorial, animations | #60-#66 | ⬜ Queued |
+| **M7** — Security & Compliance | 7 security profiles, ÉFVP report, audit hash | #67-#72 | ⬜ Queued |
 
-## Additional Resources 📚
+Each issue contains a single testable acceptance criterion. Closing an issue with a commit message containing `Closes #NNN` automatically advances the milestone progress bar.
 
-Here are some additional resources to help you learn more and explore further:
+---
 
-* [Video Tutorials](https://www.example.com/video-tutorials) 🎥
-* [Interactive Demos](https://www.example.com/interactive-demos) 🖥️
-* [Live Version of the App](https://www.example.com/live-version) 🌐
+## Contributing
 
-## Contributing ❤️
+1. Pick an open issue from the [M0 milestone](https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/milestone/1) — start there
+2. Read the issue body for the exact file target and acceptance criterion
+3. Implement the minimal patch
+4. Commit with `Closes #NNN` in the message body
+5. The issue closes automatically and the milestone graph updates
 
-We love contributions to the Visual Algorithm Designer project! To contribute, follow these steps:
+All architectural decisions are documented in [docs/plan.md](docs/plan.md). Do not introduce new dependencies or change the stack without updating that file first.
 
-1. Fork the repository.
-2. Create a new branch for your feature or bugfix.
-3. Make your changes and commit them with clear and concise commit messages.
-4. Push your changes to your forked repository.
-5. Create a pull request to the main repository.
+---
 
-Please make sure your code follows the project's coding standards and includes appropriate tests.
+## Project Links
 
-Thank you for contributing!
+| Resource | URL |
+|----------|-----|
+| Issues | https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/issues |
+| Milestones | https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/milestones |
+| Project board | https://github.com/users/SeCuReDmE-main-dev/projects/3 |
+| Architecture plan | [docs/plan.md](docs/plan.md) |
+
+---
+
+## License
+
+MIT
