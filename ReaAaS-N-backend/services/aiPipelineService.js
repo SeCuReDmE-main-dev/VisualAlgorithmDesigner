@@ -9,42 +9,49 @@ const SECURITY_PROFILES = {
     label: 'General',
     legalJustification: 'General educational or professional algorithm design.',
     allowedVocabulary: ['pipeline', 'model', 'training', 'evaluation', 'loop', 'feedback'],
+    blockedIntents: ['unauthorized access', 'credential theft', 'privacy-invasive extraction'],
     promotionThreshold: 93,
   },
   educational: {
     label: 'Educational',
     legalJustification: 'Student learning and classroom explanation.',
     allowedVocabulary: ['step', 'concept', 'example', 'rubric', 'feedback'],
+    blockedIntents: ['operational misuse', 'unauthorized security testing'],
     promotionThreshold: 90,
   },
   integrity: {
     label: 'Integrity',
     legalJustification: 'Defensive integrity monitoring and audit workflows.',
     allowedVocabulary: ['threat', 'anomaly', 'integrity', 'audit', 'risk', 'control'],
+    blockedIntents: ['weaponization', 'covert persistence', 'evasion'],
     promotionThreshold: 96,
   },
   compliance: {
     label: 'Compliance',
     legalJustification: 'Governance, privacy, and compliance review.',
     allowedVocabulary: ['audit', 'privacy', 'retention', 'consent', 'policy', 'evidence'],
+    blockedIntents: ['unconsented profiling', 'private data extraction', 'retention bypass'],
     promotionThreshold: 95,
   },
   security: {
     label: 'Security',
     legalJustification: 'Authorized defensive security analysis.',
     allowedVocabulary: ['detection', 'incident', 'triage', 'containment', 'indicator', 'exploit'],
+    blockedIntents: ['unauthorized exploitation', 'malware generation', 'credential theft'],
     promotionThreshold: 95,
   },
   research: {
     label: 'Research',
     legalJustification: 'Controlled research and evaluation.',
     allowedVocabulary: ['experiment', 'baseline', 'metric', 'validation', 'dataset'],
+    blockedIntents: ['human-subject reidentification', 'unapproved data collection'],
     promotionThreshold: 93,
   },
   operations: {
     label: 'Operations',
     legalJustification: 'Operational decision support and automation.',
     allowedVocabulary: ['monitoring', 'alert', 'handoff', 'runbook', 'rollback'],
+    blockedIntents: ['unsafe automation', 'approval bypass', 'silent destructive action'],
     promotionThreshold: 93,
   },
 };
@@ -62,12 +69,31 @@ class AIPipelineService {
     const pipeline = validatePipelinePayload(payload);
     const sessionId = normalizeSessionId(requestContext.sessionId || payload.sessionId);
     const securityProfile = normalizeSecurityProfile(payload.securityProfile);
+    const intent = normalizeIntent(payload.intent, 'explain');
+    const misuse = detectContextualMisuse(pipeline.nodes, securityProfile, intent);
     const traversal = buildTraversalSummary(pipeline.nodes, pipeline.edges, payload.focusNodeId);
-    const promptHash = hashJson({ pipeline, securityProfile, intent: 'explain' });
+    const promptHash = hashJson({ pipeline, securityProfile, intent });
     const relatedMemories = this.searchMemories(sessionId, pipeline);
 
+    if (misuse.isSuspicious) {
+      return {
+        explanation: misuse.reason,
+        focusNodeId: payload.focusNodeId || null,
+        promptHash,
+        memoryMatches: relatedMemories.length,
+        loopGuard: {
+          maxIterations: MAX_ITERATIONS,
+          visitedNodeIds: traversal.visitedNodeIds,
+          truncated: traversal.truncated,
+        },
+        securityProfile,
+        contextualMisuse: misuse,
+        latency_ms: Date.now() - startedAt,
+      };
+    }
+
     const messages = [
-      { role: 'system', content: buildSystemPrompt(securityProfile, 'explain') },
+      { role: 'system', content: buildSystemPrompt(securityProfile, intent) },
       { role: 'user', content: buildExplainPrompt(pipeline, traversal, relatedMemories) },
     ];
 
@@ -91,6 +117,7 @@ class AIPipelineService {
         truncated: traversal.truncated,
       },
       securityProfile,
+      contextualMisuse: misuse,
       latency_ms: Date.now() - startedAt,
     };
   }
@@ -100,19 +127,23 @@ class AIPipelineService {
     const pipeline = validatePipelinePayload(payload);
     const sessionId = normalizeSessionId(requestContext.sessionId || payload.sessionId);
     const securityProfile = normalizeSecurityProfile(payload.securityProfile);
-    const misuse = detectContextualMisuse(pipeline.nodes, securityProfile);
-    const promptHash = hashJson({ pipeline, securityProfile, intent: 'evaluate' });
+    const intent = normalizeIntent(payload.intent, 'evaluate');
+    const misuse = detectContextualMisuse(pipeline.nodes, securityProfile, intent);
+    const promptHash = hashJson({ pipeline, securityProfile, intent });
 
     if (misuse.isSuspicious) {
       return {
         explanation: misuse.reason,
         coherenceScore: 0,
+        complianceScore: 0,
+        complianceStatus: 'fail',
         recommendation: 'invalid',
         weakPoints: [misuse.reason],
         strongPoints: [],
         loopCompatible: false,
         promptHash,
         securityProfile,
+        contextualMisuse: misuse,
         latency_ms: Date.now() - startedAt,
       };
     }
@@ -120,23 +151,26 @@ class AIPipelineService {
     const traversal = buildTraversalSummary(pipeline.nodes, pipeline.edges, payload.focusNodeId);
     const relatedMemories = this.searchMemories(sessionId, pipeline);
     const messages = [
-      { role: 'system', content: buildSystemPrompt(securityProfile, 'evaluate') },
+      { role: 'system', content: buildSystemPrompt(securityProfile, intent) },
       { role: 'user', content: buildEvaluatePrompt(pipeline, traversal, relatedMemories) },
     ];
 
     const aiText = await this.callGroq(messages);
     const evaluation = parseEvaluation(aiText) || buildFallbackEvaluation(pipeline, traversal);
+    const compliance = buildComplianceAssessment(evaluation, securityProfile, misuse);
 
     this.memoryRepository?.addMemory(sessionId, {
-      content: `Evaluated pipeline: ${summarizePipeline(pipeline)}\nScore: ${evaluation.coherenceScore}\nRecommendation: ${evaluation.recommendation}`,
+      content: `Evaluated pipeline: ${summarizePipeline(pipeline)}\nScore: ${evaluation.coherenceScore}\nCompliance: ${compliance.complianceScore}\nRecommendation: ${evaluation.recommendation}`,
       category: 'evaluation',
       metadata: { promptHash, securityProfile },
     });
 
     return {
       ...evaluation,
+      ...compliance,
       promptHash,
       securityProfile,
+      contextualMisuse: misuse,
       loopGuard: {
         maxIterations: MAX_ITERATIONS,
         visitedNodeIds: traversal.visitedNodeIds,
@@ -314,8 +348,9 @@ ${responseRule}
   `.trim();
 }
 
-function detectContextualMisuse(nodes, securityProfile = 'general') {
+function detectContextualMisuse(nodes, securityProfile = 'general', requestedIntent = 'evaluate') {
   const profile = normalizeSecurityProfile(securityProfile);
+  const intent = normalizeIntent(requestedIntent, 'evaluate');
   const allText = nodes.map((node) => `${node.label} ${node.type} ${JSON.stringify(node.params)}`).join(' ').toLowerCase();
   const absoluteViolations = [
     'generate ransomware',
@@ -328,20 +363,56 @@ function detectContextualMisuse(nodes, securityProfile = 'general') {
 
   for (const term of absoluteViolations) {
     if (allText.includes(term)) {
-      return { isSuspicious: true, reason: `Pipeline rejected: absolute violation "${term}" detected.` };
+      return {
+        isSuspicious: true,
+        reason: `Pipeline rejected: absolute violation "${term}" detected.`,
+        matchedTerm: term,
+        intent,
+      };
     }
   }
 
   if (profile === 'general' || profile === 'educational') {
-    const contextualViolations = ['exploit payload', 'bypass auth', 'shellcode inject'];
+    const contextualViolations = ['exploit payload', 'bypass auth', 'shellcode inject', 'red team exploit', 'credential dump'];
     for (const term of contextualViolations) {
       if (allText.includes(term)) {
-        return { isSuspicious: true, reason: `Pipeline rejected: "${term}" requires an authorized security profile.` };
+        return {
+          isSuspicious: true,
+          reason: `Pipeline rejected: "${term}" requires an authorized security profile.`,
+          matchedTerm: term,
+          intent,
+        };
       }
     }
   }
 
-  return { isSuspicious: false, reason: '' };
+  if (profile === 'operations') {
+    const unsafeAutomationTerms = ['delete production', 'disable approval', 'bypass change control'];
+    for (const term of unsafeAutomationTerms) {
+      if (allText.includes(term)) {
+        return {
+          isSuspicious: true,
+          reason: `Pipeline rejected: "${term}" conflicts with the operations profile controls.`,
+          matchedTerm: term,
+          intent,
+        };
+      }
+    }
+  }
+
+  return { isSuspicious: false, reason: '', intent };
+}
+
+function buildComplianceAssessment(evaluation, securityProfile, misuse) {
+  const profile = SECURITY_PROFILES[normalizeSecurityProfile(securityProfile)];
+  const coherenceScore = Number(evaluation.coherenceScore) || 0;
+  const weakPointPenalty = Math.min(12, (evaluation.weakPoints || []).length * 3);
+  const misusePenalty = misuse?.isSuspicious ? 100 : 0;
+  const complianceScore = Math.max(0, Math.min(100, coherenceScore - weakPointPenalty - misusePenalty));
+  const complianceStatus = complianceScore >= profile.promotionThreshold
+    ? 'pass'
+    : complianceScore >= 70 ? 'review' : 'fail';
+  return { complianceScore, complianceStatus };
 }
 
 function buildExplainPrompt(pipeline, traversal, memories) {
@@ -430,6 +501,11 @@ function normalizeSecurityProfile(securityProfile) {
   return SECURITY_PROFILES[key] ? key : 'general';
 }
 
+function normalizeIntent(intent, fallback) {
+  const value = String(intent || fallback || 'evaluate').toLowerCase();
+  return ['explain', 'evaluate', 'promote', 'report'].includes(value) ? value : fallback;
+}
+
 function badRequest(message) {
   return Object.assign(new Error(message), { status: 400, code: 'BAD_REQUEST' });
 }
@@ -438,6 +514,7 @@ module.exports = {
   AIPipelineService,
   MAX_ITERATIONS,
   SECURITY_PROFILES,
+  buildComplianceAssessment,
   buildSystemPrompt,
   detectContextualMisuse,
   validatePipelinePayload,

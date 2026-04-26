@@ -1,4 +1,5 @@
 import { getOrCreateSessionId } from './sessionManager';
+import { SecurityProfileId } from './securityProfileCatalog';
 
 export interface PipelineNodePayload {
   id: string;
@@ -19,24 +20,47 @@ export interface ExplainPipelinePayload {
   nodes: PipelineNodePayload[];
   edges: PipelineEdgePayload[];
   focusNodeId?: string;
+  securityProfile?: SecurityProfileId;
 }
 
 export interface ExplainPipelineResult {
   explanation: string;
+  promptHash?: string;
+  securityProfile?: SecurityProfileId;
+  contextualMisuse?: ContextualMisuseResult;
 }
 
 export interface EvaluatePipelinePayload {
   nodes: PipelineNodePayload[];
   edges: PipelineEdgePayload[];
+  focusNodeId?: string;
+  securityProfile?: SecurityProfileId;
+}
+
+export interface ContextualMisuseResult {
+  isSuspicious: boolean;
+  reason: string;
+  matchedTerm?: string;
+  intent?: string;
 }
 
 export interface PipelineEvaluation {
   explanation: string;
   coherenceScore: number;
+  complianceScore?: number;
+  complianceStatus?: 'pass' | 'review' | 'fail';
   recommendation: 'valid' | 'warning' | 'invalid';
   weakPoints: string[];
   strongPoints: string[];
   loopCompatible: boolean;
+  promptHash?: string;
+  securityProfile?: SecurityProfileId;
+  contextualMisuse?: ContextualMisuseResult;
+  loopGuard?: {
+    maxIterations: number;
+    visitedNodeIds: string[];
+    truncated: boolean;
+  };
 }
 
 async function readJsonResponse<T>(response: Response): Promise<T> {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Alert, Box, Container, Typography } from '@mui/material';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import AlgorithmDesignerPage from './pages/AlgorithmDesignerPage';
 import AlgorithmBuilderPage from './pages/AlgorithmBuilderPage';
 import CircuitDesignerPage from './pages/CircuitDesignerPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -45,19 +46,6 @@ function useBackendHealth() {
   return backendOnline;
 }
 
-function AlgorithmDesignerPlaceholder() {
-  return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Algorithm Designer
-      </Typography>
-      <Typography color="text.secondary">
-        H2O pipeline designer foundation is ready. Canvas components land in M3.
-      </Typography>
-    </Container>
-  );
-}
-
 function App() {
   const backendOnline = useBackendHealth();
 
@@ -71,7 +59,7 @@ function App() {
         )}
         <Routes>
           <Route path="/" element={<Navigate to="/designer" replace />} />
-          <Route path="/designer" element={<AlgorithmDesignerPlaceholder />} />
+          <Route path="/designer" element={<AlgorithmDesignerPage />} />
           <Route path="/builder" element={<AlgorithmBuilderPage />} />
           <Route path="/circuit" element={<CircuitDesignerPage />} />
           <Route path="*" element={<NotFoundPage />} />
