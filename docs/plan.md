@@ -634,3 +634,370 @@ curl -X POST http://localhost:3001/api/ai/explain \
 | MindsDB = CUT | Placeholder vides dans QuaNTecH, incompatible |
 | QuaNTecH = Phase 4 | Fonctions retournent strings vides, stack Webpack+Emotion incompatible |
 | Zéro Python Phase 1 | .venv et requirements.txt ignorés jusqu'à Phase 2+ |
+
+---
+
+## PHASE 7 — az-frontend
+
+> Session du 26 avril 2026 — Interface harpoon.io × H2O.ai
+
+### Concept Validé par Recherche
+
+**Référence UX : harpoon.io** (vérifié source primaire, 26 avril 2026)
+> "Drag & Drop Simplicity — Instantly search for and find any piece of commercial or
+> open source software on the planet and deploy it to the cloud with one click."
+
+harpoon.io = catalogue gauche + canvas centre + connexions par drag-drop.
+**Notre adaptation :** au lieu de services Kubernetes, les nœuds sont des algorithmes H2O.
+Au lieu de déployer sur cloud, on visualise et explique le pipeline ML.
+
+**Référence Algorithmes : H2O.ai Appendix A — Parameters** (vérifié source primaire, 26 avril 2026)
+Source : https://docs.h2o.ai/h2o/latest-stable/h2o-docs/parameters.html
+Catalogue de paramètres ML couvrant : GBM, GLM, RandomForest, DeepLearning,
+XGBoost, StackedEnsemble, AutoML, K-Means, PCA, GLRM, IsolationForest, CoxPH.
+
+**Analyse builder-app (C:\Users\jeans\Desktop\builder-app\algorithm-builder-app\src)**
+- `Palette.js` → pattern confirmé : left sidebar avec search + drag `data-type`
+- `Canvas.js` → canvas 2D natif (à remplacer par @xyflow/react déjà en stack)
+- `components.js` → catalogue d'algorithmes déjà structuré (à migrer en TypeScript)
+- Pattern: `componentsLibrary` → `searchComponents()` → `createComponent()` — directement portaçble
+
+---
+
+### Pivot UX — De "Steps Manuels" à "Algorithmes Pré-existants"
+
+**Avant (AlgorithmBuilderPage) :** l'utilisateur crée ses propres étapes textuelles
+**Après (AlgorithmDesignerPage) :** l'utilisateur drage des algorithmes H2O du catalogue
+
+Les deux pages coexistent :
+- `AlgorithmBuilderPage` → pour les étudiants CS qui veulent créer leurs propres étapes
+- `AlgorithmDesignerPage` → pour les étudiants ML qui veulent assembler des pipelines H2O
+- `CircuitDesignerPage` → pour les étudiants EE (logique booléenne, inchangé)
+
+Le **Core Loop reste intact** : l'AI explique l'état d'exécution à une étape précise.
+
+---
+
+### Layout — Shell Harpoon-Style (3 colonnes)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  AppBar — "VisualAlgorithmDesigner"   [Builder] [Designer] [Circuit] │
+├──────────────┬──────────────────────────────┬───────────────────┤
+│  PALETTE     │        CANVAS                │  PROPERTIES       │
+│  (240px)     │   (@xyflow/react)            │  (300px)          │
+│              │                              │                   │
+│ [Search...]  │   ┌──────────┐               │  GBM Parameters   │
+│              │   │  GBM     │──────────┐    │  ─────────────    │
+│ Supervised   │   │  Node    │          │    │  ntrees: [50]     │
+│ ─ GBM        │   └──────────┘          ↓    │  max_depth: [5]   │
+│ ─ GLM        │              ┌──────────┐    │  learn_rate: 0.1  │
+│ ─ XGBoost    │              │ AutoML   │    │                   │
+│ ─ RF         │              │  Node    │    │  [▶ Explain Step] │
+│ ─ DeepLearn  │              └──────────┘    │                   │
+│              │                              │  AI Output:       │
+│ Unsupervised │  [empty state placeholder]   │  "GBM at step 2   │
+│ ─ K-Means    │                              │   compares..."    │
+│ ─ PCA        │                              │                   │
+│ ─ IsoForest  │                              │  [loading...]     │
+│              │                              │  [error banner]   │
+│ AutoML       │                              │                   │
+│ ─ AutoML     │                              │                   │
+└──────────────┴──────────────────────────────┴───────────────────┘
+```
+
+---
+
+### Arbre de Composants
+
+```
+ReaAaS-N-frontend/src/
+├── styles/
+│   └── palette.css                          (NOUVEAU — dérivé image asset/)
+├── services/
+│   ├── algorithmCatalog.ts                  (NOUVEAU — catalogue statique H2O)
+│   └── api.ts                               (NOUVEAU — wraps fetch calls)
+├── pages/
+│   ├── AlgorithmDesignerPage.tsx            (NOUVEAU — page principale harpoon-style)
+│   ├── AlgorithmBuilderPage.tsx             (EXISTANT — garder pour CS steps)
+│   └── CircuitDesignerPage.tsx              (EXISTANT — garder pour EE)
+└── components/
+    ├── AlgorithmDesigner/
+    │   ├── AlgorithmPalette.tsx             (NOUVEAU — left sidebar, porté de Palette.js)
+    │   │   ├── PaletteSearchInput.tsx
+    │   │   └── PaletteCategoryGroup.tsx
+    │   ├── AlgorithmCanvas.tsx              (NOUVEAU — @xyflow/react wrapper)
+    │   │   ├── AlgorithmNode.tsx            (NOUVEAU — custom node avec handles H2O)
+    │   │   └── PipelineEdge.tsx             (NOUVEAU — animated edge)
+    │   ├── AlgorithmPropertiesPanel.tsx     (NOUVEAU — H2O param editor)
+    │   │   └── H2OParamField.tsx            (NOUVEAU — input per parameter type)
+    │   └── AIExplanationPanel.tsx           (NOUVEAU — résultat Groq)
+    └── CircuitDesigner/                     (EXISTANT — inchangé)
+        ├── PropertiesPanel.tsx
+        └── nodes/
+```
+
+---
+
+### Catalogue H2O — Lot 1 MVP (6 algorithmes)
+
+```typescript
+// services/algorithmCatalog.ts
+export interface H2OAlgorithm {
+  id: string;
+  type: string;                 // node type dans @xyflow/react
+  label: string;
+  category: 'supervised' | 'unsupervised' | 'automl';
+  description: string;
+  inputPorts: ('data' | 'validation' | 'model')[];
+  outputPorts: ('model' | 'prediction' | 'metrics')[];
+  params: H2OParam[];
+}
+
+export interface H2OParam {
+  key: string;          // ex: 'ntrees', 'max_depth', 'learn_rate'
+  label: string;
+  type: 'integer' | 'float' | 'boolean' | 'enum';
+  default: number | boolean | string;
+  min?: number;
+  max?: number;
+  options?: string[];   // pour type 'enum'
+  description: string;  // extrait H2O docs
+}
+```
+
+**Algorithmes Lot 1 MVP :**
+
+| ID | Label | Catégorie | Params Clés H2O |
+|----|-------|-----------|-----------------|
+| `gbm` | GBM | supervised | ntrees, max_depth, learn_rate, sample_rate, col_sample_rate |
+| `glm` | GLM | supervised | family, alpha, lambda, solver, standardize |
+| `random_forest` | Random Forest | supervised | ntrees, max_depth, mtries, sample_rate |
+| `deep_learning` | Deep Learning | supervised | hidden, epochs, rate, activation |
+| `k_means` | K-Means | unsupervised | k, init, max_iterations, seed |
+| `automl` | AutoML | automl | max_models, max_runtime_secs, exclude_algos, sort_metric |
+
+---
+
+### Carte d'État
+
+| État | Scope | Stockage |
+|------|-------|----------|
+| `nodes: Node[]` | AlgorithmDesignerPage | local state (useState) |
+| `edges: Edge[]` | AlgorithmDesignerPage | local state (useState) |
+| `selectedNodeId: string \| null` | AlgorithmDesignerPage | local state |
+| `nodeParams: Record<string, Record<string, any>>` | AlgorithmDesignerPage | local state |
+| `pipelineResult: ExplainResult \| null` | AlgorithmDesignerPage | local state |
+| `isExplaining: boolean` | AlgorithmDesignerPage | local state |
+| `explainError: string \| null` | AlgorithmDesignerPage | local state |
+| `paletteSearch: string` | AlgorithmPalette | local state |
+| `algorithmCatalog` | services/algorithmCatalog.ts | static import (pas de fetch) |
+
+> Zéro Redux. Zéro Zustand. Zéro Context. State local uniquement.
+> Seul cas global futur : auth (Phase 3) — pas Phase 1.
+
+---
+
+### Fonctions Service
+
+```typescript
+// services/api.ts
+export async function explainPipeline(payload: {
+  nodes: Array<{ id: string; type: string; params: Record<string, any> }>;
+  edges: Array<{ source: string; target: string }>;
+  focusNodeId: string;
+}): Promise<{ explanation: string }> {
+  const res = await fetch('/api/ai/explain-pipeline', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `HTTP ${res.status}`);
+  }
+  const json = await res.json();
+  return json.data;
+}
+
+// services/algorithmCatalog.ts  ← données statiques, zero fetch
+export const ALGORITHM_CATALOG: H2OAlgorithm[] = [ ... ];
+export function searchAlgorithms(query: string): H2OAlgorithm[] { ... }
+export function getAlgorithmById(id: string): H2OAlgorithm | undefined { ... }
+```
+
+**Backend — nouveau endpoint :**
+
+```
+POST /api/ai/explain-pipeline
+{
+  "nodes": [
+    { "id": "n1", "type": "gbm", "params": { "ntrees": 50, "max_depth": 5 } },
+    { "id": "n2", "type": "automl", "params": { "max_models": 10 } }
+  ],
+  "edges": [{ "source": "n1", "target": "n2" }],
+  "focusNodeId": "n1"
+}
+→ { "status": "success", "data": { "explanation": "...", "latency_ms": 843 } }
+```
+
+---
+
+### États Empty / Loading / Error / Success
+
+| État | Composant | Rendu |
+|------|-----------|-------|
+| **Empty canvas** | AlgorithmCanvas | Illustration + "Glissez un algorithme depuis la palette pour commencer" |
+| **Empty properties** | AlgorithmPropertiesPanel | "Sélectionnez un nœud sur le canvas pour voir ses paramètres" |
+| **Loading explain** | AIExplanationPanel | MUI `CircularProgress` + "L'IA analyse le pipeline..." |
+| **Error explain** | AIExplanationPanel | MUI `Alert severity="error"` + message d'erreur |
+| **Success explain** | AIExplanationPanel | Texte formaté markdown dans MUI `Paper` |
+| **Palette empty search** | AlgorithmPalette | "Aucun algorithme correspondant à '{query}'" |
+
+> Ne pas déclarer succès avant inspection Network tab → réponse 200 + `data.explanation` non vide.
+
+---
+
+### palette.css — Palette Dérivée de l'Image
+
+**Source :** `asset/color_scheme_palette_scheme.jpg`
+**Analyse de l'image :** composition cosmique avec Terre entourée de deux univers :
+- Gauche : organique-fantaisie (fleurs, sphères) → palette mauve-rose-corail
+- Droite : techno-data (circuits, données) → palette teal-cyan-acier
+- Fond : espace profond charbon/navy
+
+**Chemin de fichier :** `ReaAaS-N-frontend/src/styles/palette.css`
+**Import unique dans :** `ReaAaS-N-frontend/src/main.tsx`
+
+```css
+/* Auto-generated palette - source: asset/color_scheme_palette_scheme.jpg */
+/* Extracted: 26 avril 2026 */
+:root {
+  /* ─── Core Colors ─────────────────────────────────────── */
+  --color-primary:    #3D8A88;   /* teal dominant — axe tech/data droit */
+  --color-secondary:  #7B5C8A;   /* mauve — axe organique gauche */
+  --color-accent:     #E8856A;   /* corail — action haute chroma */
+  --color-surface:    #1A1B2E;   /* espace profond — fond principal dark mode */
+  --color-surface-alt:#242540;   /* surface légèrement élevée */
+  --color-on-surface: #DDE8EC;   /* texte clair sur fond sombre */
+
+  /* ─── Semantic Aliases ────────────────────────────────── */
+  --color-bg:         var(--color-surface);
+  --color-text:       var(--color-on-surface);
+  --color-text-muted: color-mix(in srgb, var(--color-on-surface) 58%, transparent);
+  --color-border:     color-mix(in srgb, var(--color-on-surface) 11%, transparent);
+  --color-btn-bg:     #2A7070;   /* teal sombre — AA contrast 5.7:1 blanc */
+  --color-btn-text:   #ffffff;
+  --color-link:       #5DAAAA;   /* teal clair — liens lisibles */
+  --color-error:      #C0392B;   /* rouge sémantique */
+  --color-success:    #1A8A5A;   /* vert sémantique */
+  --color-warning:    #C07A20;   /* ambre sémantique */
+
+  /* ─── Node Type Colors (H2O Algorithm Nodes) ──────────── */
+  --color-node-supervised:   #2D6A7A;   /* teal acier */
+  --color-node-unsupervised: #5A3A7A;   /* violet profond */
+  --color-node-automl:       #6A4A2A;   /* brun chaud */
+  --color-node-selected:     #5DAAAA;   /* teal lumineux = sélection */
+  --color-edge:              #3D8A88;   /* couleur des connexions */
+  --color-edge-animated:     #5DAAAA;   /* pulse animation */
+
+  /* ─── Spacing Tokens ──────────────────────────────────── */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+
+  /* ─── Typography Tokens ───────────────────────────────── */
+  --font-size-xs:   0.75rem;
+  --font-size-sm:   0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg:   1.125rem;
+  --font-size-xl:   1.25rem;
+  --font-size-2xl:  1.5rem;
+
+  /* ─── Radius Tokens ───────────────────────────────────── */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+```
+
+**Vérification contraste WCAG AA :**
+- `--color-on-surface` (#DDE8EC) sur `--color-surface` (#1A1B2E) → ratio ~12.9:1 ✅ AAA
+- `--color-btn-text` (#ffffff) sur `--color-btn-bg` (#2A7070) → ratio ~5.7:1 ✅ AA
+- `--color-link` (#5DAAAA) sur `--color-surface` (#1A1B2E) → ratio ~6.1:1 ✅ AA
+
+---
+
+### Migration depuis builder-app
+
+**Ce qui est portaçble directement :**
+
+| builder-app (JS) | VAD cible (TypeScript React) |
+|------------------|------------------------------|
+| `Palette.js` — search + map draggable | `AlgorithmPalette.tsx` — MUI TextField + MUI List |
+| `componentsLibrary` — tableau d'objets | `ALGORITHM_CATALOG` — tableau TypeScript typé |
+| `searchComponents(query)` — filtre | `searchAlgorithms(query)` — même logique, typée |
+| `data-type` + `data-properties` sur div | `onDragStart` → `ReactFlow.addNodes()` |
+| `Canvas.js` — canvas 2D natif | **@xyflow/react déjà en stack** — supérieur |
+| `handleDrop` → setComponents | `onDrop` → `useReactFlow().addNodes()` |
+
+> Ne pas copier le canvas 2D de builder-app. @xyflow/react remplace tout.
+> Ne pas copier les classes CSS de builder-app. palette.css remplace tout.
+
+---
+
+### No-Polish Boundary (Phase 1 Frontend)
+
+**Implémenter d'abord :**
+1. Canvas vide → état empty visible
+2. Drag depuis palette → nœud apparaît sur canvas
+3. Connexion entre deux nœuds → edge visible
+4. Sélection nœud → paramètres H2O dans PropertiesPanel
+5. Bouton "Explain" → `POST /api/ai/explain-pipeline` → texte affiché
+
+**Ne pas toucher avant que le core loop fonctionne end-to-end :**
+- Animations complexes sur les edges
+- Minimap styling
+- Node collapse/expand
+- Pipeline validation warnings
+- Undo/redo
+
+---
+
+### Nouvelles Tâches Phase 7 (à ajouter au PLAN D'IMPLÉMENTATION)
+
+- [ ] F1. Créer `ReaAaS-N-frontend/src/styles/palette.css` (dérivé image asset/)
+- [ ] F2. Importer `palette.css` dans `main.tsx`
+- [ ] F3. Créer `services/algorithmCatalog.ts` — 6 algorithmes H2O Lot 1
+- [ ] F4. Créer `services/api.ts` — `explainPipeline()` avec try/catch
+- [ ] F5. Créer `AlgorithmDesignerPage.tsx` — shell 3 colonnes MUI
+- [ ] F6. Créer `AlgorithmPalette.tsx` — search + catégories + draggable cards
+- [ ] F7. Créer `AlgorithmNode.tsx` — custom node @xyflow/react avec handles
+- [ ] F8. Créer `AlgorithmCanvas.tsx` — ReactFlow wrapper + onDrop + empty state
+- [ ] F9. Créer `AlgorithmPropertiesPanel.tsx` — H2OParamField par param sélectionné
+- [ ] F10. Créer `AIExplanationPanel.tsx` — loading / error / success states
+- [ ] F11. Ajouter `POST /api/ai/explain-pipeline` dans `ReaAaS-N-backend/server.js`
+- [ ] F12. Router — ajouter `/designer` route dans `App.tsx`
+- [ ] F13. Appliquer `palette.css` variables sur MUI theme dans `theme.ts`
+
+---
+
+### Stack — Validations Complémentaires (26 avril 2026)
+
+| Décision | Validation | Source |
+|----------|------------|--------|
+| @xyflow/react 12.10.2 déjà en stack | ✅ Maintenu activement, v12 release 2024, npm 1.2M/semaine | xyflow.dev |
+| @hello-pangea/dnd pour palette list DnD | ✅ Fork actif de react-beautiful-dnd, ~300k/semaine npm | npmjs.com |
+| Catalogue H2O statique (pas d'API H2O) | ✅ Les params sont documentés, stables, pas besoin de runtime | h2o.ai/docs |
+| MUI v6 pour Palette + PropertiesPanel | ✅ Same stack as existing CircuitDesigner PropertiesPanel | mui.com |
+| Zéro Redux pour canvas state | ✅ @xyflow/react v12 gère son propre state avec useNodesState | xyflow.dev |
+
+**Décisions nouvelles IRRÉVERSIBLES :**
+- Catalogue H2O = fichier statique TypeScript — pas d'appel API runtime à H2O
+- @xyflow/react gère `nodes` et `edges` state (useNodesState, useEdgesState) — pas useState custom
+- Pas de canvas 2D natif (builder-app Canvas.js style) — @xyflow/react seulement
+- palette.css = source unique de vérité couleur — pas de hex dans les composants
