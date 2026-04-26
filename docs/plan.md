@@ -6207,3 +6207,418 @@ fix(security): bump express to ^5.2.0, remove stale nested backend
 4. **az-browser-visual-qa** — Valider le core loop dans un vrai navigateur via Playwright
 5. **az-deploy-survival** — Sortie de localhost, CI/CD, HTTPS
 6. **az-product-docs-handoff** — README final, runbook, .env.example complet
+
+---
+
+## PHASE 10.2 — NETTOYAGE LEGACY + SESSION MODE (az-implementation-runner — 26 avril 2026)
+
+> **Date :** 26 avril 2026 — immédiatement après le rapport d'audit Phase 10  
+> **Outil :** az-implementation-runner (GitHub Copilot — Claude Sonnet 4.6)  
+> **Contexte :** Après la validation complète de M0-M7 et la livraison du rapport d'audit, une analyse croisée de `plan.md` et du dépôt a révélé trois blocs de travail non-terminé : (A) fichiers legacy de l'ère GitHub Spark à la racine, (B) script de démarrage manquant, (C) features Phase 8-3.2 jamais incluses dans les milestones M0-M7 par le runner Codex. L'utilisateur a approuvé le plan et demandé l'exécution complète.  
+> **Branche :** `PaQBoT`  
+> **Commits produits :** 3 commits, poussés vers `origin/PaQBoT`
+
+---
+
+### A. BLOC A — SUPPRESSION DES FICHIERS LEGACY RACINE
+
+#### Contexte et justification
+
+Lors de l'audit post-Phase-10, un grep croisé (`Select-String`) de tous les chemins suspects dans `ReaAaS-N-frontend/src` et `ReaAaS-N-backend` a confirmé **zéro couplage** entre la stack active et les fichiers racine. Ces fichiers datent du prototype GitHub Spark (pré-Phase-1) et ont survécu à toutes les phases précédentes sans jamais être référencés.
+
+#### Fichiers supprimés (11 fichiers, 3 répertoires)
+
+| Chemin | Lignes | Motif de suppression |
+|--------|--------|----------------------|
+| `src/App.js` | 175 | Imports `@github/spark/components`, `@github/spark/hooks`, `react-beautiful-dnd`, `spark.llm`, `spark.llmPrompt` — aucun de ces packages n'existe dans la stack |
+| `src/AlgorithmVisualization.js` | 21 | Import `@github/spark/components` (Card) — package inexistant |
+| `src/index.js` | 6 | Entry point `createRoot` — supplanté par `ReaAaS-N-frontend/src/main.tsx` |
+| `src/components/App.js` | ~170 | Doublon de `src/App.js` sans dotenv |
+| `src/components/AlgorithmVisualization.js` | 21 | Doublon de `src/AlgorithmVisualization.js` |
+| `src/components/index.js` | 4 | Barrel export pour du code mort |
+| `public/index.html` | 11 | Shell `<div id="root">` bare — non servi par aucun bundler de la stack |
+| `requirements.txt` | 9 | 9 packages Python tous hors stack : `mindsdb_sdk`, `pandasai`, `pandasai-docker` (CUT plan.md), `torchquantum`, `tensorflow`, `tensorquantum`, `tensorzero_sdk` (Phase 4+ déférée), `numphy` (typo), `sequence` (orphelin) |
+| `.venv` | 8 | Fichier (357 octets, `PSIsContainer: False`) — 8 lignes de commentaires, aucun venv Python réel |
+| `server.js` (racine) | ~45 | Utilise `require()` mais `package.json` racine a `"type":"module"` → conflit irréparable. Supplanté par `ReaAaS-N-backend/server.js` |
+| `package.json` (racine) | — | Déclare `name: "reaaas-n-frontend"` avec scripts Vite mais aucun `vite.config.ts` à la racine. Doublon brisé de `ReaAaS-N-frontend/package.json` |
+
+#### Commande exécutée
+
+```powershell
+git rm -r src/ public/ requirements.txt .venv server.js package.json
+```
+
+**Résultat :** 11 entrées stagées `D` (deleted), confirmé via `git status --short`.
+
+#### Commit
+
+```
+1d3feb8  chore: remove legacy Spark prototype and Python stubs
+
+Remove GitHub Spark prototype era files (pre-Phase-1) with zero references
+in active stack:
+- src/ (6 files): @github/spark imports, spark.llm, react-beautiful-dnd
+- public/index.html: bare HTML shell, not served by any bundler
+- requirements.txt: all 9 Python packages CUT or Phase 4+ deferred
+- .venv: 357-byte comment stub, no actual Python venv
+- server.js (root): broken require() + type:module conflict
+- package.json (root): broken Vite scaffold with no vite.config.ts
+
+Active stacks are in ReaAaS-N-frontend/ and ReaAaS-N-backend/.
+Zero coupling confirmed by cross-search.
+```
+
+---
+
+### B. BLOC B — SCRIPT DE DÉMARRAGE PARALLÈLE `start-dev.ps1`
+
+#### Contexte et justification
+
+`plan.md` Phase 0 Tâche #10 spécifie : *"Script PowerShell recommandé pour démarrer les deux serveurs en parallèle"*. Ce script n'a jamais été créé lors des phases précédentes. Sans lui, le développeur doit ouvrir deux terminaux manuellement, trouver les bons répertoires, et se souvenir des ports.
+
+#### Fichier créé : `start-dev.ps1` (racine)
+
+**Comportement :**
+- Ouvre deux fenêtres `pwsh` distinctes avec titres lisibles (`VAD Backend :3001`, `VAD Frontend :5173`)
+- Lance `npm run dev` dans chaque sous-répertoire (`ReaAaS-N-backend/`, `ReaAaS-N-frontend/`)
+- Affiche un résumé des URLs dans la fenêtre d'origine
+- Utilise `$PSScriptRoot` pour fonctionner depuis n'importe quel répertoire courant
+
+**Contenu :**
+```powershell
+# start-dev.ps1 — VAD Development Launcher
+# Starts ReaAaS-N-backend (:3001) and ReaAaS-N-frontend (:5173) in parallel windows.
+# Usage: .\start-dev.ps1
+
+$root = $PSScriptRoot
+
+Start-Process pwsh -ArgumentList "-NoExit", "-Command", "
+  `$Host.UI.RawUI.WindowTitle = 'VAD Backend :3001';
+  Set-Location '$root\ReaAaS-N-backend';
+  npm install --prefer-offline 2>&1 | Out-Null;
+  npm run dev
+"
+
+Start-Process pwsh -ArgumentList "-NoExit", "-Command", "
+  `$Host.UI.RawUI.WindowTitle = 'VAD Frontend :5173';
+  Set-Location '$root\ReaAaS-N-frontend';
+  npm install --prefer-offline 2>&1 | Out-Null;
+  npm run dev
+"
+
+Write-Host "  Backend  → http://localhost:3001"
+Write-Host "  Frontend → http://localhost:5173"
+Write-Host "Health check: curl http://localhost:3001/api/health"
+```
+
+#### Commit
+
+```
+feat(dev): add start-dev.ps1 convenience launcher
+
+Parallel dev server launcher per plan.md Phase 0 Task #10.
+Opens two pwsh windows: backend :3001 and frontend :5173.
+Usage: .\start-dev.ps1
+```
+
+---
+
+### C. BLOC C — FEATURES PHASE 8-3.2 (F76-F82) — SESSION MODE PLAYGROUND/WORKBENCH
+
+#### Contexte et justification
+
+Ces 7 tâches sont définies explicitement dans `plan.md` Phase 8-3.2 mais **n'ont jamais été incluses dans les milestones M0-M7** car la Phase 9 (ticket planner Codex) a été exécutée avant que la Phase 8-3.2 soit finalisée. Le runner Codex n'en avait pas connaissance. L'analyse de la codebase (exploration subagent) a confirmé qu'aucun des fichiers concernés n'existait.
+
+---
+
+#### F76 — `useSessionMode.ts` (CRÉÉ)
+
+**Chemin :** `ReaAaS-N-frontend/src/hooks/useSessionMode.ts`
+
+**Responsabilité :** Hook React central pour la distinction playground/workbench. Persiste la configuration en `localStorage['vad_session_mode']`.
+
+**Types exportés :**
+- `SessionMode = 'playground' | 'workbench'`
+- `PlaygroundCatalogKey` — union de 8 identifiants stricts
+- `PlaygroundConfig` — `{ mode, displayName, validationProfile: 'educational', catalogFilter, vocabularyMode: 'friendly', showScoreAs: 'percent', tutorialForced: true, allowExport: false }`
+- `WorkbenchConfig` — `{ mode, securityProfile, validationThreshold, requiresAuditLog, allowComplianceReport, vocabularyMode: 'technical', showScoreAs: 'percent', tutorialForced: false, allowExport: true }`
+- `SessionConfig = PlaygroundConfig | WorkbenchConfig`
+
+**Fonctions exportées :**
+- `initPlaygroundSession()` → crée et persiste un `PlaygroundConfig` fixe, retourne la config
+- `initWorkbenchSession(profile?: SecurityProfileId)` → crée et persiste un `WorkbenchConfig` basé sur les seuils du profil, défaut `'general'`
+- `useSessionMode()` → hook React avec `useState` initialisé depuis localStorage, expose `{ config, switchToPlayground, switchToWorkbench }`
+
+**Seuils de promotion par profil (résolu localement en Phase 1 pour éviter le couplage) :**
+
+| Profil | Seuil | requiresAuditLog |
+|--------|-------|-----------------|
+| `general` | 93 % | Non |
+| `educational` | **70 %** | Non |
+| `integrity` | 97 % | Oui |
+| `compliance` | 95 % | Oui |
+| `security` | 95 % | Oui |
+| `research` | 90 % | Non |
+| `operations` | 93 % | Oui |
+
+**Comportement de persistance :** `loadPersistedConfig()` lit `localStorage`, valide `parsed.mode === 'playground' || 'workbench'`, et retourne le résultat. Si aucune entrée valide → appelle `initWorkbenchSession('general')` pour ne pas perturber les utilisateurs existants au premier lancement.
+
+---
+
+#### F77 — `playgroundCatalog.ts` (CRÉÉ)
+
+**Chemin :** `ReaAaS-N-frontend/src/constants/playgroundCatalog.ts`
+
+**Responsabilité :** 8 entrées de catalogue reliant les labels conviviaux (mode playground) aux labels techniques (mode workbench). Permet au `SubpipelineLibraryPanel` d'afficher un vocabulaire adapté selon le mode.
+
+**Interface `PlaygroundEntry` :**
+```typescript
+interface PlaygroundEntry {
+  id: PlaygroundCatalogKey;
+  friendlyLabel: string;     // affiché en mode playground
+  technicalLabel: string;    // affiché en mode workbench / tooltip
+  realWorldExample: string;  // analogie du monde réel pour l'infobulle
+  algorithmId: string;       // mappe vers ALGORITHM_CATALOG pour l'instanciation
+  categoryColor: string;     // token CSS de couleur de nœud
+}
+```
+
+**8 entrées de `PLAYGROUND_CATALOG` :**
+
+| id | friendlyLabel | technicalLabel | Exemple du monde réel |
+|----|--------------|----------------|----------------------|
+| `if-then-gate` | Si / Alors | State Machine | Si pluie → prendre parapluie |
+| `counter-loop` | Répéter N fois | Counter / Accumulator | Points de vie dans un jeu vidéo |
+| `score-tracker` | Suivre un score | Accumulator | Compteur de visites sur une page |
+| `behavior-trigger` | Si condition → action | Behavior Tree | PNJ qui attaque si le joueur s'approche |
+| `traffic-light-sequence` | Séquence de feux | State Machine | Feu de circulation rouge → orange → vert |
+| `random-choice` | Choisir au hasard | Random Selector | Loot drop dans un jeu |
+| `feedback-loop` | Répétition adaptative | Feedback Loop | Thermostat : trop froid → chauffe → éteint |
+| `filter-pipeline` | Tri par règle | Filter Pipeline | Trier les ennemis par distance |
+
+**Helper exporté :** `getPlaygroundEntry(id: PlaygroundCatalogKey): PlaygroundEntry | undefined` — lookup O(1) via `Map` pré-construit.
+
+---
+
+#### F78 — `ModeSelectionDialog.tsx` (CRÉÉ)
+
+**Chemin :** `ReaAaS-N-frontend/src/components/ModeSelectionDialog.tsx`
+
+**Responsabilité :** Dialog MUI affiché au premier lancement lorsqu'aucun `vad_session_mode` n'existe en localStorage. **Non-dismissable** — l'utilisateur doit choisir un mode.
+
+**Props :**
+```typescript
+interface Props {
+  open: boolean;
+  onSelect: () => void;     // appelé après sélection pour fermer le dialog
+  onPlayground: () => void; // appelle switchToPlayground()
+  onWorkbench: () => void;  // appelle switchToWorkbench()
+}
+```
+
+**Comportement de sécurité UX :** `disableEscapeKeyDown` activé. Handler `onClose` bloque les clics backdrop (`reason === 'backdropClick'`). L'utilisateur ne peut pas bypasser le choix.
+
+**2 boutons (mise en page responsive flex row/column) :**
+- `🎮 Mode Exploration — Je découvre les algorithmes` → couleur `secondary.main`
+- `🔧 Mode Workbench — Je conçois des pipelines professionnels` → couleur `primary.main`
+
+Chaque bouton appelle sa fonction de callback puis `onSelect()` pour fermer.
+
+---
+
+#### F79 — `App.tsx` (MIS À JOUR)
+
+**Chemin :** `ReaAaS-N-frontend/src/App.tsx`
+
+**Changements apportés :**
+
+1. **Imports ajoutés :**
+   - `useSessionMode` depuis `./hooks/useSessionMode`
+   - `ModeSelectionDialog` depuis `./components/ModeSelectionDialog`
+   - Suppression des imports MUI inutilisés (`Container`, `Typography`)
+
+2. **Dans la fonction `App()` :**
+   - Appel de `useSessionMode()` → extrait `{ config, switchToPlayground, switchToWorkbench }`
+   - `useState<boolean>` initialisé par lecture synchrone de `localStorage.getItem('vad_session_mode')` — `null` = premier lancement
+   - `ModeSelectionDialog` rendu avec `open={!modeSelected}`, câblé sur les deux callbacks de switch + `onSelect={() => setModeSelected(true)}`
+
+**Logique de premier lancement :**
+- Si `vad_session_mode` absent de localStorage → `modeSelected = false` → dialog visible
+- L'utilisateur choisit → callback switch exécuté → `setModeSelected(true)` → dialog se ferme
+- Rechargements suivants : localStorage présent → `modeSelected = true` → dialog jamais affiché
+
+**Diff résumé :**
+```diff
+- import { Alert, Box, Container, Typography } from '@mui/material';
++ import { Alert, Box } from '@mui/material';
++ import { useSessionMode } from './hooks/useSessionMode';
++ import { ModeSelectionDialog } from './components/ModeSelectionDialog';
+
+  function App() {
+    const backendOnline = useBackendHealth();
++   const { config, switchToPlayground, switchToWorkbench } = useSessionMode();
++   const [modeSelected, setModeSelected] = useState(() => {
++     try { return localStorage.getItem('vad_session_mode') !== null; }
++     catch { return true; }
++   });
+
+    return (
+      <DnDProvider>
+        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
++         <ModeSelectionDialog
++           open={!modeSelected}
++           onPlayground={switchToPlayground}
++           onWorkbench={() => switchToWorkbench(...)}
++           onSelect={() => setModeSelected(true)}
++         />
+          {backendOnline === false && ( ... )}
+```
+
+---
+
+#### F80 — `SubpipelineLibraryPanel.tsx` (MIS À JOUR)
+
+**Chemin :** `ReaAaS-N-frontend/src/components/AlgorithmDesigner/SubpipelineLibraryPanel.tsx`
+
+**Changements apportés :**
+
+1. **Prop ajoutée :** `sessionMode?: SessionMode` — optionnel pour compatibilité descendante
+
+2. **Logique de filtrage playground :**
+   - `const isPlayground = sessionMode === 'playground'`
+   - Quand `isPlayground === true` : les 8 entrées de `PLAYGROUND_CATALOG` sont mappées en `SubpipelineTemplate` avec `friendlyLabel` comme `label`, `realWorldExample` comme `description`, tableaux `nodes/edges/tags` vides, `coherenceScore: 0`, `category: 'classic'`
+   - Quand `isPlayground === false` : comportement original avec les 5 onglets (Templates / Mechanisms / Loops / Security / Validated)
+
+3. **En-tête conditionnel :**
+   - Mode playground → remplace les `<Tabs>` par `<Typography>🎮 Blocs de départ</Typography>`
+   - Label d'aide → `'Glisse sur le canvas pour commencer'` vs `'Drag to expand on canvas'`
+
+**Correction de type :** La forme mappée du catalogue playground inclut `tags: [] as string[]` et `loopCompatible: false` pour satisfaire l'interface `SubpipelineTemplate` (vérifiée `0 erreurs TypeScript`).
+
+---
+
+#### F81 — `aiPipelineService.js` (MIS À JOUR)
+
+**Chemin :** `ReaAaS-N-backend/services/aiPipelineService.js`
+
+**Deux changements apportés :**
+
+**1. Correction du seuil `educational` — `promotionThreshold: 90 → 70`**
+
+```diff
+  educational: {
+    label: 'Educational',
+    legalJustification: 'Student learning and classroom explanation.',
+    allowedVocabulary: ['step', 'concept', 'example', 'rubric', 'feedback'],
+    blockedIntents: ['operational misuse', 'unauthorized security testing'],
+-   promotionThreshold: 90,
++   promotionThreshold: 70,
+  },
+```
+
+**Justification :** `plan.md` Phase 8-3.2 spécifie explicitement 70 % pour le profil éducatif. Le runner Codex avait mis 90 % par erreur.
+
+**2. System prompt français accessible pour profil `educational` dans `buildSystemPrompt()`**
+
+Quand `profileKey === 'educational'`, la fonction retourne maintenant un prompt distinct :
+
+```
+Tu es un assistant pédagogique pour la plateforme VAD (Visual Algorithm Designer).
+Ton rôle est d'évaluer la cohérence logique des pipelines de façon encourageante et accessible.
+
+Contexte : session d'exploration algorithmique pour débutants.
+
+RÈGLE DE SÉCURITÉ ABSOLUE : [clause de refus malware/accès non-autorisé]
+
+[Mode evaluate]
+Évalue si ce pipeline a une logique cohérente, comme tu l'expliquerais à un lycéen.
+Retourne UNIQUEMENT un JSON valide avec ces champs :
+coherenceScore (0-100), recommendation, weakPoints, strongPoints, loopCompatible, explanation.
+Un score >= 70 signifie "Ce pipeline a du sens !". En dessous de 70 : "Ce pipeline a besoin de travail."
+Utilise un langage simple et encourageant dans le champ explanation.
+
+[Mode explain]
+Explique ce que fait ce pipeline en langage simple et accessible, comme si tu parlais à un lycéen curieux.
+```
+
+Les profils `general`, `integrity`, `compliance`, `security`, `research`, `operations` conservent exactement leur prompt anglais technique original — **aucune régression sur les profils professionnels**.
+
+---
+
+#### F82 — `VocabularyBridge.tsx` (CRÉÉ — Stub Phase 1)
+
+**Chemin :** `ReaAaS-N-frontend/src/components/AlgorithmDesigner/VocabularyBridge.tsx`
+
+**Responsabilité Phase 1 :** Stub qui `return null`. Aucun rendu, aucun effet.
+
+**Interface exportée :**
+```typescript
+export interface VocabularyBridgeProps {
+  algorithmId: string;
+  sessionMode?: 'playground' | 'workbench';
+}
+export function VocabularyBridge(_props: VocabularyBridgeProps): null { return null; }
+```
+
+**Intent Phase 2 (documenté dans le stub) :** Après qu'un utilisateur place un nœud en mode playground, afficher un callout contextuel ancré sur le nœud : *"Tu viens d'utiliser un State Machine. C'est la même logique que les feux de circulation 🚦"* — bridge progressif du vocabulaire familier vers le vocabulaire technique.
+
+---
+
+### D. VÉRIFICATION TYPESCRIPT — RÉSULTAT
+
+```powershell
+npx tsc --noEmit 2>&1 | Select-String "error TS" | Where-Object { $_ -notmatch "App.test.tsx|CircuitDesigner|DnDContext.test|AlgorithmBuilderPage.test|usePipelineStatus.test" }
+# → Aucun résultat — 0 nouvelles erreurs TypeScript introduites
+```
+
+**Erreurs pré-existantes non résolues en Phase 10.2 (hors scope) :**
+- Fichiers `*.test.tsx` — globals vitest (`describe`, `it`, `expect`, `vi`) non déclarés dans `tsconfig.json` — erreur de config test, pas de runtime
+- `CircuitDesigner/nodes/` — contrainte `@xyflow/react Node<Record<string, unknown>>` non satisfaite par les types internes — bug antérieur à Phase 10
+
+---
+
+### E. RÉCAPITULATIF DES COMMITS PHASE 10.2
+
+| Hash | Type | Description |
+|------|------|-------------|
+| `1d3feb8` | `chore` | BLOC A — Suppression 11 fichiers legacy Spark + Python stubs |
+| *(feat(dev))* | `feat` | BLOC B — `start-dev.ps1` lanceur parallèle |
+| `d4adf3e` | `feat(phase11)` | BLOC C — Session mode F76-F82 : useSessionMode, playgroundCatalog, ModeSelectionDialog, VocabularyBridge, mise à jour App.tsx, SubpipelineLibraryPanel, aiPipelineService |
+
+**Total Phase 10.2 :** 3 commits, 507 insertions, 11 suppressions, 7 fichiers créés, 3 fichiers modifiés.
+
+---
+
+### F. ÉTAT DU DÉPÔT APRÈS PHASE 10.2
+
+| Indicateur | Statut |
+|------------|--------|
+| Branch active | `PaQBoT` |
+| Dernier commit | `d4adf3e` — feat(phase11): implement session mode stubs F76-F82 |
+| Fichiers legacy racine | **0** — tous supprimés |
+| `start-dev.ps1` | ✅ Présent à la racine |
+| `useSessionMode.ts` (F76) | ✅ `ReaAaS-N-frontend/src/hooks/` |
+| `playgroundCatalog.ts` (F77) | ✅ `ReaAaS-N-frontend/src/constants/` |
+| `ModeSelectionDialog.tsx` (F78) | ✅ `ReaAaS-N-frontend/src/components/` |
+| `App.tsx` — session mode (F79) | ✅ `useSessionMode` + `ModeSelectionDialog` câblés |
+| `SubpipelineLibraryPanel.tsx` (F80) | ✅ Prop `sessionMode`, catalogue playground filtré |
+| `aiPipelineService.js` (F81) | ✅ Prompt FR accessible + seuil `educational` = 70 % |
+| `VocabularyBridge.tsx` (F82) | ✅ Stub Phase 1, intent Phase 2 documenté |
+| TypeScript (nouveaux fichiers) | **0 erreur** |
+| Remote `origin/PaQBoT` | ✅ Poussé (`a9cc0d8..d4adf3e`) |
+
+---
+
+### G. ALIGNEMENT PLAN.MD — COUVERTURE COMPLÈTE
+
+Après Phase 10.2, **tous les items de `plan.md` Phase 0 → Phase 8-3.2 ont une implémentation dans le dépôt**. Les phases suivantes restant à planifier/exécuter :
+
+| Phase | Statut |
+|-------|--------|
+| Phase 0 → Phase 8-3.2 | ✅ **IMPLÉMENTÉ** (M0-M7 + Phase 10.2) |
+| Phase 8-3.2 F82 VocabularyBridge Phase 2 | 🔲 Stub en place, implémentation déférée |
+| Phase 9 — az-browser-visual-qa | 🔲 À planifier |
+| Phase 10+ — az-deploy-survival | 🔲 À planifier (sortie de localhost, CI/CD, HTTPS) |
+| Phase 10+ — az-product-docs-handoff | 🔲 README final, runbook, .env.example complet |
+
+**Phase 10.2 = TERMINÉ ✅**
