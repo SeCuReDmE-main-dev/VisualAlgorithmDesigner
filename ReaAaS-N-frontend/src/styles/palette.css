@@ -70,6 +70,87 @@
 /* --color-btn-text (#fff)      on --color-btn-bg (#2A7070)  :  ~5.7:1  ✅ AA  */
 /* --color-link (#5DAAAA)       on --color-surface (#1A1B2E) :  ~6.1:1  ✅ AA  */
 
+/* ─── Tutorial Overlay ──────────────────────────────────────────────── */
+.tov-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 23, 42, 0.58);
+}
+
+.tov-panel {
+  width: min(520px, calc(100vw - 32px));
+  display: grid;
+  gap: 12px;
+  padding: 22px;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #172033;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+}
+
+.tov-progress { display: flex; gap: 6px; }
+.tov-dot { width: 28px; height: 4px; border-radius: 999px; background: #dbe3ec; }
+.tov-dot--active { width: 28px; height: 4px; border-radius: 999px; background: #3d8a88; }
+.tov-eyebrow { margin: 6px 0 0; color: #64748b; font-size: 12px; font-weight: 700; }
+.tov-title  { margin: 0; font-size: 22px; }
+.tov-body   { margin: 0; color: #334155; line-height: 1.5; }
+.tov-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 8px; }
+.tov-nav    { display: flex; gap: 8px; }
+.tov-btn-primary  { border: 0; border-radius: 6px; padding: 10px 14px; background: #3d8a88; color: #fff; font-weight: 700; cursor: pointer; }
+.tov-btn-secondary { border: 1px solid #cad3df; border-radius: 6px; padding: 10px 14px; background: #fff; color: #172033; cursor: pointer; }
+.tov-btn-disabled  { border: 1px solid #cad3df; border-radius: 6px; padding: 10px 14px; background: #fff; color: #94a3b8; cursor: not-allowed; }
+
+/* ─── Status Bar ─────────────────────────────────────────────────────── */
+.sbar-root {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-top: 1px solid #dbe3ec;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 13px;
+}
+.sbar-ok      { color: #166534; font-weight: 700; }
+.sbar-warning { color: #b45309; font-weight: 700; }
+
+/* ─── Pipeline Promote Dialog ───────────────────────────────────────── */
+.ppd-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 23, 42, 0.55);
+}
+.ppd-dialog {
+  width: min(460px, calc(100vw - 32px));
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #172033;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.25);
+}
+.ppd-title     { margin: 0; font-size: 20px; }
+.ppd-copy      { margin: 6px 0 0; color: #5f6b7a; }
+.ppd-label     { display: grid; gap: 6px; font-size: 13px; font-weight: 700; }
+.ppd-input     { border: 1px solid #cad3df; border-radius: 6px; padding: 10px 12px; font: inherit; }
+.ppd-actions   { display: flex; justify-content: flex-end; gap: 8px; }
+.ppd-btn-primary   { border: 0; border-radius: 6px; padding: 10px 14px; background: #2f7d32; color: #fff; font-weight: 700; cursor: pointer; }
+.ppd-btn-secondary { border: 1px solid #cad3df; border-radius: 6px; padding: 10px 14px; background: #fff; color: #172033; cursor: pointer; }
+.ppd-btn-disabled  { border: 0; border-radius: 6px; padding: 10px 14px; background: #9aa5b1; color: #fff; font-weight: 700; cursor: not-allowed; }
+.ppd-warning   { border-radius: 6px; padding: 10px; background: #fff7ed; color: #9a3412; }
+.ppd-error     { border-radius: 6px; padding: 10px; background: #fef2f2; color: #991b1b; }
+
+/* ─── Algorithm Canvas wrapper ──────────────────────────────────────── */
+.alg-canvas-root { height: 100%; position: relative; }
+
 /* ─── M3/M4 Designer Animations ─────────────────────────────────────── */
 .vad-fade-in {
   animation: vadFadeIn 220ms ease-out both;

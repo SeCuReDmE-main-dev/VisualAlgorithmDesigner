@@ -50,42 +50,42 @@ export function PipelinePromoteDialog({ open, nodes, edges, evaluation, onClose,
   };
 
   return (
-    <div role="presentation" style={backdropStyle}>
-      <form aria-label="Promote validated pipeline" onSubmit={onSubmit} style={dialogStyle}>
+    <div role="presentation" className="ppd-backdrop">
+      <form aria-label="Promote validated pipeline" onSubmit={onSubmit} className="ppd-dialog">
         <header>
-          <h2 style={titleStyle}>Promote pipeline</h2>
-          <p style={copyStyle}>
+          <h2 className="ppd-title">Promote pipeline</h2>
+          <p className="ppd-copy">
             Score {evaluation?.coherenceScore ?? 0}% / {PROMOTION_THRESHOLD}% required
           </p>
         </header>
 
         {!eligible && (
-          <div role="alert" style={warningStyle}>
+          <div role="alert" className="ppd-warning">
             This pipeline needs a coherence score of at least {PROMOTION_THRESHOLD}% before it can enter the validated catalog.
           </div>
         )}
 
-        <label style={labelStyle}>
+        <label className="ppd-label">
           Name
-          <input value={name} onChange={(event) => setName(event.target.value)} style={inputStyle} />
+          <input value={name} onChange={(event) => setName(event.target.value)} className="ppd-input" />
         </label>
 
-        <label style={labelStyle}>
+        <label className="ppd-label">
           Description
-          <textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={3} style={inputStyle} />
+          <textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={3} className="ppd-input" />
         </label>
 
         {error && (
-          <div role="alert" style={errorStyle}>
+          <div role="alert" className="ppd-error">
             {error}
           </div>
         )}
 
-        <footer style={actionsStyle}>
-          <button type="button" onClick={onClose} style={secondaryButtonStyle}>
+        <footer className="ppd-actions">
+          <button type="button" onClick={onClose} className="ppd-btn-secondary">
             Cancel
           </button>
-          <button type="submit" disabled={!eligible} style={eligible ? primaryButtonStyle : disabledButtonStyle}>
+          <button type="submit" disabled={!eligible} className={eligible ? 'ppd-btn-primary' : 'ppd-btn-disabled'}>
             Promote
           </button>
         </footer>
@@ -94,33 +94,4 @@ export function PipelinePromoteDialog({ open, nodes, edges, evaluation, onClose,
   );
 }
 
-const backdropStyle: React.CSSProperties = {
-  position: 'fixed',
-  inset: 0,
-  zIndex: 50,
-  display: 'grid',
-  placeItems: 'center',
-  background: 'rgba(15, 23, 42, 0.55)',
-};
 
-const dialogStyle: React.CSSProperties = {
-  width: 'min(460px, calc(100vw - 32px))',
-  display: 'grid',
-  gap: 16,
-  padding: 20,
-  borderRadius: 8,
-  background: '#ffffff',
-  color: '#172033',
-  boxShadow: '0 24px 80px rgba(15, 23, 42, 0.25)',
-};
-
-const titleStyle: React.CSSProperties = { margin: 0, fontSize: 20 };
-const copyStyle: React.CSSProperties = { margin: '6px 0 0', color: '#5f6b7a' };
-const labelStyle: React.CSSProperties = { display: 'grid', gap: 6, fontSize: 13, fontWeight: 700 };
-const inputStyle: React.CSSProperties = { border: '1px solid #cad3df', borderRadius: 6, padding: '10px 12px', font: 'inherit' };
-const actionsStyle: React.CSSProperties = { display: 'flex', justifyContent: 'flex-end', gap: 8 };
-const primaryButtonStyle: React.CSSProperties = { border: 0, borderRadius: 6, padding: '10px 14px', background: '#2f7d32', color: '#fff', fontWeight: 700 };
-const secondaryButtonStyle: React.CSSProperties = { border: '1px solid #cad3df', borderRadius: 6, padding: '10px 14px', background: '#fff', color: '#172033' };
-const disabledButtonStyle: React.CSSProperties = { ...primaryButtonStyle, background: '#9aa5b1', cursor: 'not-allowed' };
-const warningStyle: React.CSSProperties = { borderRadius: 6, padding: 10, background: '#fff7ed', color: '#9a3412' };
-const errorStyle: React.CSSProperties = { borderRadius: 6, padding: 10, background: '#fef2f2', color: '#991b1b' };

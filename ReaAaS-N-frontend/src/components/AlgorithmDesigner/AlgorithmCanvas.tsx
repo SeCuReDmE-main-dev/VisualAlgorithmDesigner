@@ -156,7 +156,7 @@ export default function AlgorithmCanvas({ nodes, edges, setNodes, setEdges, onSe
         event.preventDefault();
         setContextMenu({ open: true, x: event.clientX, y: event.clientY });
       }}
-      style={{ height: '100%', position: 'relative' }}
+      className="alg-canvas-root"
     >
       {nodes.length === 0 && <CanvasEmptyState />}
       <ReactFlow
