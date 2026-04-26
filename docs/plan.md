@@ -331,9 +331,283 @@ npm start            # production
 
 ---
 
+## PHASE 6 — az-data-api-security
+
+### Entités Domaine (extraites du code source)
+
+Depuis `AlgorithmBuilderPage.tsx` :
+```ts
+interface Step { id: string; content: string; }
+// state: steps[], currentStep: number, inputValues via llmInput
+```
+
+Depuis `CircuitDesignerPage.tsx` :
+```ts
+// Node<CircuitNodeData> + Edge[] — sauvegardés en localStorage (Phase 1)
+// nodeTypes: inputSource, outputSink, andGate, orGate, notGate
+```
+
+---
+
+### Modèle Relationnel — Phase 2 (PostgreSQL)
+
+> Phase 1 = zéro DB. localStorage pour circuit. Modèle défini maintenant pour éviter la drift.
+
+```sql
+-- Utilisateurs
+CREATE TABLE users (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email       VARCHAR(254) NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,            -- Argon2id
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Algorithmes créés par l'utilisateur
+CREATE TABLE algorithms (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name        VARCHAR(100) NOT NULL,
+  description TEXT,
+  is_public   BOOLEAN NOT NULL DEFAULT false,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Étapes d'un algorithme (ordonné par position)
+CREATE TABLE algorithm_steps (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  algorithm_id UUID NOT NULL REFERENCES algorithms(id) ON DELETE CASCADE,
+  position     SMALLINT NOT NULL,          -- ordre drag-drop
+  content      VARCHAR(500) NOT NULL,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (algorithm_id, position)
+);
+
+-- Circuits logiques
+CREATE TABLE circuits (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name        VARCHAR(100) NOT NULL,
+  is_public   BOOLEAN NOT NULL DEFAULT false,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Snapshots de sauvegarde d'un circuit (remplace localStorage Phase 2)
+CREATE TABLE circuit_saves (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  circuit_id  UUID NOT NULL REFERENCES circuits(id) ON DELETE CASCADE,
+  nodes_json  JSONB NOT NULL,              -- Node<CircuitNodeData>[]
+  edges_json  JSONB NOT NULL,              -- Edge[]
+  viewport_json JSONB,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Log des appels AI (monitoring + abuse detection)
+CREATE TABLE ai_explain_logs (
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id        UUID REFERENCES users(id) ON DELETE SET NULL,  -- NULL = anonyme Phase 1
+  algorithm_id   UUID REFERENCES algorithms(id) ON DELETE SET NULL,
+  step_index     SMALLINT NOT NULL,
+  prompt_hash    CHAR(64) NOT NULL,        -- SHA-256 pour déduplication
+  response_text  TEXT NOT NULL,
+  latency_ms     INTEGER NOT NULL,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+#### Index sur chemins de requête réels
+
+```sql
+CREATE INDEX idx_algorithms_user_id     ON algorithms(user_id);
+CREATE INDEX idx_algorithm_steps_alg_id ON algorithm_steps(algorithm_id, position);
+CREATE INDEX idx_circuits_user_id       ON circuits(user_id);
+CREATE INDEX idx_circuit_saves_circuit  ON circuit_saves(circuit_id, created_at DESC);
+CREATE INDEX idx_ai_logs_user_created   ON ai_explain_logs(user_id, created_at DESC);
+```
+
+---
+
+### Contrat API REST
+
+#### Envelope standard
+
+```json
+// Succès
+{ "status": "success", "data": {} }
+
+// Erreur
+{ "status": "error", "error": "BAD_REQUEST", "message": "Invalid payload" }
+```
+
+#### Phase 1 — Anonyme (IMPLÉMENTER MAINTENANT)
+
+| Méthode | Route | Auth | Description |
+|---------|-------|------|-------------|
+| GET | `/api/health` | Aucune | Health check |
+| POST | `/api/ai/explain` | Aucune | **Core loop** — explication d'une étape |
+
+#### Phase 2 — Authentifié (après validation Phase 1)
+
+| Méthode | Route | Auth | Description |
+|---------|-------|------|-------------|
+| POST | `/api/v1/auth/register` | Aucune | Créer compte |
+| POST | `/api/v1/auth/login` | Aucune | Login → JWT |
+| GET | `/api/v1/algorithms` | JWT | Lister mes algos |
+| POST | `/api/v1/algorithms` | JWT | Créer algo |
+| GET | `/api/v1/algorithms/:id` | JWT (owner ou public) | Lire algo |
+| PUT | `/api/v1/algorithms/:id` | JWT + owner | Modifier algo |
+| DELETE | `/api/v1/algorithms/:id` | JWT + owner | Supprimer algo |
+| GET | `/api/v1/circuits` | JWT | Lister mes circuits |
+| POST | `/api/v1/circuits` | JWT | Créer circuit |
+| GET | `/api/v1/circuits/:id` | JWT (owner ou public) | Lire circuit |
+| PUT | `/api/v1/circuits/:id` | JWT + owner | Modifier circuit |
+| DELETE | `/api/v1/circuits/:id` | JWT + owner | Supprimer circuit |
+| POST | `/api/v1/ai/explain` | JWT | Core loop authentifié (loggé en DB) |
+
+---
+
+### Schémas de Validation — Phase 1
+
+#### `POST /api/ai/explain`
+
+```js
+// Validation (express-validator ou zod côté backend)
+{
+  steps: [
+    { id: string (UUID v4), content: string (1-500 chars) }
+  ]  // min 1 item, max 50 items
+
+  inputValues: number[]   // min 1 item, max 20 items
+
+  stepIndex: integer      // >= 0, < steps.length
+
+  algorithmName: string   // optionnel, 1-100 chars si fourni
+}
+```
+
+**Règle Fail Fast :** valider AVANT tout appel groq-sdk. Rejeter avec `400 BAD_REQUEST` si invalide.
+
+#### Exemple de réponse valide
+
+```json
+{
+  "status": "success",
+  "data": {
+    "explanation": "À l'étape 3, ton algo compare 5 et 3. Comme 5 > 3, il les échange.",
+    "stepIndex": 2,
+    "latency_ms": 812
+  }
+}
+```
+
+---
+
+### Frontières de Sécurité Zero-Trust
+
+#### CORS — Correction immédiate (B9 — Phase 0)
+
+```js
+// AVANT (dangereux)
+app.use(cors());
+
+// APRÈS (Phase 1 dev)
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}));
+
+// APRÈS (production — dans .env)
+// CORS_ORIGIN=https://votre-domaine.com
+```
+
+#### Rate Limiting — Protection quota Groq
+
+```js
+// npm install express-rate-limit
+const rateLimit = require('express-rate-limit');
+
+const aiLimiter = rateLimit({
+  windowMs: 60 * 1000,     // 1 minute
+  max: 10,                  // 10 requêtes/minute/IP
+  message: { status: 'error', error: 'TOO_MANY_REQUESTS', message: 'Slow down.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.post('/api/ai/explain', aiLimiter, explainHandler);
+```
+
+14,400 RPD Groq gratuit ÷ 10 req/min = protège la limite même si attaque ciblée.
+
+#### Secrets
+
+| Secret | Stockage | Ne jamais faire |
+|--------|----------|-----------------|
+| `GROQ_API_KEY` | `.env` uniquement | Hardcoder dans le code |
+| `JWT_SECRET` | `.env` uniquement (Phase 2) | Commit dans git |
+| `DATABASE_URL` | `.env` uniquement (Phase 2) | Logger dans console |
+
+#### Erreurs Production
+
+```js
+// Middleware erreur global — NE PAS exposer stack traces en production
+app.use((err, req, res, next) => {
+  const isProd = process.env.NODE_ENV === 'production';
+  res.status(err.status || 500).json({
+    status: 'error',
+    error: err.code || 'INTERNAL_ERROR',
+    message: isProd ? 'An error occurred' : err.message,
+  });
+});
+```
+
+#### Auth JWT — Phase 2 (ne pas implémenter avant validation Phase 1)
+
+- Algorithme : `HS256`, secret min 32 chars aléatoires
+- Expiry : `access_token` = 15min, `refresh_token` = 7 jours
+- Password hashing : **Argon2id** (package `argon2` npm)
+- Stocker refresh token côté serveur (table `refresh_tokens`) — pas dans localStorage
+
+---
+
+### Premier Test Request — Phase 1
+
+```bash
+# Tester le core loop immédiatement après fix Phase 0
+curl -X POST http://localhost:3001/api/ai/explain \
+  -H "Content-Type: application/json" \
+  -d '{
+    "steps": [
+      {"id": "a1b2c3d4-0000-0000-0000-000000000001", "content": "Compare element i with element i+1"},
+      {"id": "a1b2c3d4-0000-0000-0000-000000000002", "content": "If i > i+1, swap them"},
+      {"id": "a1b2c3d4-0000-0000-0000-000000000003", "content": "Move to next pair"}
+    ],
+    "inputValues": [5, 3, 8, 1],
+    "stepIndex": 1,
+    "algorithmName": "Bubble Sort"
+  }'
+
+# Réponse attendue :
+# { "status": "success", "data": { "explanation": "...", "stepIndex": 1, "latency_ms": ... } }
+```
+
+---
+
+### Nouvelles Tâches Phase 0 (ajoutées depuis Phase 2)
+
+- [ ] B9. Fix `cors()` → origins explicites dans `server.js`
+- [ ] B10. Ajouter middleware erreur global dans `server.js`
+- [ ] B11. Ajouter `express-rate-limit` sur `POST /api/ai/explain`
+- [ ] B12. Ajouter `GET /api/health` endpoint
+
+---
+
 ## SKILLS RESTANTS (à exécuter dans l'ordre après Phase 0)
 
-- [ ] **az-data-api-security** — modèle DB, auth JWT, validation Fail Fast, CORS Zero-Trust
+- [x] **az-data-api-security** — modèle DB, auth JWT, validation Fail Fast, CORS Zero-Trust
 - [ ] **az-migration-seed-manager** — migrations PostgreSQL, seed data, rollback
 - [ ] **az-frontend** — états empty/loading/error/success, palette.css, design tokens
 - [ ] **az-ticket-to-task-planner** — tâches exécutables + critères d'acceptation formels
