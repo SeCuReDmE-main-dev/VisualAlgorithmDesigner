@@ -610,8 +610,8 @@ curl -X POST http://localhost:3001/api/ai/explain \
 - [x] **az-data-api-security** — modèle DB, auth JWT, validation Fail Fast, CORS Zero-Trust
 - [ ] **az-migration-seed-manager** — migrations PostgreSQL, seed data, rollback
 - [ ] **az-frontend** — états empty/loading/error/success, palette.css, design tokens
-- [ ] **az-ticket-to-task-planner** — tâches exécutables + critères d'acceptation formels
-- [ ] **az-implementation-runner** — exécution après contrat DB/API prêt
+- [x] **az-ticket-to-task-planner** — TERMINÉ Phase 9 (26 avril 2026) — 63 issues GitHub créées, milestones M0-M7 actifs
+- [ ] **az-implementation-runner** — **PROCHAINE ACTION** — commencer par M0 (B1-B12 blockers)
 - [ ] **az-browser-visual-qa** — test core loop en vrai navigateur (Playwright)
 - [ ] **az-cost-and-limits-guardrail** — quotas Groq 14,400 RPD, coûts Azure
 - [ ] **az-deploy-survival** — sortie localhost, CI/CD, HTTPS, .env prod
@@ -5577,3 +5577,216 @@ Fichiers ajoutés en Phase 8-3.2 :
 - `VocabularyBridge` est la **thèse du produit rendue visible** : montrer que le vocabulaire professionnel et le vocabulaire intuitif décrivent la même réalité — stub Phase 1, feature riche Phase 2
 - La **thèse sociétale** est maintenant documentée dans le plan : VAD n'est pas "un outil pour apprendre à coder" — c'est "un outil pour apprendre à penser en algorithmes" — positionnement différenciateur Phase 2
 - **Phase 8 = définitivement FERMÉE après 8-3 et 8-3.2** — la prochaine action est az-implementation-runner — B1 à B12 d'abord — Point Final absolu
+
+---
+
+## PHASE 9 — az-ticket-to-task-planner
+
+> **Résultat :** Transformation de l'ensemble des phases 1-8 en 63 tickets GitHub exécutables, organisés en 8 milestones (M0-M7), livrés dans le repo `SeCuReDmE-main-dev/VisualAlgorithmDesigner` branche `PaQBoT`.
+
+**Date d'exécution :** 26 avril 2026  
+**Repo GitHub :** https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner  
+**Milestones :** https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/milestones  
+**Issues :** https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/issues
+
+---
+
+### A. CHARTE DES MILESTONES M0-M7
+
+| Milestone | Titre | Issues GitHub | Durée | Critère PASS |
+|-----------|-------|---------------|-------|--------------|
+| M0 | Débloquer l'Infrastructure | #12-#16, #17-#21, #115, #116 (B1-B12) | 2 jours | `npm install && npm run dev` OK dans les 2 projets, zéro erreur TS |
+| M1 | Backend Core (API + Mémoire) | #22-#28 (F22-F30, F50, F75) | 3 jours | `curl POST /api/ai/explain-pipeline` retourne `{status:'success'}` en <5s |
+| M2 | Frontend Foundation | #29-#37 (F1-F4, F12-F13, F28, F31, F38, F39, F43, F62, F65) | 2 jours | Vite build clean, palette.css variables accessibles, DnDContext wrap OK |
+| M3 | Core Canvas Loop (E2E) | #38-#45 (F5-F10, F29, F32-F33, F40-F42) | 3 jours | Drag node → canvas → Explain button → texte IA affiché |
+| M4 | SubpipelineLibrary & DnD Complet | #46-#51 (F34-F37, F44, F46-F48, F58-F59) | 3 jours | Panneau bas 4 onglets, prefab drag → multi-nœuds sur canvas |
+| M5 | Évaluation & Promotion (≥93%) | #52-#59 (F45, F49, F51-F57, F60-F61, F63-F64) | 3 jours | POST /api/ai/evaluate-pipeline → coherenceScore ≥ 0, bouton [Promouvoir] à 93% |
+| M6 | UX Polish, Animations & Excel | #60-#66 (F14-F21, F44-bis) | 2 jours | Excel téléchargé, tutoriel 7 étapes, Ctrl+B toggle palette |
+| M7 | Sécurité, Profils & Conformité | #67-#72 (F66-F74) | 2 jours | Dropdown profil fonctionne, disclaimer modal red-team, rapport ÉFVP généré |
+
+**Total : 63 issues GitHub actives** (+ 4 Dependabot pre-existantes = 67 open)
+
+---
+
+### B. INVENTAIRE COMPLET DES TICKETS
+
+#### Milestone M0 — Blockers Infrastructure (B1-B12)
+
+| # GitHub | ID | Titre court | Fichier cible |
+|----------|----|-------------|---------------|
+| #12 | B1 | Fix package.json frontend — deps dans scripts | `ReaAaS-N-frontend/package.json` |
+| #13 | B2 | Fix vite.config.ts — double export default | `ReaAaS-N-frontend/vite.config.ts` |
+| #14 | B3 | Fix main.tsx — double render sans BrowserRouter | `ReaAaS-N-frontend/src/main.tsx` |
+| #115 | B4 | Fix backend package.json — main → server.js | `ReaAaS-N-backend/package.json` |
+| #15 | B5 | Fix .env — PANDAAI_KEY → GROQ_API_KEY | `.env` |
+| #116 | B6 | Ajouter script test vitest | `ReaAaS-N-frontend/package.json` |
+| #16 | B7 | Fix test — import calculateCircuitState manquant | `CircuitDesignerPage.test.tsx` |
+| #17 | B8 | Fix theme.ts — couleurs text primary/secondary | `src/theme.ts` |
+| #18 | B9 | Fix CORS — origins explicites | `ReaAaS-N-backend/server.js` |
+| #19 | B10 | Middleware global d'erreur Express | `ReaAaS-N-backend/server.js` |
+| #20 | B11 | express-rate-limit sur /api/ai/* | `ReaAaS-N-backend/server.js` |
+| #21 | B12 | GET /api/health endpoint | `ReaAaS-N-backend/server.js` |
+
+#### Milestone M1 — Backend Core (F-series backend)
+
+| # GitHub | ID | Titre court | Fichier cible |
+|----------|----|-------------|---------------|
+| #22 | F22+F23 | Install better-sqlite3 + MemoryRepository interface | `services/memoryRepository.ts` |
+| #23 | F24 | SQLiteMemoryRepository — SQLite + MiniSearch BM25 | `services/sqliteMemoryRepository.ts` |
+| #24 | F25+F26 | AIPipelineService loopback guard + explain-pipeline | `services/aiPipelineService.ts` |
+| #25 | F27 | POST /api/memory/feedback | `server.js` |
+| #26 | F30 | Créer data/ + .gitignore | `ReaAaS-N-backend/data/` |
+| #27 | F50 | POST /api/ai/evaluate-pipeline | `server.js` |
+| #28 | F75 | securityProfile dans buildSystemPrompt() | `services/aiPipelineService.ts` |
+
+#### Milestone M2 — Frontend Foundation
+
+| # GitHub | ID | Titre court | Fichier cible |
+|----------|----|-------------|---------------|
+| #29 | F1+F2 | palette.css + import main.tsx | `src/styles/palette.css` |
+| #30 | F3 | algorithmCatalog.ts — 6 algos H2O Lot1 | `src/services/algorithmCatalog.ts` |
+| #31 | F4+F62 | api.ts — explainPipeline + evaluatePipeline | `src/services/api.ts` |
+| #32 | F12+F43 | App.tsx routing complet + NotFoundPage | `src/App.tsx` |
+| #33 | F13 | theme.ts — variables CSS palette | `src/theme.ts` |
+| #34 | F28 | sessionManager.ts — sessionId localStorage | `src/services/sessionManager.ts` |
+| #35 | F31+F65 | DnDContext.tsx — DragPayload étendu | `src/contexts/DnDContext.tsx` |
+| #36 | F38 | usePipelineStatus.ts | `src/hooks/usePipelineStatus.ts` |
+| #37 | F39 | usePipelineSaver.ts — autosave localStorage | `src/hooks/usePipelineSaver.ts` |
+
+#### Milestone M3 — Core Canvas Loop (End-to-End)
+
+| # GitHub | ID | Titre court | Fichier cible |
+|----------|----|-------------|---------------|
+| #38 | F5+F40 | AlgorithmDesignerPage.tsx — shell 3 colonnes | `src/pages/AlgorithmDesignerPage.tsx` |
+| #39 | F6+F32 | AlgorithmPalette.tsx — DnD + CSS dragging | `src/components/AlgorithmDesigner/AlgorithmPalette.tsx` |
+| #40 | F7 | AlgorithmNode.tsx — custom node @xyflow | `src/components/AlgorithmDesigner/AlgorithmNode.tsx` |
+| #41 | F8+F33 | AlgorithmCanvas.tsx — drop single + prefab | `src/components/AlgorithmDesigner/AlgorithmCanvas.tsx` |
+| #42 | F9+F63 | AlgorithmPropertiesPanel.tsx + bouton Évaluer | `src/components/AlgorithmDesigner/AlgorithmPropertiesPanel.tsx` |
+| #43 | F10+F29 | AIExplanationPanel.tsx + MemoryBadge + Feedback | `src/components/AlgorithmDesigner/AIExplanationPanel.tsx` |
+| #44 | F41 | CanvasEmptyState.tsx | `src/components/AlgorithmDesigner/CanvasEmptyState.tsx` |
+| #45 | F42 | CanvasContextMenu.tsx | `src/components/AlgorithmDesigner/CanvasContextMenu.tsx` |
+
+#### Milestone M4 — SubpipelineLibrary & DnD Complet
+
+| # GitHub | ID | Titre court | Fichier cible |
+|----------|----|-------------|---------------|
+| #46 | F34+F48 | subpipelineCatalog.ts Lot1 — 5 templates | `src/services/subpipelineCatalog.ts` |
+| #47 | F35+F58 | SubpipelineLibraryPanel.tsx — 4 onglets | `src/components/AlgorithmDesigner/SubpipelineLibraryPanel.tsx` |
+| #48 | F36+F59 | SubpipelineCard.tsx — draggable + badge score | `src/components/AlgorithmDesigner/SubpipelineCard.tsx` |
+| #49 | F37 | PipelineSaveDialog.tsx | `src/components/AlgorithmDesigner/PipelineSaveDialog.tsx` |
+| #50 | F46+F47 | MECHANISM_CATALOG (10) + LOOP_CATALOG (3) | `src/services/subpipelineCatalog.ts` |
+| #51 | F44 | CSS nodeDropDelay + iconPulse dans palette.css | `src/styles/palette.css` |
+
+#### Milestone M5 — Évaluation & Promotion (≥93%)
+
+| # GitHub | ID | Titre court | Fichier cible |
+|----------|----|-------------|---------------|
+| #52 | F49 | validatedAlgorithmCatalog.ts — types + CRUD | `src/services/validatedAlgorithmCatalog.ts` |
+| #53 | F51 | usePipelineEvaluation.ts | `src/hooks/usePipelineEvaluation.ts` |
+| #54 | F52 | useValidatedAlgorithms.ts — CRUD localStorage | `src/hooks/useValidatedAlgorithms.ts` |
+| #55 | F53 | useLoopDetector.ts — DFS cycle detection | `src/hooks/useLoopDetector.ts` |
+| #56 | F54 | PipelinePromoteDialog.tsx — ≥93% threshold | `src/components/AlgorithmDesigner/PipelinePromoteDialog.tsx` |
+| #57 | F55+F56+F57 | ValidatedAlgorithmCard + LoopCard + LoopEdgeBadge | 3 fichiers components/ |
+| #58 | F45+F60 | TutorialOverlay.tsx — steps 6 et 7 | `src/components/TutorialOverlay.tsx` |
+| #59 | F61 | CSS loopDash + validatedGlow dans palette.css | `src/styles/palette.css` |
+
+#### Milestone M6 — UX Polish, Animations & Excel
+
+| # GitHub | ID | Titre court | Fichier cible |
+|----------|----|-------------|---------------|
+| #60 | F14+F15 | xlsx (SheetJS) + workbookExporter.ts | `src/services/workbookExporter.ts` |
+| #61 | F16 | TutorialOverlay.tsx — 5 étapes de base | `src/components/TutorialOverlay.tsx` |
+| #62 | F17 | react-resizable-panels dans AlgorithmDesignerPage | `src/pages/AlgorithmDesignerPage.tsx` |
+| #63 | F18 | useKeyboardShortcuts.ts — Ctrl+B/J/S | `src/hooks/useKeyboardShortcuts.ts` |
+| #64 | F19 | scrape-h2o-params.js — script one-shot | `src/scripts/scrape-h2o-params.js` |
+| #65 | F20+F64 | StatusBar.tsx — nodes, edges, latence, loop | `src/components/AlgorithmDesigner/StatusBar.tsx` |
+| #66 | F21+F44-bis | Section ANIMATIONS complète dans palette.css | `src/styles/palette.css` |
+
+#### Milestone M7 — Sécurité, Profils & Conformité
+
+| # GitHub | ID | Titre court | Fichier cible |
+|----------|----|-------------|---------------|
+| #67 | F66 | securityProfileCatalog.ts — 7 profils | `src/services/securityProfileCatalog.ts` |
+| #68 | F67 | SecurityProfileSelector.tsx + disclaimer modal | `src/components/AlgorithmDesigner/SecurityProfileSelector.tsx` |
+| #69 | F68 | aiPipelineService — intent-aware + contextualMisuse | `ReaAaS-N-backend/services/aiPipelineService.ts` |
+| #70 | F69+F70+F73 | securityProfile dans évaluation + types étendus | hooks + services |
+| #71 | F71+F72 | Template integrity-tenebris + onglet Sécurité | subpipelineCatalog + SubpipelineLibraryPanel |
+| #72 | F74 | complianceReportGenerator.ts — rapport ÉFVP | `src/services/complianceReportGenerator.ts` |
+
+---
+
+### C. LABELS GITHUB CRÉÉS
+
+| Label | Couleur | Usage |
+|-------|---------|-------|
+| `blocker` | #d73a4a | Issues B1-B12 |
+| `frontend` | #0075ca | Issues F-series frontend |
+| `backend` | #e4e669 | Issues F-series backend |
+| `M0-infra` | #c5def5 | Milestone M0 |
+| `M1-backend` | #bfd4f2 | Milestone M1 |
+| `M2-foundation` | #d4c5f9 | Milestone M2 |
+| `M3-canvas` | #0e8a16 | Milestone M3 |
+| `M4-library` | #f9d0c4 | Milestone M4 |
+| `M5-eval` | #fef2c0 | Milestone M5 |
+| `M6-polish` | #e99695 | Milestone M6 |
+| `M7-security` | #b60205 | Milestone M7 |
+
+---
+
+### D. CRITÈRES D'ACCEPTATION PAR MILESTONE
+
+```
+M0 PASS : npm install && npm run dev → OK dans frontend ET backend, 0 erreur TypeScript
+M1 PASS : curl -X POST http://localhost:3001/api/ai/explain-pipeline -d '{...}' → {status:'success', data:{explanation:'...'}} en < 5s
+M2 PASS : npm run build → 0 warnings/errors, var(--color-primary) = #3D8A88, DnDContext wrap sans crash
+M3 PASS : Drag GBM → canvas → clic Expliquer → texte IA affiché avec fadeIn animation
+M4 PASS : Panneau bas visible 4 onglets, drag prefab ml-classic → 3 nœuds avec animation cascade
+M5 PASS : POST /api/ai/evaluate-pipeline → {coherenceScore: N, recommendation: '...'}, score ≥ 93 → bouton Promouvoir visible
+M6 PASS : Clic [Télécharger] → GBM_params.xlsx téléchargé 2 feuilles, Ctrl+B toggle palette, tutoriel 7 étapes complet
+M7 PASS : Dropdown profil → modal disclaimer red-team, pipeline compliance score 96 → rapport ÉFVP généré avec hash
+```
+
+---
+
+### E. PROMPT DE PASSATION POUR az-implementation-runner
+
+```
+Execute Phase 9 implementation for SeCuReDmE-main-dev/VisualAlgorithmDesigner (branch: PaQBoT).
+Source of truth: docs/plan.md (Phase 9, Section B for issue-to-file mapping).
+
+ORDRE D'EXÉCUTION OBLIGATOIRE: M0 → M1 → M2 → M3 → M4 → M5 → M6 → M7
+Ne pas démarrer le milestone suivant tant que les critères PASS du milestone courant ne sont pas validés.
+
+Stack technique:
+- Frontend: React 18.2.0 + TypeScript 5.0.2 + Vite 6.3.5 + @xyflow/react 12.10.2 + @mui/material ^6.0.0 + @hello-pangea/dnd 18.0.1 + react-router-dom 7.6.1 + uuid 11.1.0
+- Backend: Express 5.1.0 + groq-sdk 1.1.2 + better-sqlite3 + minisearch + express-rate-limit
+- AI: Groq Cloud, modèle llama-3.1-8b-instant, RPD limit 14400
+- GROQ_API_KEY doit être dans ReaAaS-N-backend/.env
+
+Inventaire complet des 48 fichiers: Plan Phase 7-5 (Section G, Inventory).
+Détails de chaque B# et F#: Phases 5, 6, 7, 7-2, 7-3, 7-4, 7-5, 8, 8-1, 8-2, 8-3 du plan.md.
+Issues GitHub: https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/milestones
+```
+
+---
+
+### F. DÉCISIONS IRRÉVERSIBLES PHASE 9
+
+- **63 issues GitHub** sont la source de vérité pour l'exécution — chaque PR doit référencer son issue (#N)
+- **Ordre M0 → M7 est non-négociable** — aucun ticket F-series ne peut être commencé si M0 n'est pas ✅
+- **B4 et B6 sont les issues #115 et #116** (créées après la première batch, corps simplifié intentionnellement)
+- **Issues #73-#114** ont été fermées comme doublons (état `not_planned`) — ignorer
+- **az-ticket-to-task-planner = TERMINÉ** — la prochaine action est `az-implementation-runner`
+- **plan.md = source de vérité absolue** — toute décision architecturale supplémentaire doit être ajoutée ici avant implémentation
+
+---
+
+### G. MISE À JOUR SKILLS RESTANTS
+
+```diff
+## SKILLS RESTANTS (à exécuter dans l'ordre après Phase 0)
+- [ ] az-ticket-to-task-planner — tâches exécutables + critères d'acceptation formels
++ [x] az-ticket-to-task-planner — TERMINÉ Phase 9 (26 avril 2026) — 63 issues M0-M7 créées
+- [ ] az-implementation-runner — exécution après contrat DB/API prêt
++ → PROCHAINE ACTION: az-implementation-runner — commencer par M0 (B1-B12)
+```
