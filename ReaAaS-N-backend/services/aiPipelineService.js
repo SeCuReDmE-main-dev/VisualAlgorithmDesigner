@@ -68,7 +68,7 @@ class AIPipelineService {
     const startedAt = Date.now();
     const pipeline = validatePipelinePayload(payload);
     const sessionId = normalizeSessionId(requestContext.sessionId || payload.sessionId);
-    const securityProfile = normalizeSecurityProfile(payload.securityProfile);
+    const securityProfile = normalizeSecurityProfile(payload.securityProfile, requestContext.authorization);
     const intent = normalizeIntent(payload.intent, 'explain');
     const misuse = detectContextualMisuse(pipeline.nodes, securityProfile, intent);
     const traversal = buildTraversalSummary(pipeline.nodes, pipeline.edges, payload.focusNodeId);
@@ -126,7 +126,7 @@ class AIPipelineService {
     const startedAt = Date.now();
     const pipeline = validatePipelinePayload(payload);
     const sessionId = normalizeSessionId(requestContext.sessionId || payload.sessionId);
-    const securityProfile = normalizeSecurityProfile(payload.securityProfile);
+    const securityProfile = normalizeSecurityProfile(payload.securityProfile, requestContext.authorization);
     const intent = normalizeIntent(payload.intent, 'evaluate');
     const misuse = detectContextualMisuse(pipeline.nodes, securityProfile, intent);
     const promptHash = hashJson({ pipeline, securityProfile, intent });
@@ -519,9 +519,27 @@ function hashJson(value) {
   return crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 }
 
-function normalizeSecurityProfile(securityProfile) {
+function normalizeSecurityProfile(securityProfile, authorizationHeader) {
   const key = String(securityProfile || 'general').toLowerCase();
-  return SECURITY_PROFILES[key] ? key : 'general';
+  const profileKey = SECURITY_PROFILES[key] ? key : 'general';
+
+  if (profileKey !== 'general' && profileKey !== 'educational') {
+    const expectedKey = process.env.ELEVATED_PROFILE_API_KEY;
+    if (!expectedKey) {
+      return 'general';
+    }
+
+    if (!authorizationHeader || !authorizationHeader.startsWith('Bearer ')) {
+      return 'general';
+    }
+
+    const token = authorizationHeader.substring(7);
+    if (token !== expectedKey) {
+      return 'general';
+    }
+  }
+
+  return profileKey;
 }
 
 function normalizeIntent(intent, fallback) {

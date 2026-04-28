@@ -114,3 +114,114 @@ test('callGroq returns content when groqClient succeeds', async () => {
   // Assert
   assert.strictEqual(result, 'Mocked response', 'callGroq should return trimmed content');
 });
+
+test('explainPipeline falls back to general profile when requesting elevated profile without API key', async () => {
+  const originalApiKey = process.env.ELEVATED_PROFILE_API_KEY;
+  process.env.ELEVATED_PROFILE_API_KEY = 'secret-key';
+  try {
+    const service = new AIPipelineService();
+    // Prevent actual API call, just let it use fallback explanation
+    service.callGroq = async () => 'mock explain';
+
+    const payload = {
+      nodes: [{ id: 'n1', type: 'test' }],
+      edges: [],
+      securityProfile: 'security',
+    };
+
+    const result = await service.explainPipeline(payload, { authorization: null });
+
+    assert.strictEqual(result.securityProfile, 'general', 'Should fall back to general profile without authorization');
+  } finally {
+    if (originalApiKey === undefined) {
+      delete process.env.ELEVATED_PROFILE_API_KEY;
+    } else {
+      process.env.ELEVATED_PROFILE_API_KEY = originalApiKey;
+    }
+  }
+});
+
+test('explainPipeline allows elevated profile with correct API key', async () => {
+  const originalApiKey = process.env.ELEVATED_PROFILE_API_KEY;
+  process.env.ELEVATED_PROFILE_API_KEY = 'secret-key';
+  try {
+    const service = new AIPipelineService();
+    // Prevent actual API call, just let it use fallback explanation
+    service.callGroq = async () => 'mock explain';
+
+    const payload = {
+      nodes: [{ id: 'n1', type: 'test' }],
+      edges: [],
+      securityProfile: 'security',
+    };
+
+    const result = await service.explainPipeline(payload, { authorization: 'Bearer secret-key' });
+
+    assert.strictEqual(result.securityProfile, 'security', 'Should allow elevated profile with valid authorization');
+  } finally {
+    if (originalApiKey === undefined) {
+      delete process.env.ELEVATED_PROFILE_API_KEY;
+    } else {
+      process.env.ELEVATED_PROFILE_API_KEY = originalApiKey;
+    }
+  }
+});
+
+test('evaluatePipeline falls back to general profile when requesting elevated profile without API key', async () => {
+  const originalApiKey = process.env.ELEVATED_PROFILE_API_KEY;
+  process.env.ELEVATED_PROFILE_API_KEY = 'secret-key';
+  try {
+    const service = new AIPipelineService();
+    // Prevent actual API call
+    service.callGroq = async () => JSON.stringify({
+      coherenceScore: 90,
+      recommendation: 'valid',
+      weakPoints: [],
+      strongPoints: [],
+      loopCompatible: false,
+      explanation: 'test'
+    });
+
+    const payload = {
+      nodes: [{ id: 'n1', type: 'test' }],
+      edges: [],
+      securityProfile: 'integrity',
+    };
+
+    const result = await service.evaluatePipeline(payload, { authorization: 'Bearer wrong-key' });
+
+    assert.strictEqual(result.securityProfile, 'general', 'Should fall back to general profile with wrong authorization key');
+  } finally {
+    if (originalApiKey === undefined) {
+      delete process.env.ELEVATED_PROFILE_API_KEY;
+    } else {
+      process.env.ELEVATED_PROFILE_API_KEY = originalApiKey;
+    }
+  }
+});
+
+test('explainPipeline allows educational profile without API key', async () => {
+  const originalApiKey = process.env.ELEVATED_PROFILE_API_KEY;
+  process.env.ELEVATED_PROFILE_API_KEY = 'secret-key';
+  try {
+    const service = new AIPipelineService();
+    // Prevent actual API call
+    service.callGroq = async () => 'mock explain';
+
+    const payload = {
+      nodes: [{ id: 'n1', type: 'test' }],
+      edges: [],
+      securityProfile: 'educational',
+    };
+
+    const result = await service.explainPipeline(payload, { authorization: null });
+
+    assert.strictEqual(result.securityProfile, 'educational', 'Should allow educational profile without authorization');
+  } finally {
+    if (originalApiKey === undefined) {
+      delete process.env.ELEVATED_PROFILE_API_KEY;
+    } else {
+      process.env.ELEVATED_PROFILE_API_KEY = originalApiKey;
+    }
+  }
+});

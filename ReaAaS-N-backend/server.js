@@ -73,6 +73,7 @@ app.get('/api/health', (req, res) => {
 app.post('/api/ai/explain-pipeline', aiLimiter, asyncHandler(async (req, res) => {
   const data = await aiPipelineService.explainPipeline(req.body, {
     sessionId: getSessionId(req),
+    authorization: req.get('Authorization'),
   });
 
   res.json({
@@ -85,6 +86,7 @@ app.post('/api/ai/explain', aiLimiter, asyncHandler(async (req, res) => {
   if (Array.isArray(req.body?.nodes)) {
     const data = await aiPipelineService.explainPipeline(req.body, {
       sessionId: getSessionId(req),
+      authorization: req.get('Authorization'),
     });
     res.json({ status: 'success', data });
     return;
@@ -103,6 +105,7 @@ app.post('/api/ai/explain', aiLimiter, asyncHandler(async (req, res) => {
 app.post('/api/ai/evaluate-pipeline', evaluateLimiter, asyncHandler(async (req, res) => {
   const data = await aiPipelineService.evaluatePipeline(req.body, {
     sessionId: getSessionId(req),
+    authorization: req.get('Authorization'),
   });
 
   res.json({
