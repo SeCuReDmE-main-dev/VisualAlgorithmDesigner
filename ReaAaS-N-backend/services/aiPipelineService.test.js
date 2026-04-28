@@ -1,5 +1,18 @@
-const { test } = require('node:test');
-const assert = require('node:assert');
+let test;
+try {
+  ({ test } = require('node:test'));
+} catch (error) {
+  test = function(name, fn) {
+    Promise.resolve()
+      .then(fn)
+      .catch((err) => {
+        process.exitCode = 1;
+        console.error('Test failed:', name);
+        console.error(err);
+      });
+  };
+}
+const assert = require('assert');
 
 // Mock require before loading the module
 const Module = require('module');
