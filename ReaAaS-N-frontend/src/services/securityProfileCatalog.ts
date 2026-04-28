@@ -109,13 +109,17 @@ export const SECURITY_PROFILE_CATALOG: SecurityProfile[] = [
 
 export const DEFAULT_SECURITY_PROFILE_ID: SecurityProfileId = 'general';
 
+const SECURITY_PROFILE_MAP = new Map<string, SecurityProfile>(
+  SECURITY_PROFILE_CATALOG.map((profile) => [profile.id, profile])
+);
+
 export function getSecurityProfile(profileId?: string): SecurityProfile {
   return (
-    SECURITY_PROFILE_CATALOG.find((profile) => profile.id === profileId) ??
-    SECURITY_PROFILE_CATALOG.find((profile) => profile.id === DEFAULT_SECURITY_PROFILE_ID)!
+    (profileId ? SECURITY_PROFILE_MAP.get(profileId) : undefined) ??
+    SECURITY_PROFILE_MAP.get(DEFAULT_SECURITY_PROFILE_ID)!
   );
 }
 
 export function isSecurityProfileId(profileId: string): profileId is SecurityProfileId {
-  return SECURITY_PROFILE_CATALOG.some((profile) => profile.id === profileId);
+  return SECURITY_PROFILE_MAP.has(profileId);
 }
