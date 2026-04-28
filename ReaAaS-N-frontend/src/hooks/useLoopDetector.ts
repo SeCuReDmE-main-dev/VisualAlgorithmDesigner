@@ -7,7 +7,7 @@ export interface DetectedLoop {
   edgeIds: string[];
 }
 
-interface LoopDetectionResult {
+export interface LoopDetectionResult {
   hasLoop: boolean;
   loops: DetectedLoop[];
   loopingNodeIds: Set<string>;
