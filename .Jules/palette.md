@@ -1,3 +1,6 @@
 ## 2024-04-28 - Micro-UX and Accessibility Polish
 **Learning:** Decorative emojis in generic UI typography elements can create confusing screen reader output (e.g., announcing 'Video game controller' instead of focusing on 'Mode Exploration'). When using non-standard components or text for delete/action items inside lists, redundant labels (like 'Delete' repeated multiple times) cause excessive noise. Adding contextual `aria-label` attributes and hiding purely decorative characters via `aria-hidden` are crucial and easy wins.
 **Action:** Always verify if textual characters or custom icons act as decorative elements and apply `aria-hidden=true`. Use `aria-label` interpolations (e.g., `Delete step ${index + 1}`) for repetitive list action buttons.
+## 2026-04-28 - Interactive Progress Dots and Async Announcements
+**Learning:** When using dots to indicate progress, using `aria-hidden='true'` makes them invisible to screen readers, preventing users from understanding their progress or navigating directly. Also, containers receiving asynchronous AI text need `aria-live='polite'` and `aria-atomic='true'` so the text is announced upon arrival.
+**Action:** Use `role='tablist'` and `role='tab'` for progress dots, making them keyboard navigable with `tabIndex={0}` and `onKeyDown`. Apply `aria-live` to AI text containers.
