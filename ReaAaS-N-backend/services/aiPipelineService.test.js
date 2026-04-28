@@ -53,15 +53,37 @@ test('callGroq returns null when groqClient.chat.completions.create throws an er
 });
 
 test('callGroq returns null when groqClient is not provided', async () => {
-  // Arrange
-  const service = new AIPipelineService({ groqClient: null });
-  const messages = [{ role: 'user', content: 'test message' }];
+  const originalGroqApiKey = process.env.GROQ_API_KEY;
+  const originalGroqModel = process.env.GROQ_MODEL;
 
-  // Act
-  const result = await service.callGroq(messages);
+  delete process.env.GROQ_API_KEY;
+  delete process.env.GROQ_MODEL;
 
-  // Assert
-  assert.strictEqual(result, null, 'callGroq should return null when no groqClient is present');
+  try {
+    // Arrange
+    const service = new AIPipelineService({ groqClient: null });
+    const messages = [{ role: 'user', content: 'test message' }];
+
+    assert.strictEqual(service.groqClient, null, 'groqClient should be null when no client and no Groq env vars are provided');
+
+    // Act
+    const result = await service.callGroq(messages);
+
+    // Assert
+    assert.strictEqual(result, null, 'callGroq should return null when no groqClient is present');
+  } finally {
+    if (originalGroqApiKey === undefined) {
+      delete process.env.GROQ_API_KEY;
+    } else {
+      process.env.GROQ_API_KEY = originalGroqApiKey;
+    }
+
+    if (originalGroqModel === undefined) {
+      delete process.env.GROQ_MODEL;
+    } else {
+      process.env.GROQ_MODEL = originalGroqModel;
+    }
+  }
 });
 
 test('callGroq returns content when groqClient succeeds', async () => {
