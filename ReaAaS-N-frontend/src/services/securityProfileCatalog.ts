@@ -121,5 +121,5 @@ export function getSecurityProfile(profileId?: string): SecurityProfile {
 }
 
 export function isSecurityProfileId(profileId: string): profileId is SecurityProfileId {
-  return profileId ? SECURITY_PROFILE_MAP.has(profileId) : false;
+  return SECURITY_PROFILE_MAP.has(profileId);
 }
