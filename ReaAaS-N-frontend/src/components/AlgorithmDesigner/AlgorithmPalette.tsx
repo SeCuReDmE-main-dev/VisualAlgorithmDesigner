@@ -27,7 +27,11 @@ export default function AlgorithmPalette() {
           'aria-label': 'Search algorithms',
         }}
         InputProps={{
-          startAdornment: <InputAdornment position="start">/</InputAdornment>,
+          startAdornment: (
+            <InputAdornment position="start" aria-hidden="true" role="presentation">
+              /
+            </InputAdornment>
+          ),
         }}
       />
       <Stack spacing={1} sx={{ overflow: 'auto', pr: 0.5, pb: 1 }}>
