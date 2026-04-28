@@ -87,30 +87,30 @@ test('callGroq returns null when groqClient is not provided', async () => {
 });
 
 test('callGroq returns content when groqClient succeeds', async () => {
-    // Arrange
-    const mockGroqClient = {
-      chat: {
-        completions: {
-          create: async () => {
-            return {
-              choices: [
-                {
-                  message: {
-                    content: '  Mocked response  '
-                  }
+  // Arrange
+  const mockGroqClient = {
+    chat: {
+      completions: {
+        create: async () => {
+          return {
+            choices: [
+              {
+                message: {
+                  content: '  Mocked response  '
                 }
-              ]
-            };
-          }
+              }
+            ]
+          };
         }
       }
-    };
-    const service = new AIPipelineService({ groqClient: mockGroqClient });
-    const messages = [{ role: 'user', content: 'test message' }];
+    }
+  };
+  const service = new AIPipelineService({ groqClient: mockGroqClient });
+  const messages = [{ role: 'user', content: 'test message' }];
 
-    // Act
-    const result = await service.callGroq(messages);
+  // Act
+  const result = await service.callGroq(messages);
 
-    // Assert
-    assert.strictEqual(result, 'Mocked response', 'callGroq should return trimmed content');
-  });
+  // Assert
+  assert.strictEqual(result, 'Mocked response', 'callGroq should return trimmed content');
+});
