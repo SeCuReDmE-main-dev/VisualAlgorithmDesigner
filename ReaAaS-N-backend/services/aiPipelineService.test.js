@@ -115,7 +115,7 @@ test('callGroq returns content when groqClient succeeds', async () => {
   assert.strictEqual(result, 'Mocked response', 'callGroq should return trimmed content');
 });
 
-test('explainPipeline falls back to general profile when requesting elevated profile without API key', async () => {
+test('explainPipeline falls back to general profile when requesting elevated profile without authorization', async () => {
   const originalApiKey = process.env.ELEVATED_PROFILE_API_KEY;
   process.env.ELEVATED_PROFILE_API_KEY = 'secret-key';
   try {
