@@ -5,7 +5,7 @@ import { useDnD } from '../../contexts/DnDContext';
 
 export default function AlgorithmPalette() {
   const [query, setQuery] = useState('');
-  const { setDrag, clearDrag } = useDnD();
+  const { setDrag, startPointerDrag, clearDrag } = useDnD();
   const algorithms = useMemo(() => searchAlgorithms(query), [query]);
 
   return (
@@ -33,6 +33,22 @@ export default function AlgorithmPalette() {
             key={algorithm.id}
             draggable
             className="vad-palette-card"
+            onPointerDown={(event) => {
+              if (event.button !== 0) {
+                return;
+              }
+
+              event.preventDefault();
+              startPointerDrag(
+                'algorithm',
+                {
+                  algorithmId: algorithm.id,
+                  label: algorithm.label,
+                  category: algorithm.category,
+                },
+                { x: event.clientX, y: event.clientY },
+              );
+            }}
             onDragStart={(event) => {
               event.dataTransfer.effectAllowed = 'copy';
               event.dataTransfer.setData('application/reactflow', algorithm.id);
@@ -49,6 +65,8 @@ export default function AlgorithmPalette() {
               borderRadius: 'var(--radius-md)',
               bgcolor: 'var(--color-surface-alt)',
               cursor: 'grab',
+              userSelect: 'none',
+              touchAction: 'none',
               transition: 'transform 140ms ease, border-color 140ms ease, background 140ms ease',
               '&:hover': {
                 transform: 'translateY(-1px)',
