@@ -18,7 +18,7 @@ function edgeKey(source: string, target: string) {
   return `${source}->${target}`;
 }
 
-function detectPipelineLoops(nodes: Pick<Node, 'id'>[], edges: Pick<Edge, 'id' | 'source' | 'target'>[]): LoopDetectionResult {
+export function detectPipelineLoops(nodes: Pick<Node, 'id'>[], edges: Pick<Edge, 'id' | 'source' | 'target'>[]): LoopDetectionResult {
   const adjacency = new Map<string, string[]>();
   const edgeIdsByConnection = new Map<string, string[]>();
 
