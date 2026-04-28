@@ -17,7 +17,7 @@ interface SubpipelineCardProps {
 }
 
 export default function SubpipelineCard({ item }: SubpipelineCardProps) {
-  const { setDrag, clearDrag } = useDnD();
+  const { setDrag, startPointerDrag, clearDrag } = useDnD();
   const isMechanism = isMechanismTemplate(item);
   const nodes = isMechanism
     ? undefined
@@ -28,24 +28,33 @@ export default function SubpipelineCard({ item }: SubpipelineCardProps) {
         data: node.data,
       }));
   const edges = isMechanism ? undefined : item.edges;
+  const dragPayload = {
+    algorithmId: isMechanism ? item.algorithmId : item.id,
+    label: item.label,
+    category: item.category,
+    isPrefab: !isMechanism,
+    prefabNodes: nodes,
+    prefabEdges: edges,
+    coherenceScore: item.coherenceScore,
+    loopCapable: isSubpipelineTemplate(item) ? item.loopCompatible : true,
+  };
 
   return (
     <Box
       draggable
       className="vad-subpipeline-card"
+      onPointerDown={(event) => {
+        if (event.button !== 0) {
+          return;
+        }
+
+        event.preventDefault();
+        startPointerDrag(isMechanism ? 'mechanism' : 'subpipeline', dragPayload, { x: event.clientX, y: event.clientY });
+      }}
       onDragStart={(event) => {
         event.dataTransfer.effectAllowed = 'copy';
         event.dataTransfer.setData('application/reactflow', item.id);
-        setDrag(isMechanism ? 'mechanism' : 'subpipeline', {
-          algorithmId: isMechanism ? item.algorithmId : item.id,
-          label: item.label,
-          category: item.category,
-          isPrefab: !isMechanism,
-          prefabNodes: nodes,
-          prefabEdges: edges,
-          coherenceScore: item.coherenceScore,
-          loopCapable: isSubpipelineTemplate(item) ? item.loopCompatible : true,
-        });
+        setDrag(isMechanism ? 'mechanism' : 'subpipeline', dragPayload);
       }}
       onDragEnd={clearDrag}
       sx={{
@@ -55,6 +64,8 @@ export default function SubpipelineCard({ item }: SubpipelineCardProps) {
         borderRadius: 'var(--radius-md)',
         bgcolor: 'var(--color-surface-alt)',
         cursor: 'grab',
+        userSelect: 'none',
+        touchAction: 'none',
         scrollSnapAlign: 'start',
         transition: 'transform 140ms ease, border-color 140ms ease',
         '&:hover': {

@@ -2,7 +2,6 @@ import * as XLSX from 'xlsx';
 import type { H2OAlgorithm } from './algorithmCatalog';
 
 export interface WorkbookExportOptions {
-  fileName?: string;
   generatedAt?: Date;
 }
 
@@ -39,7 +38,3 @@ export function buildAlgorithmWorkbook(algorithm: H2OAlgorithm, options: Workboo
   return workbook;
 }
 
-export function downloadAlgorithmWorkbook(algorithm: H2OAlgorithm, options: WorkbookExportOptions = {}) {
-  const fileName = options.fileName ?? `${algorithm.id}_params.xlsx`;
-  XLSX.writeFile(buildAlgorithmWorkbook(algorithm, options), fileName);
-}
