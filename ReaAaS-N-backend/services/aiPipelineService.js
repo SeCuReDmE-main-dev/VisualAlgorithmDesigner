@@ -540,7 +540,7 @@ function normalizeSecurityProfile(securityProfile, authorizationHeader) {
       return 'general';
     }
 
-    const token = authorizationHeader.substring(7);
+    const token = authorizationHeader.slice('Bearer '.length);
     if (token !== expectedKey) {
       return 'general';
     }
