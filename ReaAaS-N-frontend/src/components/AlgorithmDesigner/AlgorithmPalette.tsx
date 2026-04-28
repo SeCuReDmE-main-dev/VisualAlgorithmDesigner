@@ -23,8 +23,15 @@ export default function AlgorithmPalette() {
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Search"
+        inputProps={{
+          'aria-label': 'Search algorithms',
+        }}
         InputProps={{
-          startAdornment: <InputAdornment position="start">/</InputAdornment>,
+          startAdornment: (
+            <InputAdornment position="start" aria-hidden="true" role="presentation">
+              /
+            </InputAdornment>
+          ),
         }}
       />
       <Stack spacing={1} sx={{ overflow: 'auto', pr: 0.5, pb: 1 }}>
