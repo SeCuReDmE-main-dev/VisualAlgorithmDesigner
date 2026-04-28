@@ -18,6 +18,7 @@ const assert = require('assert');
 const Module = require('module');
 const originalRequire = Module.prototype.require;
 let AIPipelineService;
+let safeParseJson;
 
 try {
   Module.prototype.require = function(path) {
@@ -27,7 +28,7 @@ try {
     return originalRequire.apply(this, arguments);
   };
 
-  ({ AIPipelineService } = require('./aiPipelineService'));
+  ({ AIPipelineService, safeParseJson } = require('./aiPipelineService'));
 } finally {
   Module.prototype.require = originalRequire;
 }
@@ -113,4 +114,30 @@ test('callGroq returns content when groqClient succeeds', async () => {
 
   // Assert
   assert.strictEqual(result, 'Mocked response', 'callGroq should return trimmed content');
+});
+
+test('safeParseJson edge cases', () => {
+  // 1. Clean JSON
+  assert.deepStrictEqual(safeParseJson('{"a":1}'), { a: 1 });
+
+  // 2. Mixed content / regex extract
+  assert.deepStrictEqual(safeParseJson('prefix {"a":1} suffix'), { a: 1 });
+  assert.deepStrictEqual(safeParseJson('  \n {\n"b": 2\n} \n '), { b: 2 });
+
+  // 3. Regex match but invalid JSON (second parse fails)
+  assert.strictEqual(safeParseJson('prefix {a: 1,}'), null);
+
+  // 4. No braces at all
+  assert.strictEqual(safeParseJson('no braces at all'), null);
+  assert.deepStrictEqual(safeParseJson('[]'), []); // Empty array is valid JSON
+
+  // 5. null, undefined, '' (empty string)
+  assert.strictEqual(safeParseJson(''), null);
+  assert.strictEqual(safeParseJson(null), null);
+  assert.strictEqual(safeParseJson(undefined), null);
+
+  // 6. Valid JSON primitives (documents permissive behavior)
+  assert.strictEqual(safeParseJson('42'), 42);
+  assert.strictEqual(safeParseJson('"hello"'), 'hello');
+  assert.strictEqual(safeParseJson('true'), true);
 });

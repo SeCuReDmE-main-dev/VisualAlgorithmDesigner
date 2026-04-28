@@ -541,4 +541,5 @@ module.exports = {
   buildSystemPrompt,
   detectContextualMisuse,
   validatePipelinePayload,
+  safeParseJson,
 };
