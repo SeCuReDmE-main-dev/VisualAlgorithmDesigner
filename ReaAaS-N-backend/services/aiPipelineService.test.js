@@ -14,18 +14,23 @@ try {
 }
 const assert = require('assert');
 
-// Mock require before loading the module
+// Mock require only while loading the module under test
 const Module = require('module');
 const originalRequire = Module.prototype.require;
-Module.prototype.require = function(path) {
-  if (path === 'groq-sdk') {
-    return class { constructor() {} };
-  }
-  return originalRequire.apply(this, arguments);
-};
+let AIPipelineService;
 
-const { AIPipelineService } = require('./aiPipelineService');
+try {
+  Module.prototype.require = function(path) {
+    if (path === 'groq-sdk') {
+      return class { constructor() {} };
+    }
+    return originalRequire.apply(this, arguments);
+  };
 
+  ({ AIPipelineService } = require('./aiPipelineService'));
+} finally {
+  Module.prototype.require = originalRequire;
+}
 test('callGroq returns null when groqClient.chat.completions.create throws an error', async () => {
   // Arrange
   const mockGroqClient = {
