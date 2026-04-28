@@ -93,11 +93,3 @@ export const PLAYGROUND_CATALOG: PlaygroundEntry[] = [
   },
 ];
 
-/** Lookup helper — O(1) after first call */
-const _catalogById = new Map<PlaygroundCatalogKey, PlaygroundEntry>(
-  PLAYGROUND_CATALOG.map((e) => [e.id, e]),
-);
-
-export function getPlaygroundEntry(id: PlaygroundCatalogKey): PlaygroundEntry | undefined {
-  return _catalogById.get(id);
-}
