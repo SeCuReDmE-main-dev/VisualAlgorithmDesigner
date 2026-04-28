@@ -155,6 +155,7 @@ const AlgorithmBuilderPage: React.FC = () => { // Changed function name
                             size="small" 
                             variant="outlined" 
                             color="secondary"
+                            aria-label={`Delete step ${index + 1}`}
                             onClick={() => {
                                 const newSteps = steps.filter(s => s.id !== step.id);
                                 setSteps(newSteps);

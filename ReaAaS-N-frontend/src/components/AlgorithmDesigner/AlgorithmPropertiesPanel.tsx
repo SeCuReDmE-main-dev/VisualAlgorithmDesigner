@@ -56,7 +56,7 @@ export default function AlgorithmPropertiesPanel({
         <Button fullWidth variant="contained" disabled={!canExplain} onClick={onExplain}>
           Explain
         </Button>
-        <Button fullWidth variant="outlined" disabled={!canEvaluate || evaluationLoading} onClick={onEvaluate}>
+        <Button fullWidth variant="outlined" disabled={!canEvaluate || evaluationLoading} aria-busy={evaluationLoading} onClick={onEvaluate}>
           {evaluationLoading ? 'Evaluating' : 'Evaluate'}
         </Button>
       </Stack>
