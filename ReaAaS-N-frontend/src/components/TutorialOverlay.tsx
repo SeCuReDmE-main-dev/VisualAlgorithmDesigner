@@ -39,7 +39,7 @@ export function TutorialOverlay({ open, steps = TUTORIAL_STEPS, onClose }: Tutor
       <section aria-labelledby="tutorial-title" className="tov-panel">
         <div className="tov-progress">
           {safeSteps.map((item, stepIndex) => (
-            <span key={item.id} aria-current={stepIndex === index ? 'step' : undefined} className={stepIndex === index ? 'tov-dot--active' : 'tov-dot'} />
+            <span key={item.id} aria-current={stepIndex === index ? 'step' : undefined} aria-label={`Step ${stepIndex + 1}`} role="button" tabIndex={0} className={stepIndex === index ? 'tov-dot--active' : 'tov-dot'} />
           ))}
         </div>
 

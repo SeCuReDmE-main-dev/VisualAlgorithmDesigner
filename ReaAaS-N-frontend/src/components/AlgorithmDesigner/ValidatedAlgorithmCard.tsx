@@ -41,7 +41,7 @@ export function ValidatedAlgorithmCard({ algorithm, onLoad, onDelete }: Validate
           </button>
         )}
         {onDelete && (
-          <button type="button" onClick={() => onDelete(algorithm.id)} style={dangerButtonStyle}>
+          <button type="button" aria-label={`Delete algorithm ${algorithm.name}`} onClick={() => onDelete(algorithm.id)} style={dangerButtonStyle}>
             Delete
           </button>
         )}

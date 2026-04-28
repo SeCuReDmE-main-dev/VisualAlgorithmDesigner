@@ -65,14 +65,14 @@ export function PipelinePromoteDialog({ open, nodes, edges, evaluation, onClose,
           </div>
         )}
 
-        <label className="ppd-label">
+        <label className="ppd-label" htmlFor="promote-name">
           Name
-          <input value={name} onChange={(event) => setName(event.target.value)} className="ppd-input" />
+          <input id="promote-name" value={name} onChange={(event) => setName(event.target.value)} className="ppd-input" />
         </label>
 
-        <label className="ppd-label">
+        <label className="ppd-label" htmlFor="promote-desc">
           Description
-          <textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={3} className="ppd-input" />
+          <textarea id="promote-desc" value={description} onChange={(event) => setDescription(event.target.value)} rows={3} className="ppd-input" />
         </label>
 
         {error && (
