@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
+const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
 const { SQLiteMemoryRepository } = require('./services/sqliteMemoryRepository');
 const { AIPipelineService } = require('./services/aiPipelineService');
 require('dotenv').config();
@@ -11,6 +13,8 @@ const PORT = process.env.PORT || 3001; // Backend port
 const dbPath = path.resolve(__dirname, process.env.DB_PATH || './data/memory.sqlite');
 const memoryRepository = new SQLiteMemoryRepository(dbPath);
 const aiPipelineService = new AIPipelineService({ memoryRepository });
+
+app.set('trust proxy', 1);
 
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
 app.use(cors({
@@ -26,6 +30,21 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json()); // Middleware to parse JSON bodies
+
+app.use(session({
+  store: new SQLiteStore({
+    dir: path.dirname(dbPath),
+    db: 'sessions.sqlite',
+  }),
+  secret: process.env.SESSION_SECRET || 'a-very-secure-fallback-secret',
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: 'lax',
+  }
+}));
 
 const aiLimiter = rateLimit({
   windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60000),
@@ -157,7 +176,7 @@ app.listen(PORT, () => {
 });
 
 function getSessionId(req) {
-  return req.get('X-Session-Id') || req.body?.sessionId || 'anonymous';
+  return req.session ? req.session.id : 'anonymous';
 }
 
 function asyncHandler(handler) {
