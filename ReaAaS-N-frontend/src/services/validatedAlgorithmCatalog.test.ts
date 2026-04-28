@@ -14,10 +14,14 @@ import type { PipelineEvaluation } from './api';
 
 describe('validatedAlgorithmCatalog', () => {
   beforeEach(() => {
+    let uuidCounter = 0;
+
     localStorage.clear();
     clearValidatedAlgorithms();
     vi.useFakeTimers();
-    vi.stubGlobal('crypto', { randomUUID: () => 'test-uuid-1234' });
+    vi.stubGlobal('crypto', {
+      randomUUID: vi.fn(() => `test-uuid-${++uuidCounter}`),
+    });
   });
 
   afterEach(() => {
