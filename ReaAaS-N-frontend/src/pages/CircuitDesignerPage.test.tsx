@@ -12,6 +12,14 @@ import CircuitDesignerPage, { CircuitNodeData } from './CircuitDesignerPage';
 // (Identical to the one in CircuitDesignerPage.tsx)
 const calculateCircuitState = (currentNodes: Node<CircuitNodeData>[], currentEdges: Edge[]): Node<CircuitNodeData>[] => {
   const nodeOutputCache: Record<string, boolean> = {}; 
+
+  // Precalculate incoming edges to avoid O(N^2) filtering inside the loop
+  const incomingEdgesByTarget = new Map<string, Edge[]>();
+  for (const edge of currentEdges) {
+    if (!incomingEdgesByTarget.has(edge.target)) incomingEdgesByTarget.set(edge.target, []);
+    incomingEdgesByTarget.get(edge.target)!.push(edge);
+  }
+
   currentNodes.forEach(node => {
     if (node.type === 'inputSource') {
       nodeOutputCache[node.id] = (node.data as any).value;
@@ -25,7 +33,7 @@ const calculateCircuitState = (currentNodes: Node<CircuitNodeData>[], currentEdg
     let changesMade = false;
     currentNodes.forEach(node => {
       if (node.type === 'andGate' || node.type === 'orGate' || node.type === 'notGate') {
-        const incomingEdges = currentEdges.filter(edge => edge.target === node.id);
+        const incomingEdges = incomingEdgesByTarget.get(node.id) || [];
         let inputA = false;
         let inputB = false; 
         if (node.type === 'notGate') {
@@ -54,7 +62,7 @@ const calculateCircuitState = (currentNodes: Node<CircuitNodeData>[], currentEdg
     if (node.type === 'andGate' || node.type === 'orGate' || node.type === 'notGate') {
       (data as any).outputValue = nodeOutputCache[node.id] || false;
     } else if (node.type === 'outputSink') {
-      const incomingEdge = currentEdges.find(edge => edge.target === node.id);
+      const incomingEdge = incomingEdgesByTarget.get(node.id)?.[0];
       (data as any).value = incomingEdge ? (nodeOutputCache[incomingEdge.source] || false) : false;
     }
     return { ...node, data };
@@ -202,7 +210,20 @@ describe('CircuitDesignerPage - calculateCircuitState', () => {
   });
 });
 
+
+// Mock ResizeObserver
+class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+global.ResizeObserver = ResizeObserver;
+
 describe('CircuitDesignerPage - Component Interactions', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   let user: ReturnType<typeof userEvent.setup>;
   let mockGetNodes = vi.fn();
   let mockGetEdges = vi.fn();
@@ -276,7 +297,7 @@ describe('CircuitDesignerPage - Component Interactions', () => {
     localStorage.setItem('circuitDesignerSaveData', JSON.stringify({ nodes: testNodes, edges: testEdges, viewport: testViewport }));
 
     render(<CircuitDesignerPage />); // Re-render to pick up new useReactFlow mock values for setNodes/setEdges if needed
-    const loadButton = screen.getByRole('button', { name: /Load Circuit/i });
+    const loadButton = screen.getAllByRole('button', { name: /Load Circuit/i })[0];
     await user.click(loadButton);
     
     // Check if alert was called
@@ -293,7 +314,7 @@ describe('CircuitDesignerPage - Component Interactions', () => {
   test('handleLoadCircuit: handles empty localStorage gracefully', async () => {
     localStorage.removeItem('circuitDesignerSaveData'); // Ensure it's empty
     render(<CircuitDesignerPage />);
-    const loadButton = screen.getByRole('button', { name: /Load Circuit/i });
+    const loadButton = screen.getAllByRole('button', { name: /Load Circuit/i })[0];
     await user.click(loadButton);
     expect(window.alert).toHaveBeenCalledWith('No saved circuit found.');
   });
@@ -330,7 +351,7 @@ describe('CircuitDesignerPage - Component Interactions', () => {
 
     // For now, this test is a placeholder for a more direct test of onDrop if it were refactored.
     // We can verify that the palette exists.
-    expect(screen.getByText('AND Gate')).toBeInTheDocument(); // Palette item
+    expect(screen.getAllByText('AND Gate').length).toBeGreaterThan(0); // Palette item
   });
   
   // handleInputNodeValueChange and handleUpdateNodeLabel are harder to test in isolation
