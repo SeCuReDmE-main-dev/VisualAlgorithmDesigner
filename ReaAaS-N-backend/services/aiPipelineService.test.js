@@ -167,7 +167,7 @@ test('explainPipeline allows elevated profile with correct API key', async () =>
   }
 });
 
-test('evaluatePipeline falls back to general profile when requesting elevated profile without API key', async () => {
+test('evaluatePipeline falls back to general profile when requesting elevated profile with incorrect Authorization token', async () => {
   const originalApiKey = process.env.ELEVATED_PROFILE_API_KEY;
   process.env.ELEVATED_PROFILE_API_KEY = 'secret-key';
   try {
