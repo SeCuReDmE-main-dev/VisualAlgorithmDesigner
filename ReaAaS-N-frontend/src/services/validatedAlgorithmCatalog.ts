@@ -33,23 +33,33 @@ function createId() {
   return `validated-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+let catalogCache: ValidatedAlgorithmRecord[] | null = null;
+
 function readCatalog(): ValidatedAlgorithmRecord[] {
+  if (catalogCache !== null) {
+    return catalogCache;
+  }
+
   try {
     const rawCatalog = localStorage.getItem(VALIDATED_ALGORITHMS_STORAGE_KEY);
 
     if (!rawCatalog) {
-      return [];
+      catalogCache = [];
+      return catalogCache;
     }
 
     const parsedCatalog = JSON.parse(rawCatalog);
-    return Array.isArray(parsedCatalog) ? (parsedCatalog as ValidatedAlgorithmRecord[]) : [];
+    catalogCache = Array.isArray(parsedCatalog) ? (parsedCatalog as ValidatedAlgorithmRecord[]) : [];
+    return catalogCache;
   } catch {
-    return [];
+    catalogCache = [];
+    return catalogCache;
   }
 }
 
 function writeCatalog(records: ValidatedAlgorithmRecord[]) {
   localStorage.setItem(VALIDATED_ALGORITHMS_STORAGE_KEY, JSON.stringify(records));
+  catalogCache = records;
 }
 
 export function isPromotionEligible(evaluation: Pick<PipelineEvaluation, 'coherenceScore'> | null | undefined) {
@@ -118,4 +128,5 @@ export function deleteValidatedAlgorithm(id: string) {
 
 export function clearValidatedAlgorithms() {
   localStorage.removeItem(VALIDATED_ALGORITHMS_STORAGE_KEY);
+  catalogCache = null;
 }
