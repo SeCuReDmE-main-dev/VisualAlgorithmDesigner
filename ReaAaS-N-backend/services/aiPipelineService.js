@@ -523,6 +523,13 @@ function normalizeSecurityProfile(securityProfile, authorizationHeader) {
   const key = String(securityProfile || 'general').toLowerCase();
   const profileKey = SECURITY_PROFILES[key] ? key : 'general';
 
+  if (!SECURITY_PROFILES[key]) {
+    return 'general';
+  }
+
+  if (arguments.length < 2) {
+    return profileKey;
+  }
   if (profileKey !== 'general' && profileKey !== 'educational') {
     const expectedKey = process.env.ELEVATED_PROFILE_API_KEY;
     if (!expectedKey) {
