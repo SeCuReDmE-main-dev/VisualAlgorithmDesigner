@@ -2,7 +2,6 @@ import * as XLSX from 'xlsx';
 import type { H2OAlgorithm } from './algorithmCatalog';
 
 export interface WorkbookExportOptions {
-  fileName?: string;
   generatedAt?: Date;
 }
 
@@ -38,3 +37,4 @@ export function buildAlgorithmWorkbook(algorithm: H2OAlgorithm, options: Workboo
 
   return workbook;
 }
+
