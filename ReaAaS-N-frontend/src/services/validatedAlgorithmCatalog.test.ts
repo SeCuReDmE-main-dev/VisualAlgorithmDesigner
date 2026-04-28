@@ -144,7 +144,7 @@ describe('validatedAlgorithmCatalog', () => {
       });
 
       expect(result).toEqual({
-        id: 'test-uuid-1234',
+        id: 'test-uuid-1',
         name: 'Valid Pipeline',
         description: 'A description',
         nodes: [{ id: 'n1', type: 'test', position: { x: 0, y: 0 }, data: { label: 'Node 1' } }],

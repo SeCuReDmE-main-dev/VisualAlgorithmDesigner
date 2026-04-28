@@ -1,3 +1,3 @@
-## 2024-04-28 - Micro-UX and Accessibility Polish
-**Learning:** Decorative emojis in generic UI typography elements can create confusing screen reader output (e.g., announcing 'Video game controller' instead of focusing on 'Mode Exploration'). When using non-standard components or text for delete/action items inside lists, redundant labels (like 'Delete' repeated multiple times) cause excessive noise. Adding contextual `aria-label` attributes and hiding purely decorative characters via `aria-hidden` are crucial and easy wins.
-**Action:** Always verify if textual characters or custom icons act as decorative elements and apply `aria-hidden=true`. Use `aria-label` interpolations (e.g., `Delete step ${index + 1}`) for repetitive list action buttons.
+## 2024-05-24 - Accessibility for Hover-to-Reveal Overlays
+**Learning:** Hover-to-reveal overlays that translate off-screen (`translateY`) remain in the accessibility tree. Keyboard users tabbing into the hidden elements won't trigger standard `onMouseEnter` events, leaving them navigating invisible controls.
+**Action:** Always add `onFocusCapture` and `onBlurCapture` (with `contains` checks on `relatedTarget`) to the parent container of hover-to-reveal overlays so they automatically slide into view when tabbed into.
