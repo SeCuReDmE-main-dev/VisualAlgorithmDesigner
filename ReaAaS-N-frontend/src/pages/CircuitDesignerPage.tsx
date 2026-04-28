@@ -72,6 +72,13 @@ const defaultEdgeOptions = {
 const calculateCircuitState = (currentNodes: Node<CircuitNodeData>[], currentEdges: Edge[]): Node<CircuitNodeData>[] => {
   const nodeOutputCache: Record<string, boolean> = {}; 
 
+  // Precalculate incoming edges to avoid O(N^2) filtering inside the loop
+  const incomingEdgesByTarget = new Map<string, Edge[]>();
+  for (const edge of currentEdges) {
+    if (!incomingEdgesByTarget.has(edge.target)) incomingEdgesByTarget.set(edge.target, []);
+    incomingEdgesByTarget.get(edge.target)!.push(edge);
+  }
+
   currentNodes.forEach(node => {
     if (node.type === 'inputSource') {
       nodeOutputCache[node.id] = (node.data as InputSourceData).value;
@@ -85,7 +92,7 @@ const calculateCircuitState = (currentNodes: Node<CircuitNodeData>[], currentEdg
     let changesMade = false;
     currentNodes.forEach(node => {
       if (node.type === 'andGate' || node.type === 'orGate' || node.type === 'notGate') {
-        const incomingEdges = currentEdges.filter(edge => edge.target === node.id);
+        const incomingEdges = incomingEdgesByTarget.get(node.id) || [];
         let inputA = false;
         let inputB = false; 
 
@@ -118,7 +125,7 @@ const calculateCircuitState = (currentNodes: Node<CircuitNodeData>[], currentEdg
     if (node.type === 'andGate' || node.type === 'orGate' || node.type === 'notGate') {
       (data as AndGateData | OrGateData | NotGateData).outputValue = nodeOutputCache[node.id] || false;
     } else if (node.type === 'outputSink') {
-      const incomingEdge = currentEdges.find(edge => edge.target === node.id);
+      const incomingEdge = incomingEdgesByTarget.get(node.id)?.[0];
       (data as OutputSinkData).value = incomingEdge ? (nodeOutputCache[incomingEdge.source] || false) : false;
     }
     return { ...node, data };
@@ -135,12 +142,15 @@ const CircuitDesignerFlow: React.FC = () => {
 
   const handleInputNodeValueChange = useCallback((nodeId: string, newValue: boolean) => {
     setNodes((currentNodes) => {
-      const updatedNodesWithUserChange = currentNodes.map(n => {
-        if (n.id === nodeId && n.type === 'inputSource') {
-          return { ...n, data: { ...(n.data as InputSourceData), value: newValue } };
-        }
-        return n;
-      });
+      const index = currentNodes.findIndex(n => n.id === nodeId && n.type === 'inputSource');
+      if (index === -1) return currentNodes;
+
+      const updatedNodesWithUserChange = [...currentNodes];
+      updatedNodesWithUserChange[index] = {
+        ...updatedNodesWithUserChange[index],
+        data: { ...(updatedNodesWithUserChange[index].data as InputSourceData), value: newValue }
+      };
+
       return calculateCircuitState(updatedNodesWithUserChange, getEdges());
     });
   }, [setNodes, getEdges]);

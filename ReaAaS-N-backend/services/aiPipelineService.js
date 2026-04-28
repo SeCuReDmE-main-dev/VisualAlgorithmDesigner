@@ -264,7 +264,8 @@ function normalizeEdge(edge, index, nodeIds) {
 function buildTraversalSummary(nodes, edges, focusNodeId) {
   const bySource = new Map();
   for (const edge of edges) {
-    bySource.set(edge.source, [...(bySource.get(edge.source) || []), edge.target]);
+    if (!bySource.has(edge.source)) bySource.set(edge.source, []);
+    bySource.get(edge.source).push(edge.target);
   }
 
   const startId = focusNodeId && nodes.some((node) => node.id === focusNodeId) ? focusNodeId : nodes[0].id;
@@ -300,7 +301,8 @@ function buildTraversalSummary(nodes, edges, focusNodeId) {
 function detectCycle(nodes, edges) {
   const bySource = new Map();
   for (const edge of edges) {
-    bySource.set(edge.source, [...(bySource.get(edge.source) || []), edge.target]);
+    if (!bySource.has(edge.source)) bySource.set(edge.source, []);
+    bySource.get(edge.source).push(edge.target);
   }
   const visiting = new Set();
   const visited = new Set();
