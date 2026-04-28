@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateComplianceReport, ComplianceReportInput } from './complianceReportGenerator';
+import { generateComplianceReport, type ComplianceReportInput } from './complianceReportGenerator';
 import { getSecurityProfile } from './securityProfileCatalog';
 
 describe('generateComplianceReport', () => {
