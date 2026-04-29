@@ -14,8 +14,18 @@ const dbPath = path.resolve(__dirname, process.env.DB_PATH || './data/memory.sql
 const memoryRepository = new SQLiteMemoryRepository(dbPath);
 const aiPipelineService = new AIPipelineService({ memoryRepository });
 
-app.set('trust proxy', 1);
+const trustProxyEnv = process.env.TRUST_PROXY;
+let trustProxy = false;
 
+if (trustProxyEnv === 'true') {
+  trustProxy = true;
+} else if (trustProxyEnv && /^\d+$/.test(trustProxyEnv)) {
+  trustProxy = Number(trustProxyEnv);
+} else if (trustProxyEnv && trustProxyEnv !== 'false') {
+  trustProxy = trustProxyEnv;
+}
+
+app.set('trust proxy', trustProxy);
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
 app.use(cors({
   origin(origin, callback) {
