@@ -224,6 +224,7 @@ export default function AlgorithmDesignerPage() {
                   onClearRequested={clearPipeline}
                 />
               </ReactFlowProvider>
+              {libraryVisible && <SubpipelineLibraryPanel onSaveRequested={() => setSaveOpen(true)} />}
             </Box>
           </Panel>
           <PanelResizeHandle className="vad-resize-handle" />
@@ -252,7 +253,6 @@ export default function AlgorithmDesignerPage() {
         </PanelGroup>
       </Box>
       <Box>
-        {libraryVisible && <SubpipelineLibraryPanel />}
         <StatusBar nodeCount={nodes.length} edgeCount={edges.length} latencyMs={latencyMs} hasLoop={loops.hasLoop} coherenceScore={evaluation?.coherenceScore} />
       </Box>
       <PipelineSaveDialog open={saveOpen} nodeCount={nodes.length} edgeCount={edges.length} onClose={() => setSaveOpen(false)} onSave={savePipeline} />
