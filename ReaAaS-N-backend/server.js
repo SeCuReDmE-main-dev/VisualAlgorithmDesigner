@@ -36,7 +36,7 @@ app.use(session({
     dir: path.dirname(dbPath),
     db: 'sessions.sqlite',
   }),
-  secret: process.env.SESSION_SECRET || 'a-very-secure-fallback-secret',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: true,
   cookie: {
