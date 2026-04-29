@@ -29,6 +29,8 @@ export default function AIExplanationPanel({ explanation, loading, error, latenc
       {error && <Alert severity="error">{error}</Alert>}
       <Box
         className={explanation ? 'vad-fade-in' : undefined}
+        aria-live="polite"
+        aria-atomic="true"
         sx={{
           minHeight: 150,
           p: 1.25,
