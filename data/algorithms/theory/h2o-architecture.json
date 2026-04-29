@@ -1,0 +1,132 @@
+{
+  "id": "h2o-architecture",
+  "name": "H2O-3 Architecture",
+  "category": "Platform",
+  "subcategory": "Distributed ML",
+  "description": "H2O-3 is an open-source, distributed, in-memory machine learning platform designed for big data analytics. It uses a columnar compressed storage format and MapReduce-style distributed computing to train models on large datasets across clusters. Provides APIs for R, Python, Scala, and REST.",
+  "concept": {
+    "distributedInMemory": "Data stored compressed in-memory across cluster nodes",
+    "mapReduce": "Distributed computation using map-reduce paradigm",
+    "columnarStorage": "Data stored by columns for efficient compression and access",
+    "h2oFrame": "Distributed data frame (analogous to R/Pandas DataFrame)",
+    "autoMl": "Automated machine learning pipeline",\n    "explanation": "H2O distributes data across nodes in compressed columnar format. Algorithms execute in parallel using fork-join parallelism. Results aggregated across nodes."
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "Large datasets that don't fit in single machine memory",
+      "Need for distributed training",
+      "Production deployment with REST API",
+      "AutoML for rapid prototyping",
+      "Teams using multiple languages (R, Python, Java)"
+    ],
+    "avoidWhen": [
+      "Small datasets (overhead not worth it)",
+      "Deep learning (use TensorFlow/PyTorch)",
+      "When simple scikit-learn sufficient",
+      "Limited memory environments"
+    ]
+  },
+  "keyComponents": {
+    "h2oFrame": {
+      "description": "Distributed data structure",
+      "features": "Columnar storage, compression, lazy evaluation"
+    },
+    "h2oContext": {
+      "description": "Connection to H2O cluster",
+      "initialization": "h2o.init() to start/connect"
+    },
+    "modeling": {
+      "description": "ML algorithms implemented",
+      "types": "GLM, GBM, Random Forest, Deep Learning, K-Means, PCA, etc."
+    },
+    "flow": {
+      "description": "Web-based interactive notebook interface"
+    },
+    "deployment": {
+      "description": "POJO/MOJO for production deployment"
+    }
+  },
+  "architectureLayers": {
+    "languageLayer": "R, Python, Scala, Flow APIs",
+    "restApi": "JSON over HTTP for all operations",
+    "inMemoryDistributed": "Compressed columnar storage (H2O Frame)",
+    "algorithms": "Distributed ML implementations",
+    "storage": "Optional integration with HDFS, S3, etc."
+  },
+  "dataStructures": {
+    "h2oFrame": "2D labeled data structure distributed across cluster",
+    "vec": "Single column of data (compressed)",
+    "chunk": "Subset of a column on a node",
+    "key": "Distributed reference to data"
+  },
+  "workflow": {
+    "setup": [
+      "Start H2O cluster: h2o.init()",
+      "Configure cluster size (memory, cores)",
+      "Connect clients to cluster"
+    ],
+    "dataIngestion": [
+      "Import data: h2o.import_file()",
+      "Data stored as H2OFrame",
+      "Automatic type detection",
+      "Preview and explore data"
+    ],
+    "preprocessing": [
+      "Handle missing values",
+      "Encode categoricals",
+      "Feature engineering with H2O expressions",
+      "Split data: train/validation/test"
+    ],
+    "modeling": [
+      "Choose algorithm or use AutoML",
+      "Set parameters",
+      "Train distributed model",
+      "Evaluate on validation set"
+    ],
+    "deployment": [
+      "Download POJO/MOJO",
+      "Deploy to production",
+      "Score new data via REST"
+    ]
+  },
+  "complexity": {
+    "setup": "Requires cluster setup or local H2O instance",
+    "memory": "Data must fit in aggregate cluster memory",
+    "scalability": "Scales linearly with nodes (for most algorithms)",
+    "latency": "Some overhead vs single-machine libraries"
+  },
+  "pros": [
+    "Distributed training on big data",
+    "Fast in-memory processing",
+    "Wide range of algorithms",
+    "AutoML integration",
+    "Production-ready deployment (MOJO/POJO)",
+    "Cross-language support",
+    "Built-in grid search"
+  ],
+  "cons": [
+    "Setup overhead for small data",
+    "Memory requirements (must fit in RAM)",
+    "Less algorithmic depth than specialized libraries",
+    "Deep learning limited vs TF/PyTorch",
+    "Learning curve for distributed concepts"
+  ],
+  "algorithms": {
+    "supervised": ["GLM", "GBM", "Random Forest", "XGBoost", "Deep Learning", "Naive Bayes", "Stacked Ensembles"],
+    "unsupervised": ["K-Means", "PCA", "Autoencoders", "Word2Vec"]
+  },
+  "useCases": [
+    "Enterprise big data ML",
+    "Credit scoring at scale",
+    "Fraud detection",
+    "Churn prediction",
+    "Time series forecasting",
+    "Production model deployment"
+  ],
+  "relatedAlgorithms": ["spark-ml", "dask-ml", "xgboost-distributed"],
+  "resources": {
+    "documentation": "https://docs.h2o.ai/h2o/latest-stable/h2o-docs/index.html",
+    "github": "https://github.com/h2oai/h2o-3",
+    "h2oai": "https://h2o.ai/"
+  }
+}

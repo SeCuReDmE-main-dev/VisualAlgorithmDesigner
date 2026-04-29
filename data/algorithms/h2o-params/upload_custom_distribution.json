@@ -1,0 +1,12 @@
+{
+  "name": "upload_custom_distribution",
+  "description": "H2Oâs GBM provides a number of distribution options that can be specified when building a model. Alternatively, you can use the upload_custom_distribution function to upload a custom distribution into a running H2O cluster.\n\nThe custom distribution is a function that implements the water.udf.CDistributionFunc interface. This interface follows the design of hex.Distribution and contains four methods to support distributed invocation:\n\nlink: This method returns the type of link function transformation of the probability of response variable to a continuous scale that is unbounded.\n\ninit: This method combines weight, actual response, and offset to compute the numerator and denominator of the initial value. It can return [ weight * (response - offset), weight] by default.\n\ngamma: This method combines weight, actual response, residual, and predicted response to compute numerator and denominator of size of step in terminal node estimate.\n\ngradient: This method computes the (negative half) gradient of deviance function at the predicted value for actual response in one GBM learning step.\n\nThree separate fields must be specified when using this function:\n\nklazz: Represents a custom distribution function that provides the four methods described above.\n\nfunc_name: Assigns a name with uploaded custom functions. This name corresponds to the name of the key in the distributed key-value store.\n\nfunc_file: The name of the file to store the function in an uploaded jar file. The source code of the given class is saved into a file that is subsequently zipped, uploaded as a zip-archive, and saved into the distributed key-value store.\n\nThe parameters func_name and func_file must be unique for each uploaded custom distribution.\n\nNote: This option is only supported in the Python client.",
+  "type": "parameter",
+  "supported_algorithms": [
+    "GBM"
+  ],
+  "r_example": "",
+  "python_example": "import h2o h2o.init() # upload the custom distribution from h2o.utils.distributions import CustomDistributionGaussian custom_dist_func = h2o.upload_custom_distribution(CustomDistributionGaussian, func_name=\"gaussian\", func_file=\"dist_gaussian.py\") # view a reference to the uploaded custom distribution function print(custom_dist_func) python:gaussian=dist_gaussian.CustomDistributionGaussianWrapper",
+  "default_value": null,
+  "related_parameters": []
+}

@@ -1,0 +1,132 @@
+{
+  "id": "hierarchical-clustering",
+  "name": "Hierarchical Clustering",
+  "category": "Unsupervised Learning",
+  "subcategory": "Clustering",
+  "description": "Hierarchical clustering builds a tree of nested clusters (dendrogram) without requiring pre-specified number of clusters. It can be agglomerative (bottom-up: start with points, merge clusters) or divisive (top-down: start with one cluster, split recursively). Provides rich visualization through dendrograms.",
+  "concept": {
+    "agglomerative": "Bottom-up: each point starts as its own cluster, iteratively merge closest clusters",
+    "divisive": "Top-down: start with all points in one cluster, recursively split",
+    "linkage": "Method to measure distance between clusters",
+    "dendrogram": "Tree visualization showing cluster hierarchy and merge distances",
+    "explanation": "Creates a hierarchy where clusters at one level are nested within clusters at higher levels. Cut the dendrogram at desired height to get any number of clusters."
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "When number of clusters is unknown",
+      "Need hierarchical structure of data",
+      "Small to medium datasets (under 10k points)",
+      "When dendrogram visualization valuable",
+      "Taxonomy creation"
+    ],
+    "avoidWhen": [
+      "Very large datasets (quadratic complexity)",
+      "Need for fast clustering",
+      "Streaming data",
+      "Memory constrained environments",
+      "When flat clusters sufficient"
+    ]
+  },
+  "keyParameters": {
+    "linkage": {
+      "description": "Criterion for merging clusters",
+      "type": "enum",
+      "options": ["ward", "complete", "average", "single"],
+      "default": "ward",
+      "impact": "Ward: minimizes variance; Complete: compact clusters; Single: chain-like"
+    },
+    "metric": {
+      "description": "Distance metric between points",
+      "type": "enum",
+      "options": ["euclidean", "manhattan", "cosine", "correlation", "precomputed"],
+      "default": "euclidean",
+      "impact": "Must be compatible with linkage (Ward requires Euclidean)"
+    },
+    "nClusters": {
+      "description": "Number of clusters to extract (alternative to distance threshold)",
+      "type": "integer",
+      "default": null,
+      "impact": "If null, use distance_threshold"
+    },
+    "distanceThreshold": {
+      "description": "Cut tree at this distance to get clusters",
+      "type": "float",
+      "default": null,
+      "impact": "Higher threshold = fewer clusters"
+    }
+  },
+  "linkageMethods": {
+    "ward": "Minimizes variance within merged cluster (most common)",
+    "complete": "Maximum distance between clusters (compact clusters)",
+    "average": "Average distance between all pairs (balanced)",
+    "single": "Minimum distance between clusters (chaining effect, elongated clusters)"
+  },
+  "workflow": {
+    "preprocessing": [
+      "Standardize/normalize features",
+      "Handle missing values",
+      "Consider dimensionality reduction for high-dim data"
+    ],
+    "agglomerativeTraining": [
+      "Start: each point is its own cluster (n clusters)",
+      "Compute distance matrix between all clusters",
+      "Merge closest pair of clusters based on linkage",
+      "Update distance matrix",
+      "Repeat until single cluster remains"
+    ],
+    "dendrogramAnalysis": [
+      "Visualize merge distances",
+      "Identify natural cluster boundaries",
+      "Cut tree at optimal height",
+      "Validate with silhouette scores"
+    ],
+    "extractingClusters": [
+      "Use n_clusters parameter to cut dendrogram",
+      "Or use distance_threshold",
+      "Analyze cluster sizes and characteristics"
+    ]
+  },
+  "complexity": {
+    "timeTraining": "O(n² × log(n)) to O(n³) depending on implementation",
+    "timePrediction": "O(n) - assign to existing clusters",
+    "space": "O(n²) - distance matrix",
+    "scalability": "Poor for large n; use K-Means or DBSCAN for large datasets",
+    "interpretability": "High - dendrogram shows cluster relationships"
+  },
+  "pros": [
+    "No need to specify number of clusters",
+    "Hierarchical structure reveals data relationships",
+    "Dendrogram provides rich visualization",
+    "Any number of clusters can be extracted post-hoc",
+    "Works with any distance metric",
+    "Deterministic (unlike K-Means)"
+  ],
+  "cons": [
+    "Computationally expensive O(n²) or O(n³)",
+    "Memory intensive for distance matrix",
+    "Irreversible: once merged, cannot undo",
+    "Sensitive to noise and outliers",
+    "Different linkages give very different results",
+    "Cannot handle new data easily"
+  ],
+  "variants": {
+    "agglomerative": "Bottom-up merging (most common)",
+    "divisive": "Top-down splitting (less common, more computationally intensive)",
+    "birch": "Balanced Iterative Reducing and Clustering using Hierarchies - for large data",
+    "optics": "Ordering Points To Identify Clustering Structure - density-based hierarchical"
+  },
+  "useCases": [
+    "Taxonomy creation",
+    "Gene expression analysis (bioinformatics)",
+    "Social network community detection",
+    "Document categorization",
+    "Market segmentation with hierarchy",
+    "Evolutionary biology (phylogenetic trees)"
+  ],
+  "relatedAlgorithms": ["k-means", "dbscan", "birch", "optics"],
+  "resources": {
+    "scikitLearn": "https://scikit-learn.org/stable/modules/clustering.html#hierarchical-clustering",
+    "scipy": "https://docs.scipy.org/doc/scipy/reference/cluster.hierarchy.html",
+    "stanfordNLP": "https://nlp.stanford.edu/IR-book/html/htmledition/hierarchical-clustering-1.html"
+  }
+}

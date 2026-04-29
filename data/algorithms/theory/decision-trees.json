@@ -1,0 +1,146 @@
+{
+  "id": "decision-trees",
+  "name": "Decision Trees",
+  "category": "Supervised Learning",
+  "subcategory": "Classification & Regression",
+  "description": "Decision Trees are non-parametric supervised learning algorithms that create a model in the form of a tree structure. They recursively partition the feature space into regions based on feature values, making decisions through a series of if-else questions until reaching a prediction.",
+  "concept": {
+    "structure": "Tree with root node (all data), internal nodes (decision points), branches (outcomes), and leaf nodes (predictions)",
+    "splittingCriteria": {
+      "classification": "Gini Impurity or Information Gain (Entropy)",
+      "regression": "Mean Squared Error or Mean Absolute Error"
+    },
+    "explanation": "At each node, the algorithm selects the feature and threshold that best separates the data according to the chosen criterion. This recursive process continues until stopping conditions are met.",
+    "giniImpurity": "1 - Σ(pᵢ)² where pᵢ is proportion of class i - measures probability of misclassification",
+    "entropy": "-Σ(pᵢ × log₂(pᵢ)) - measures information uncertainty",
+    "informationGain": "Parent entropy - weighted average of child entropies"
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "Need for highly interpretable models",
+      "Mixed data types (numerical and categorical)",
+      "Non-linear relationships",
+      "Feature interactions are important",
+      "When feature scaling isn't desired"
+    ],
+    "avoidWhen": [
+      "Very high-dimensional sparse data",
+      "When smooth probability estimates needed",
+      "Very large datasets (consider ensemble methods)",
+      "When overfitting must be strictly avoided",
+      "Extrapolation beyond training data range"
+    ]
+  },
+  "keyParameters": {
+    "criterion": {
+      "description": "Function to measure split quality",
+      "type": "enum",
+      "options": ["gini", "entropy", "log_loss"],
+      "default": "gini",
+      "impact": "Gini faster, Entropy more balanced trees"
+    },
+    "maxDepth": {
+      "description": "Maximum depth of tree",
+      "type": "integer",
+      "default": null,
+      "range": "[1, ∞)",
+      "impact": "Prevents overfitting; smaller = simpler model"
+    },
+    "minSamplesSplit": {
+      "description": "Minimum samples required to split internal node",
+      "type": "integer or float",
+      "default": 2,
+      "impact": "Higher = less overfitting, more generalization"
+    },
+    "minSamplesLeaf": {
+      "description": "Minimum samples required at leaf node",
+      "type": "integer or float",
+      "default": 1,
+      "impact": "Smooths model, prevents leaves with few samples"
+    },
+    "maxFeatures": {
+      "description": "Number of features to consider for best split",
+      "type": "enum",
+      "options": ["auto", "sqrt", "log2", "int", "float", "None"],
+      "default": null,
+      "impact": "Random subset can reduce overfitting"
+    },
+    "ccpAlpha": {
+      "description": "Complexity parameter for Minimal Cost-Complexity Pruning",
+      "type": "float",
+      "default": 0.0,
+      "impact": "Higher = more pruning, simpler tree"
+    }
+  },
+  "workflow": {
+    "preprocessing": [
+      "Handle missing values",
+      "Encode categorical variables (or use algorithm that supports them)",
+      "No scaling required (but can help with some implementations)"
+    ],
+    "training": [
+      "Start with all data at root node",
+      "Calculate impurity for each possible split on each feature",
+      "Select split with highest information gain / lowest impurity",
+      "Recursively split until stopping criteria met",
+      "Optionally prune to reduce overfitting"
+    ],
+    "evaluation": [
+      "Cross-validation accuracy",
+      "Tree depth and number of leaves",
+      "Feature importance from splits",
+      "Visual inspection of tree structure"
+    ],
+    "interpretation": [
+      "Follow path from root to leaf for prediction",
+      "Each split shows decision rule",
+      "Feature importance from total reduction in criterion"
+    ]
+  },
+  "complexity": {
+    "timeTraining": "O(n × p × log(n)) average, O(n² × p) worst case",
+    "timePrediction": "O(log(n)) - tree depth",
+    "space": "O(nodes) - stores tree structure",
+    "scalability": "Moderate - prone to overfitting with depth",
+    "interpretability": "Very High - human-readable rules"
+  },
+  "pros": [
+    "Highly interpretable and visualizable",
+    "Handles non-linear relationships",
+    "No feature scaling needed",
+    "Handles mixed data types",
+    "Implicit feature selection",
+    "Fast prediction"
+  ],
+  "cons": [
+    "Prone to overfitting (deep trees)",
+    "Unstable - small data changes alter tree",
+    "Greedy algorithm - may not find optimal tree",
+    "Biased toward features with more levels",
+    "Poor extrapolation",
+    "Difficult with high-cardinality categorical features"
+  ],
+  "variants": {
+    "c45": "Handles continuous features and missing values",
+    "cart": "Can handle both classification and regression",
+    "id3": "Early algorithm, uses information gain",
+    "chaid": "Uses chi-square test for splitting"
+  },
+  "regularization": [
+    "Pre-pruning: Limit depth, min samples per leaf",
+    "Post-pruning: Remove branches that don't improve validation",
+    "Cost-complexity pruning: Trade-off tree size vs. fit"
+  ],
+  "useCases": [
+    "Medical diagnosis decision support",
+    "Loan approval systems",
+    "Customer segmentation",
+    "Rule extraction from data",
+    "Fraud detection"
+  ],
+  "relatedAlgorithms": ["random-forest", "gradient-boosting", "xgboost"],
+  "resources": {
+    "scikitLearn": "https://scikit-learn.org/stable/modules/tree.html",
+    "ibm": "https://www.ibm.com/uk-en/topics/decision-trees"
+  }
+}

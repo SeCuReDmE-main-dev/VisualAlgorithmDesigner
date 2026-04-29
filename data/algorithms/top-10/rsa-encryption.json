@@ -1,0 +1,25 @@
+{
+  "name": "RSA Encryption",
+  "description": "RSA is a public-key cryptosystem widely used for secure data transmission. It enables secure communication over insecure channels without requiring a shared secret key. It's based on the practical difficulty of factoring the product of two large prime numbers.",
+  "category": "cryptography",
+  "real_world_examples": [
+    "HTTPS/SSL/TLS secure web browsing",
+    "SSH secure shell connections",
+    "PGP/GPG email encryption",
+    "Digital signatures",
+    "Secure messaging apps (Signal, WhatsApp key exchange)"
+  ],
+  "how_it_works": "RSA uses two keys: a public key for encryption and a private key for decryption. Key generation involves selecting two large primes p and q, computing n=p*q and φ(n)=(p-1)(q-1), then choosing public exponent e and computing private d such that (d*e) mod φ(n) = 1. Security relies on the difficulty of factoring n.",
+  "complexity": {
+    "time": "O(k³) for k-bit keys (using efficient multiplication), O(log e) for encryption, O(log d) for decryption",
+    "space": "O(k) for k-bit keys"
+  },
+  "key_parameters": [
+    "key_size: typically 2048 or 4096 bits",
+    "public_exponent (e): commonly 65537 (2^16+1)",
+    "padding_scheme: OAEP, PKCS#1 v1.5",
+    "prime_generation_method: probabilistic primality testing",
+    "random_number_quality: critical for security"
+  ],
+  "pseudocode_or_diagram_description": "KeyGen: select primes p,q. Compute n=p*q, φ=(p-1)(q-1). Choose e coprime to φ. Compute d=e^-1 mod φ. Public key=(n,e), Private key=(n,d). Encrypt: c = m^e mod n. Decrypt: m = c^d mod n. Fast exponentiation (square-and-multiply) makes this practical."
+}

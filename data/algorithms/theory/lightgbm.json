@@ -1,0 +1,153 @@
+{
+  "id": "lightgbm",
+  "name": "LightGBM (Light Gradient Boosting Machine)",
+  "category": "Supervised Learning",
+  "subcategory": "Ensemble",
+  "description": "LightGBM is a gradient boosting framework by Microsoft that uses tree-based learning algorithms. It's designed for distributed and efficient training with optimizations including Gradient-based One-Side Sampling (GOSS) and Exclusive Feature Bundling (EFB). Uses leaf-wise tree growth for faster convergence.",
+  "concept": {
+    "leafWiseGrowth": "Grows tree leaf-wise (best-first) vs level-wise; reduces loss faster",
+    "histogramBased": "Bins continuous features into discrete bins for faster split finding",
+    "goss": "Gradient-based One-Side Sampling - keeps instances with large gradients",
+    "efb": "Exclusive Feature Bundling - bundles mutually exclusive features",
+    "explanation": "Leaf-wise growth builds more complex trees faster than level-wise. Histogram algorithm reduces memory and speeds up splits. GOSS and EFB handle large datasets efficiently without sacrificing accuracy."
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "Large datasets (millions of rows)",
+      "High-dimensional data",
+      "When training speed matters",
+      "Memory-constrained environments",
+      "Competitive accuracy requirements"
+    ],
+    "avoidWhen": [
+      "Very small datasets (overfitting risk with leaf-wise)",
+      "When exact split points critical (histogram is approximate)",
+      "Sparse high-cardinality categorical features (CatBoost better)"
+    ]
+  },
+  "keyParameters": {
+    "numLeaves": {
+      "description": "Maximum leaves in one tree",
+      "type": "integer",
+      "default": 31,
+      "impact": "Main complexity control; higher = more overfitting"
+    },
+    "maxDepth": {
+      "description": "Maximum tree depth",
+      "type": "integer",
+      "default": -1,
+      "impact": "Limit to prevent overfitting; -1 = no limit"
+    },
+    "learningRate": {
+      "description": "Shrinkage rate",
+      "type": "float",
+      "default": 0.1,
+      "impact": "Lower = slower but better convergence"
+    },
+    "nEstimators": {
+      "description": "Number of boosted trees",
+      "type": "integer",
+      "default": 100,
+      "impact": "Use with early stopping"
+    },
+    "minChildSamples": {
+      "description": "Minimum data in leaf",
+      "type": "integer",
+      "default": 20,
+      "impact": "Prevents overfitting on leaves"
+    },
+    "subsample": {
+      "description": "Row subsample ratio",
+      "type": "float",
+      "default": 1.0,
+      "impact": "Stochastic gradient boosting"
+    },
+    "colsampleBytree": {
+      "description": "Feature fraction per tree",
+      "type": "float",
+      "default": 1.0,
+      "impact": "Column sampling; reduces overfitting"
+    },
+    "regAlpha": {
+      "description": "L1 regularization",
+      "type": "float",
+      "default": 0.0,
+      "impact": "Lasso regularization"
+    },
+    "regLambda": {
+      "description": "L2 regularization",
+      "type": "float",
+      "default": 0.0,
+      "impact": "Ridge regularization"
+    },
+    "featureFraction": {
+      "description": "Random feature selection fraction",
+      "type": "float",
+      "default": 1.0,
+      "impact": "Speeds up training, prevents overfitting"
+    }
+  },
+  "workflow": {
+    "preprocessing": [
+      "Handle categorical features with categorical_feature parameter",
+      "Missing values handled natively",
+      "Create Dataset object for efficiency"
+    ],
+    "training": [
+      "Create lgb.Dataset (can be saved to file)",
+      "Set parameters dict",
+      "Call lgb.train() with early stopping",
+      "Monitor validation metrics"
+    ],
+    "tuning": [
+      "num_leaves is key parameter (control overfitting)",
+      "Balance num_leaves with min_child_samples",
+      "Use feature_fraction and bagging_fraction for large features",
+      "Max_depth can limit tree complexity alongside num_leaves"
+    ]
+  },
+  "complexity": {
+    "timeTraining": "O(n × p × log(n) × n_estimators) with histogram optimizations",
+    "timePrediction": "O(n_estimators × num_leaves)",
+    "space": "O(n × p / bin_count)",
+    "scalability": "Excellent - fastest gradient boosting for large data",
+    "interpretability": "Medium - feature importance, SHAP support"
+  },
+  "pros": [
+    "Faster training than XGBoost",
+    "Lower memory usage",
+    "Better accuracy on large datasets",
+    "Native categorical feature support",
+    "Parallel and GPU learning",
+    "Handles large-scale data efficiently"
+  ],
+  "cons": [
+    "Leaf-wise can overfit small data",
+    "Sensitive to overfitting (tune num_leaves carefully)",
+    "Histogram is approximation (not exact splits)",
+    "Less mature ecosystem than XGBoost"
+  ],
+  "comparisons": {
+    "vsXGBoost": "LightGBM faster and uses less memory; XGBoost has wider adoption",
+    "vsCatBoost": "CatBoost handles categoricals better; LightGBM faster on numeric data"
+  },
+  "uniqueFeatures": {
+    "categoricalSupport": "Native handling without one-hot encoding",
+    "histogramOptimization": "Discrete bins instead of continuous values",
+    "goss": "Sample based on gradient magnitudes",
+    "efb": "Reduce features by bundling exclusive ones"
+  },
+  "useCases": [
+    "Large-scale recommendation systems",
+    "Real-time bidding",
+    "Click prediction at scale",
+    "Ranking problems",
+    "Any large dataset ML task"
+  ],
+  "relatedAlgorithms": ["xgboost", "catboost", "gradient-boosting"],
+  "resources": {
+    "documentation": "https://lightgbm.readthedocs.io/",
+    "github": "https://github.com/microsoft/LightGBM",
+    "paper": "LightGBM: A Highly Efficient Gradient Boosting Decision Tree"
+  }
+}

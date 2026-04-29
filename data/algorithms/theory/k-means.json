@@ -1,0 +1,148 @@
+{
+  "id": "k-means",
+  "name": "K-Means Clustering",
+  "category": "Unsupervised Learning",
+  "subcategory": "Clustering",
+  "description": "K-Means is a centroid-based clustering algorithm that partitions data into k clusters by minimizing within-cluster variance. It assigns each data point to the nearest centroid and iteratively updates centroids until convergence. One of the most popular and scalable clustering methods.",
+  "concept": {
+    "objective": "Minimize sum of squared distances from points to their cluster centroids",
+    "mathematicalFormulation": "argmin_S Σᵢ₌₁ᵏ Σ_{x∈Sᵢ} ||x - μᵢ||²",
+    "centroid": "Mean of all points in cluster",
+    "algorithm": "Lloyd's algorithm - iterative refinement of centroids",
+    "convergence": "When centroids stop moving or change is below threshold",
+    "explanation": "Randomly initialize k centroids. Assign each point to nearest centroid. Recalculate centroids as mean of assigned points. Repeat until convergence."
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "When number of clusters is known or can be estimated",
+      "Spherical/cluster-shaped clusters expected",
+      "Large datasets (scales well)",
+      "Pre-clustering before other methods",
+      "Customer segmentation, image compression"
+    ],
+    "avoidWhen": [
+      "Unknown number of clusters",
+      "Non-spherical cluster shapes",
+      "Clusters of different densities",
+      "Clusters with varying sizes",
+      "Outliers present (sensitive)"
+    ]
+  },
+  "keyParameters": {
+    "nClusters": {
+      "description": "Number of clusters (k)",
+      "type": "integer",
+      "default": 8,
+      "range": "[1, n_samples]",
+      "impact": "Most critical parameter; determines granularity"
+    },
+    "init": {
+      "description": "Centroid initialization method",
+      "type": "enum",
+      "options": ["k-means++", "random"],
+      "default": "k-means++",
+      "impact": "k-means++ provides better starting points, faster convergence"
+    },
+    "maxIter": {
+      "description": "Maximum iterations for single run",
+      "type": "integer",
+      "default": 300,
+      "impact": "Prevents infinite loops on non-converging cases"
+    },
+    "nInit": {
+      "description": "Number of times to run with different centroid seeds",
+      "type": "integer",
+      "default": 10,
+      "impact": "Higher = better solution but slower; picks best result"
+    },
+    "tol": {
+      "description": "Relative tolerance for convergence",
+      "type": "float",
+      "default": 0.0001,
+      "impact": "When centroid movement < tol, stop"
+    },
+    "algorithm": {
+      "description": "K-means algorithm variant",
+      "type": "enum",
+      "options": ["lloyd", "elkan", "auto", "full"],
+      "default": "lloyd",
+      "impact": "Elkan faster for dense data with small k"
+    }
+  },
+  "workflow": {
+    "preprocessing": [
+      "Standardize/normalize features (essential for K-Means)",
+      "Handle outliers (K-Means is sensitive)",
+      "Remove or impute missing values",
+      "Consider dimensionality reduction (PCA) for high-dim data"
+    ],
+    "determineK": [
+      "Elbow Method: plot inertia vs k, find elbow point",
+      "Silhouette Analysis: measure cluster separation quality",
+      "Gap Statistic: compare to random uniform distribution",
+      "Domain knowledge for business-defined segments"
+    ],
+    "training": [
+      "Initialize k centroids (k-means++ recommended)",
+      "Assignment step: assign each point to nearest centroid",
+      "Update step: recalculate centroids as cluster means",
+      "Repeat until convergence or max iterations"
+    ],
+    "evaluation": [
+      "Inertia (within-cluster sum of squares)",
+      "Silhouette Score: (-1 to 1, higher is better)",
+      "Calinski-Harabasz Index",
+      "Davies-Bouldin Index"
+    ]
+  },
+  "complexity": {
+    "timeTraining": "O(n × k × d × i) where n=samples, k=clusters, d=dimensions, i=iterations",
+    "timePrediction": "O(k × d) - assign to nearest centroid",
+    "space": "O((n + k) × d)",
+    "scalability": "Excellent - linear in n, works with large datasets",
+    "interpretability": "Medium - centroids interpretable as cluster prototypes"
+  },
+  "pros": [
+    "Simple and easy to understand",
+    "Fast and scalable to large datasets",
+    "Linear time complexity",
+    "Guaranteed convergence",
+    "Works well with spherical clusters",
+    "Many implementations available"
+  ],
+  "cons": [
+    "Requires specifying k beforehand",
+    "Sensitive to initial centroid positions",
+    "Sensitive to outliers",
+    "Assumes spherical clusters of similar size",
+    "May converge to local optimum",
+    "Struggles with varying cluster densities"
+  ],
+  "variants": {
+    "kMeansPlusPlus": "Smart initialization for better convergence",
+    "miniBatchKMeans": "Uses mini-batches for large datasets",
+    "kMedoids": "Uses actual data points as centers (more robust to outliers)",
+    "fuzzyCMeans": "Soft clustering with membership probabilities",
+    "bisectingKMeans": "Hierarchical divisive clustering using K-Means"
+  },
+  "determiningK": {
+    "elbowMethod": "Plot inertia vs k, look for elbow",
+    "silhouette": "Average silhouette width for each k",
+    "gapStatistic": "Compare clustering to random reference",
+    "domainKnowledge": "Business requirements define segments"
+  },
+  "useCases": [
+    "Customer segmentation",
+    "Image compression (color quantization)",
+    "Document clustering",
+    "Anomaly detection",
+    "Preprocessing for supervised learning",
+    "Market basket analysis"
+  ],
+  "relatedAlgorithms": ["hierarchical-clustering", "dbscan", "k-medoids", "gaussian-mixture"],
+  "resources": {
+    "scikitLearn": "https://scikit-learn.org/stable/modules/clustering.html#k-means",
+    "googleML": "https://developers.google.com/machine-learning/clustering/kmeans/overview",
+    "ibm": "https://www.ibm.com/think/topics/k-means-clustering"
+  }
+}

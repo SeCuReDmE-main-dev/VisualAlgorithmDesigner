@@ -1,0 +1,166 @@
+{
+  "id": "grid-search",
+  "name": "Grid Search and Hyperparameter Optimization",
+  "category": "Model Selection",
+  "subcategory": "Hyperparameter Tuning",
+  "description": "Grid Search exhaustively evaluates all combinations of specified hyperparameter values. Randomized Search samples from parameter distributions. These are systematic approaches to finding optimal hyperparameter configurations that maximize model performance through cross-validation.",
+  "concept": {
+    "hyperparameters": "Parameters set before training (not learned from data)",
+    "gridSearch": "Exhaustive search over specified parameter values",
+    "randomizedSearch": "Sample parameter combinations randomly",
+    "crossValidation": "Evaluate each configuration with k-fold CV",
+    "searchSpace": "Range or distribution of values to try",
+    "explanation": "Define hyperparameter grid. For each combination, train model with cross-validation. Select configuration with best average score."
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "Final model tuning with known good ranges",
+      "Few hyperparameters to tune",
+      "Discrete parameter choices",
+      "Computational budget allows exhaustive search",
+      "Need reproducible results"
+    ],
+    "avoidWhen": [
+      "Many hyperparameters (combinatorial explosion)",
+      "Continuous parameters with wide ranges",
+      "Very expensive model training",
+      "Limited time/budget",
+      "Need for principled optimization (use Bayesian)"
+    ]
+  },
+  "keyParameters": {
+    "estimator": {
+      "description": "Model to tune",
+      "type": "estimator object",
+      "impact": "The ML algorithm being optimized"
+    },
+    "paramGrid": {
+      "description": "Dictionary of parameter names to values",
+      "type": "dict or list of dicts",
+      "example": "{'C': [0.1, 1, 10], 'kernel': ['rbf', 'linear']}",
+      "impact": "Defines search space"
+    },
+    "scoring": {
+      "description": "Metric to optimize",
+      "type": "string or callable",
+      "default": "accuracy/classifier, r2/regressor",
+      "impact": "Determines best configuration"
+    },
+    "cv": {
+      "description": "Cross-validation folds",
+      "type": "integer",
+      "default": 5,
+      "impact": "Higher = more robust but slower"
+    },
+    "nJobs": {
+      "description": "Parallel jobs",
+      "type": "integer",
+      "default": 1,
+      "impact": "-1 uses all processors"
+    },
+    "nIter": {
+      "description": "RandomizedSearch only: samples to try",
+      "type": "integer",
+      "default": 10,
+      "impact": "Trade-off between coverage and compute"
+    }
+  },
+  "methods": {
+    "gridSearchCv": {
+      "description": "Exhaustive over grid",
+      "pros": "Guaranteed to find best in grid",
+      "cons": "Exponential in parameters; computationally expensive"
+    },
+    "randomizedSearchCv": {
+      "description": "Random sampling",
+      "pros": "Faster, explores wider, better for continuous",
+      "cons": "No guarantee of finding best; needs n_iter tuning"
+    },
+    "halvingGridSearch": {
+      "description": "Successive halving - eliminate poor configs early",
+      "pros": "Much faster",
+      "cons": "Requires more resources early, may eliminate good configs"
+    }
+  },
+  "bestPractices": {
+    "paramGridDesign": [
+      "Use logarithmic spacing for learning rates, C",
+      "Start coarse, then refine",
+      "Limit grid size (max 100-1000 combinations)"
+    ],
+    "crossValidation": [
+      "StratifiedKFold for classification",
+      "TimeSeriesSplit for time series",
+      "GroupKFold for grouped data"
+    ],
+    "scoring": [
+      "Choose metric aligned with business objective",
+      "Use multiple metrics for comprehensive view",
+      "Consider class imbalance"
+    ]
+  },
+  "workflow": {
+    "setup": [
+      "Identify hyperparameters to tune",
+      "Define reasonable ranges",
+      "Choose grid vs random search",
+      "Set computational budget"
+    ],
+    "search": [
+      "Initialize GridSearchCV or RandomizedSearchCV",
+      "Fit on training data",
+      "Cross-validate each configuration",
+      "Track all results"
+    ],
+    "results": [
+      "Access best_params_",
+      "Get best_estimator_",
+      "Review cv_results_ for all scores",
+      "Analyze parameter importance"
+    ],
+    "final": [
+      "Train final model with best params on full training set",
+      "Evaluate on held-out test set",
+      "Document chosen configuration"
+    ]
+  },
+  "complexity": {
+    "timeGrid": "O(grid_size × cv_folds × fit_time)",
+    "timeRandom": "O(n_iter × cv_folds × fit_time)",
+    "space": "O(grid_size) for storing results",
+    "scalability": "Parallelizable across parameter combinations"
+  },
+  "pros": [
+    "Systematic and reproducible",
+    "Easy to implement",
+    "Well-supported in libraries",
+    "Built-in cross-validation",
+    "Automatic best model selection"
+  ],
+  "cons": [
+    "Computationally expensive",
+    "Curse of dimensionality for many params",
+    "Discrete grid may miss optimal value",
+    "No learning from past evaluations",
+    "May overfit validation set"
+  ],
+  "advancedMethods": {
+    "bayesian": "Bayesian Optimization - models performance surface",
+    "hyperband": "Successive halving with early stopping",
+    "optuna": "Define-by-run, pruning unpromising trials",
+    "rayTune": "Distributed hyperparameter tuning"
+  },
+  "useCases": [
+    "SVM parameter tuning (C, gamma)",
+    "Random Forest (max_depth, n_estimators)",
+    "Gradient Boosting (learning_rate, n_estimators)",
+    "Neural network architecture search",
+    "Any algorithm with tuneable hyperparameters"
+  ],
+  "relatedAlgorithms": ["bayesian-optimization", "hyperband", "optuna", "random-search"],
+  "resources": {
+    "scikitLearn": "https://scikit-learn.org/stable/modules/grid_search.html",
+    "machineLearningMastery": "https://machinelearningmastery.com/hyperparameter-optimization-with-random-search-and-grid-search/",
+    "hyperparameterTuning": "https://scikit-learn.org/stable/modules/grid_search.html#exhaustive-grid-search"
+  }
+}

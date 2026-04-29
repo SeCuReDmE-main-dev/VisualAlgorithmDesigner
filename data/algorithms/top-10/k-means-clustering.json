@@ -1,0 +1,25 @@
+{
+  "name": "k-Means Clustering",
+  "description": "k-Means is an unsupervised learning algorithm that partitions n observations into k clusters where each observation belongs to the cluster with the nearest mean (centroid). It minimizes the within-cluster sum of squares (variance).",
+  "category": "clustering",
+  "real_world_examples": [
+    "Customer segmentation for marketing",
+    "Image compression (color quantization)",
+    "Document classification",
+    "Anomaly detection",
+    "Data preprocessing for supervised learning"
+  ],
+  "how_it_works": "The algorithm iteratively assigns data points to the nearest centroid based on Euclidean distance, then recalculates centroids as the mean of assigned points. This process repeats until centroids stabilize or maximum iterations reached. It converges to a local minimum of the within-cluster sum of squares.",
+  "complexity": {
+    "time": "O(n * k * d * i) where n=points, k=clusters, d=dimensions, i=iterations",
+    "space": "O(n * d + k * d) for storing points and centroids"
+  },
+  "key_parameters": [
+    "k: number of clusters to form",
+    "max_iterations: maximum iterations before stopping",
+    "tolerance: convergence threshold for centroid movement",
+    "init: initialization method (random, k-means++, etc.)",
+    "n_init: number of times to run with different seeds"
+  ],
+  "pseudocode_or_diagram_description": "Initialize k centroids randomly. Repeat: assign each point to nearest centroid (clustering step), recompute centroids as mean of assigned points (update step). Continue until centroids move less than tolerance or max_iterations reached. k-means++ initialization improves results by spreading initial centroids."
+}

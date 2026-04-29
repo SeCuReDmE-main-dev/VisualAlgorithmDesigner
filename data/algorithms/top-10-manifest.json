@@ -1,0 +1,153 @@
+{
+  "manifest_version": "1.0.0",
+  "name": "Top 10 Most Important Algorithms in Modern Computing",
+  "description": "A curated collection of fundamental algorithms that power modern technology, from search engines to machine learning to cryptography.",
+  "created_at": "2026-04-29",
+  "algorithms": [
+    {
+      "id": "pagerank",
+      "name": "PageRank",
+      "file": "top-10/pagerank.json",
+      "category": "search",
+      "icon_emoji": "🔍",
+      "key_use_case": "Google Search ranking",
+      "difficulty": "advanced",
+      "year_invented": 1998
+    },
+    {
+      "id": "collaborative-filtering",
+      "name": "Collaborative Filtering",
+      "file": "top-10/collaborative-filtering.json",
+      "category": "recommendation",
+      "icon_emoji": "🎬",
+      "key_use_case": "Netflix recommendations",
+      "difficulty": "intermediate",
+      "year_invented": 1992
+    },
+    {
+      "id": "gradient-boosting",
+      "name": "Gradient Boosting",
+      "file": "top-10/gradient-boosting.json",
+      "category": "machine_learning",
+      "icon_emoji": "🌳",
+      "key_use_case": "XGBoost competitions",
+      "difficulty": "advanced",
+      "year_invented": 1999
+    },
+    {
+      "id": "k-means-clustering",
+      "name": "k-Means Clustering",
+      "file": "top-10/k-means-clustering.json",
+      "category": "clustering",
+      "icon_emoji": "🎯",
+      "key_use_case": "Customer segmentation",
+      "difficulty": "beginner",
+      "year_invented": 1967
+    },
+    {
+      "id": "astar-pathfinding",
+      "name": "A* Pathfinding",
+      "file": "top-10/astar-pathfinding.json",
+      "category": "search",
+      "icon_emoji": "🗺️",
+      "key_use_case": "GPS navigation",
+      "difficulty": "intermediate",
+      "year_invented": 1968
+    },
+    {
+      "id": "rsa-encryption",
+      "name": "RSA Encryption",
+      "file": "top-10/rsa-encryption.json",
+      "category": "cryptography",
+      "icon_emoji": "🔐",
+      "key_use_case": "HTTPS secure browsing",
+      "difficulty": "advanced",
+      "year_invented": 1977
+    },
+    {
+      "id": "bloom-filter",
+      "name": "Bloom Filter",
+      "file": "top-10/bloom-filter.json",
+      "category": "data_structure",
+      "icon_emoji": "🌸",
+      "key_use_case": "Chrome malicious URL check",
+      "difficulty": "intermediate",
+      "year_invented": 1970
+    },
+    {
+      "id": "mapreduce",
+      "name": "MapReduce",
+      "file": "top-10/mapreduce.json",
+      "category": "distributed_computing",
+      "icon_emoji": "📊",
+      "key_use_case": "Google web indexing",
+      "difficulty": "intermediate",
+      "year_invented": 2004
+    },
+    {
+      "id": "neural-network-backpropagation",
+      "name": "Neural Network Backpropagation",
+      "file": "top-10/neural-network-backpropagation.json",
+      "category": "machine_learning",
+      "icon_emoji": "🧠",
+      "key_use_case": "GPT/LLM training",
+      "difficulty": "advanced",
+      "year_invented": 1986
+    },
+    {
+      "id": "trie-prefix-tree",
+      "name": "Trie (Prefix Tree)",
+      "file": "top-10/trie-prefix-tree.json",
+      "category": "data_structure",
+      "icon_emoji": "🌲",
+      "key_use_case": "Search autocomplete",
+      "difficulty": "beginner",
+      "year_invented": 1960
+    }
+  ],
+  "categories": {
+    "search": {
+      "name": "Search Algorithms",
+      "description": "Algorithms for finding paths and ranking results",
+      "count": 2
+    },
+    "recommendation": {
+      "name": "Recommendation Systems",
+      "description": "Algorithms for suggesting relevant content",
+      "count": 1
+    },
+    "machine_learning": {
+      "name": "Machine Learning",
+      "description": "Core training and learning algorithms",
+      "count": 2
+    },
+    "clustering": {
+      "name": "Clustering",
+      "description": "Unsupervised grouping algorithms",
+      "count": 1
+    },
+    "cryptography": {
+      "name": "Cryptography",
+      "description": "Security and encryption algorithms",
+      "count": 1
+    },
+    "data_structure": {
+      "name": "Data Structures",
+      "description": "Fundamental data structures",
+      "count": 2
+    },
+    "distributed_computing": {
+      "name": "Distributed Computing",
+      "description": "Algorithms for distributed systems",
+      "count": 1
+    }
+  },
+  "stats": {
+    "total_algorithms": 10,
+    "earliest_invention": 1960,
+    "most_recent_invention": 2004,
+    "beginner_friendly": 2,
+    "intermediate": 4,
+    "advanced": 4
+  }
+}

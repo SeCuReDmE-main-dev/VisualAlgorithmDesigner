@@ -1,0 +1,158 @@
+{
+  "id": "xgboost",
+  "name": "XGBoost (eXtreme Gradient Boosting)",
+  "category": "Supervised Learning",
+  "subcategory": "Ensemble",
+  "description": "XGBoost is an optimized, distributed gradient boosting library designed for speed and performance. It adds regularization to standard gradient boosting, supports parallel processing, and includes built-in cross-validation and missing value handling. It's one of the most popular algorithms for structured data competitions.",
+  "concept": {
+    "objectiveFunction": "Obj = Loss + Regularization = Σl(yᵢ, ŷᵢ) + ΣΩ(fₖ)",
+    "regularization": "Ω(f) = γT + ½λΣw² where T=leaves, w=leaf weights",
+    "approximation": "Second-order Taylor expansion of loss function",
+    "splitFinding": "Greedy algorithm with exact or approximate (histogram) methods",
+    "explanation": "XGBoost optimizes both training loss and model complexity (number of leaves and leaf weights). Uses second derivatives (Hessian) for more accurate optimization. Supports column and row subsampling."
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "Competitive machine learning competitions",
+      "Medium to large structured datasets",
+      "When accuracy is critical",
+      "Time series with feature engineering",
+      "Regression and classification tasks"
+    ],
+    "avoidWhen": [
+      "Very small datasets (risk of overfitting)",
+      "Real-time low-latency requirements",
+      "Text/NLP without preprocessing (use neural nets)",
+      "Image data (use CNNs)",
+      "When model interpretability is paramount"
+    ]
+  },
+  "keyParameters": {
+    "maxDepth": {
+      "description": "Maximum tree depth",
+      "type": "integer",
+      "default": 6,
+      "range": "[0, ∞)",
+      "impact": "Higher = more complex model, risk of overfitting"
+    },
+    "learningRate": {
+      "description": "Step size shrinkage (eta)",
+      "type": "float",
+      "default": 0.3,
+      "range": "[0, 1]",
+      "impact": "Lower = more robust to overfitting, need more trees"
+    },
+    "nEstimators": {
+      "description": "Number of boosted trees",
+      "type": "integer",
+      "default": 100,
+      "impact": "More trees with lower learning rate = better generalization"
+    },
+    "minChildWeight": {
+      "description": "Minimum sum of instance weight in child",
+      "type": "float",
+      "default": 1,
+      "impact": "Controls tree complexity; higher = more conservative"
+    },
+    "gamma": {
+      "description": "Minimum loss reduction for split",
+      "type": "float",
+      "default": 0,
+      "impact": "Regularization; larger = more conservative (fewer splits)"
+    },
+    "subsample": {
+      "description": "Row subsample ratio",
+      "type": "float",
+      "default": 1,
+      "range": "(0, 1]",
+      "impact": "Stochastic gradient boosting; reduces overfitting"
+    },
+    "colsampleBytree": {
+      "description": "Column subsample ratio per tree",
+      "type": "float",
+      "default": 1,
+      "range": "(0, 1]",
+      "impact": "Feature subsampling; increases diversity"
+    },
+    "regAlpha": {
+      "description": "L1 regularization on weights",
+      "type": "float",
+      "default": 0,
+      "impact": "Can cause sparsity; feature selection"
+    },
+    "regLambda": {
+      "description": "L2 regularization on weights",
+      "type": "float",
+      "default": 1,
+      "impact": "Smooths weights; reduces overfitting"
+    }
+  },
+  "workflow": {
+    "preprocessing": [
+      "XGBoost handles missing values internally (set as np.nan)",
+      "Categorical features need encoding (one-hot or target encoding)",
+      "Feature scaling not necessary"
+    ],
+    "training": [
+      "Initialize XGBClassifier or XGBRegressor",
+      "Set objective function (binary:logistic, reg:squarederror, etc.)",
+      "Use early stopping with eval_set",
+      "Fit model",
+      "Tune hyperparameters with CV"
+    ],
+    "tuningStrategy": [
+      "Step 1: Fix high learning_rate (0.1), tune n_estimators with early stopping",
+      "Step 2: Tune tree-specific: max_depth, min_child_weight",
+      "Step 3: Tune sampling: subsample, colsample_bytree",
+      "Step 4: Tune regularization: reg_alpha, reg_lambda",
+      "Step 5: Lower learning_rate, increase n_estimators proportionally"
+    ],
+    "evaluation": [
+      "Built-in cross-validation (xgb.cv)",
+      "Early stopping on validation set",
+      "Feature importance (gain, weight, cover)"
+    ]
+  },
+  "complexity": {
+    "timeTraining": "O(n × p × log(n) × n_estimators) with optimizations",
+    "timePrediction": "O(n_estimators × max_depth) - very fast",
+    "space": "O(n_estimators × nodes)",
+    "scalability": "Excellent - supports distributed training",
+    "interpretability": "Medium - feature importance, SHAP support"
+  },
+  "pros": [
+    "State-of-the-art accuracy on structured data",
+    "Built-in regularization prevents overfitting",
+    "Handles missing values automatically",
+    "Parallel and distributed processing",
+    "Built-in cross-validation",
+    "Feature importance and SHAP integration",
+    "Efficient with sparse data"
+  ],
+  "cons": [
+      "Many hyperparameters to tune",
+      "Can overfit with small data",
+      "Sequential training (trees not fully parallel)",
+      "Memory intensive for very large models",
+      "Less interpretable than linear models"
+  ],
+  "uniqueFeatures": {
+    "monotonicConstraints": "Enforce monotonic relationships between features and output",
+    "customObjectives": "Define custom loss functions",
+    "daskIntegration": "Distributed training with Dask",
+    "gpuSupport": "GPU acceleration for training"
+  },
+  "useCases": [
+    "Kaggle competitions (won many)",
+    "Ad click prediction",
+    "Sales forecasting",
+    "Credit scoring",
+    "Anomaly detection"
+  ],
+  "relatedAlgorithms": ["lightgbm", "gradient-boosting", "catboost", "random-forest"],
+  "resources": {
+    "documentation": "https://xgboost.readthedocs.io/",
+    "github": "https://github.com/dmlc/xgboost",
+    "paper": "XGBoost: A Scalable Tree Boosting System"
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "id": "linear-regression",
+  "name": "Linear Regression",
+  "category": "Supervised Learning",
+  "subcategory": "Regression",
+  "description": "Linear regression is a fundamental supervised learning algorithm that models the relationship between a dependent variable (target) and one or more independent variables (features) by fitting a linear equation. It assumes the output is a linear combination of input features plus an error term.",
+  "concept": {
+    "mathematicalFormulation": "y = β₀ + β₁x₁ + β₂x₂ + ... + βₙxₙ + ε",
+    "explanation": "The algorithm finds coefficients (β) that minimize the difference between predicted and actual values. For simple linear regression (one feature): y = mx + b. The goal is to find the line of best fit through the data points.",
+    "assumptions": [
+      "Linearity: Relationship between features and target is linear",
+      "Independence: Observations are independent of each other",
+      "Homoscedasticity: Constant variance of errors",
+      "Normality: Errors are normally distributed",
+      "No multicollinearity: Features are not highly correlated"
+    ]
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "Predicting continuous numerical values",
+      "Understanding feature importance and relationships",
+      "Baseline model for regression tasks",
+      "When interpretability is crucial",
+      "Small to medium datasets with linear relationships"
+    ],
+    "avoidWhen": [
+      "Non-linear relationships in data",
+      "Categorical target variables (use logistic regression instead)",
+      "High multicollinearity among features",
+      "Complex feature interactions",
+      "Outliers that significantly affect the line"
+    ]
+  },
+  "keyParameters": {
+    "fitIntercept": {
+      "description": "Whether to calculate the intercept (β₀)",
+      "type": "boolean",
+      "default": true,
+      "impact": "If False, regression line passes through origin"
+    },
+    "regularization": {
+      "description": "Type of regularization to apply",
+      "type": "enum",
+      "options": ["none", "l1 (Lasso)", "l2 (Ridge)", "elasticnet"],
+      "default": "none",
+      "impact": "Prevents overfitting by penalizing large coefficients"
+    },
+    "alpha": {
+      "description": "Regularization strength",
+      "type": "float",
+      "default": 1.0,
+      "range": "[0.0, ∞)",
+      "impact": "Higher values = stronger regularization, simpler model"
+    }
+  },
+  "workflow": {
+    "preprocessing": [
+      "Handle missing values",
+      "Normalize/standardize features (optional but recommended)",
+      "Remove or handle outliers",
+      "Check for multicollinearity (VIF analysis)"
+    ],
+    "training": [
+      "Split data into train/validation sets",
+      "Fit model on training data using OLS (Ordinary Least Squares)",
+      "Calculate coefficients that minimize MSE"
+    ],
+    "evaluation": [
+      "Calculate R² (coefficient of determination)",
+      "Check RMSE (Root Mean Squared Error)",
+      "Analyze residuals for normality",
+      "Check for heteroscedasticity"
+    ],
+    "interpretation": [
+      "Coefficients represent change in target per unit change in feature",
+      "Positive coefficient = positive relationship",
+      "Magnitude indicates feature importance (if standardized)"
+    ]
+  },
+  "complexity": {
+    "timeTraining": "O(n × p²) where n=samples, p=features",
+    "timePrediction": "O(p) - very fast",
+    "space": "O(p) - store coefficients only",
+    "scalability": "Excellent - works well with large datasets",
+    "interpretability": "High - coefficients directly interpretable"
+  },
+  "pros": [
+    "Simple and easy to understand",
+    "Fast training and prediction",
+    "No hyperparameter tuning required (basic version)",
+    "Provides feature importance via coefficients",
+    "Works well with small datasets"
+  ],
+  "cons": [
+    "Assumes linear relationship",
+    "Sensitive to outliers",
+    "Cannot capture complex patterns",
+    "Assumes feature independence",
+    "May underfit with complex data"
+  ],
+  "variants": {
+    "polynomialRegression": "Extends linear regression by adding polynomial terms",
+    "ridgeRegression": "L2 regularization to handle multicollinearity",
+    "lassoRegression": "L1 regularization for feature selection",
+    "elasticNet": "Combines L1 and L2 regularization"
+  },
+  "useCases": [
+    "House price prediction",
+    "Sales forecasting",
+    "Risk assessment scoring",
+    "Resource demand estimation",
+    "Trend analysis"
+  ],
+  "relatedAlgorithms": ["logistic-regression", "ridge-regression", "lasso", "polynomial-regression"],
+  "resources": {
+    "scikitLearn": "https://scikit-learn.org/stable/modules/linear_model.html",
+    "googleML": "https://developers.google.com/machine-learning/crash-course/linear-regression"
+  }
+}

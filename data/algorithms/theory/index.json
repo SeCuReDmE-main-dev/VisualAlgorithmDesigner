@@ -1,0 +1,147 @@
+{
+  "name": "Visual Algorithm Designer - Algorithm Theory Knowledge Base",
+  "version": "1.0.0",
+  "description": "Structured documentation of machine learning algorithms covering concepts, parameters, workflows, and complexity",
+  "categories": {
+    "supervisedLearning": {
+      "name": "Supervised Learning",
+      "algorithms": [
+        {
+          "id": "linear-regression",
+          "name": "Linear Regression",
+          "file": "linear-regression.json"
+        },
+        {
+          "id": "logistic-regression",
+          "name": "Logistic Regression",
+          "file": "logistic-regression.json"
+        },
+        {
+          "id": "decision-trees",
+          "name": "Decision Trees",
+          "file": "decision-trees.json"
+        },
+        {
+          "id": "random-forest",
+          "name": "Random Forest",
+          "file": "random-forest.json"
+        },
+        {
+          "id": "gradient-boosting",
+          "name": "Gradient Boosting Machines",
+          "file": "gradient-boosting.json"
+        },
+        {
+          "id": "xgboost",
+          "name": "XGBoost",
+          "file": "xgboost.json"
+        },
+        {
+          "id": "lightgbm",
+          "name": "LightGBM",
+          "file": "lightgbm.json"
+        },
+        {
+          "id": "svm",
+          "name": "Support Vector Machines",
+          "file": "svm.json"
+        },
+        {
+          "id": "neural-networks",
+          "name": "Neural Networks / Deep Learning",
+          "file": "neural-networks.json"
+        }
+      ]
+    },
+    "unsupervisedLearning": {
+      "name": "Unsupervised Learning",
+      "algorithms": [
+        {
+          "id": "k-means",
+          "name": "K-Means Clustering",
+          "file": "k-means.json"
+        },
+        {
+          "id": "hierarchical-clustering",
+          "name": "Hierarchical Clustering",
+          "file": "hierarchical-clustering.json"
+        },
+        {
+          "id": "pca",
+          "name": "Principal Component Analysis",
+          "file": "pca.json"
+        },
+        {
+          "id": "autoencoders",
+          "name": "Autoencoders",
+          "file": "autoencoders.json"
+        }
+      ]
+    },
+    "reinforcementLearning": {
+      "name": "Reinforcement Learning",
+      "algorithms": [
+        {
+          "id": "q-learning",
+          "name": "Q-Learning",
+          "file": "q-learning.json"
+        },
+        {
+          "id": "policy-gradient",
+          "name": "Policy Gradient Methods",
+          "file": "policy-gradient.json"
+        }
+      ]
+    },
+    "optimization": {
+      "name": "Optimization",
+      "algorithms": [
+        {
+          "id": "gradient-descent",
+          "name": "Gradient Descent and Variants",
+          "file": "gradient-descent.json"
+        },
+        {
+          "id": "evolutionary-algorithms",
+          "name": "Evolutionary Algorithms",
+          "file": "evolutionary-algorithms.json"
+        }
+      ]
+    },
+    "h2oPlatform": {
+      "name": "H2O Platform",
+      "algorithms": [
+        {
+          "id": "h2o-architecture",
+          "name": "H2O-3 Architecture",
+          "file": "h2o-architecture.json"
+        },
+        {
+          "id": "h2o-automl",
+          "name": "H2O AutoML",
+          "file": "h2o-automl.json"
+        },
+        {
+          "id": "grid-search",
+          "name": "Grid Search",
+          "file": "grid-search.json"
+        },
+        {
+          "id": "shap",
+          "name": "SHAP",
+          "file": "shap.json"
+        },
+        {
+          "id": "lime",
+          "name": "LIME",
+          "file": "lime.json"
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "totalAlgorithms": 22,
+    "lastUpdated": "2026-04-29",
+    "source": "Web research and ML documentation"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "MapReduce",
+  "description": "MapReduce is a programming model and implementation for processing large data sets in a distributed parallel manner. It abstracts parallelization, fault tolerance, data distribution, and load balancing from developers, allowing them to focus on data processing logic.",
+  "category": "distributed_computing",
+  "real_world_examples": [
+    "Google's original web indexing",
+    "Apache Hadoop (open-source implementation)",
+    "Word count on massive text corpora",
+    "Log analysis and aggregation",
+    "ETL pipelines for data warehouses"
+  ],
+  "how_it_works": "The model has two phases: Map and Reduce. Map takes input key-value pairs and produces intermediate key-value pairs. The framework groups intermediate values by key and passes them to Reduce, which aggregates values for each key. The runtime handles partitioning, sorting, and parallel execution across clusters.",
+  "complexity": {
+    "time": "O(n/p) parallel time where n=input size, p=processors; total work O(n log n) for sorting",
+    "space": "O(n) distributed across nodes; O(1) per mapper/reducer locally"
+  },
+  "key_parameters": [
+    "number_of_mappers: parallelism for input processing",
+    "number_of_reducers: parallelism for aggregation",
+    "input_split_size: controls mapper granularity",
+    "sort_buffer_size: memory for intermediate sorting",
+    "combiner_function: local aggregation before shuffle"
+  ],
+  "pseudocode_or_diagram_description": "Map(k1, v1) → list(k2, v2): process input record, emit intermediate pairs. Reduce(k2, list(v2)) → list(k3, v3): aggregate values for key, emit output. Framework: partition by key hash, sort, group, and send to reducers. Fault tolerance through task re-execution on failure."
+}

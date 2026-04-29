@@ -1,0 +1,25 @@
+{
+  "name": "A* Pathfinding",
+  "description": "A* (A-Star) is an informed search algorithm that finds the shortest path between nodes in a weighted graph. It combines features of uniform-cost search and greedy best-first search, using a heuristic function to guide the search efficiently.",
+  "category": "search",
+  "real_world_examples": [
+    "GPS navigation systems (Google Maps, Waze)",
+    "Video game AI pathfinding",
+    "Network routing protocols",
+    "Robotics motion planning",
+    "Maze solving algorithms"
+  ],
+  "how_it_works": "A* maintains two sets: open set (nodes to explore) and closed set (visited nodes). For each node, it calculates f(n) = g(n) + h(n), where g(n) is cost from start, and h(n) is estimated cost to goal (heuristic). It expands the node with lowest f-score, guaranteeing optimality if heuristic is admissible (never overestimates).",
+  "complexity": {
+    "time": "O((V + E) log V) with binary heap, worst case O(E)",
+    "space": "O(V) for storing open/closed sets and parent pointers"
+  },
+  "key_parameters": [
+    "heuristic_function: estimates cost to goal (Manhattan, Euclidean, etc.)",
+    "weight_function: cost between adjacent nodes",
+    "diagonal_movement: allow or penalize diagonal moves",
+    "tie_breaker: strategy for equal f-scores",
+    "admissibility: heuristic must not overestimate"
+  ],
+  "pseudocode_or_diagram_description": "Initialize open_set with start node, g[start]=0, f[start]=h(start). While open_set not empty: current = node with lowest f. If current is goal, reconstruct path. For each neighbor: tentative_g = g[current] + cost(current,neighbor). If tentative_g < g[neighbor], update g, f, parent. Add to open_set if not present."
+}

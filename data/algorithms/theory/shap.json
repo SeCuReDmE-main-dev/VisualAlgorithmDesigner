@@ -1,0 +1,139 @@
+{
+  "id": "shap",
+  "name": "SHAP (SHapley Additive exPlanations)",
+  "category": "Model Interpretation",
+  "subcategory": "Feature Attribution",
+  "description": "SHAP is a unified approach to explain machine learning model predictions based on Shapley values from cooperative game theory. It provides locally accurate, consistent, and fair feature attributions that explain how each feature contributes to pushing the prediction away from the baseline (average prediction).",
+  "concept": {
+    "shapleyValues": "Game-theoretic approach: each feature's contribution is its marginal contribution averaged over all possible coalitions",
+    "additiveProperty": "Sum of SHAP values + baseline = prediction",
+    "baseline": "Expected value (average prediction over training set)",
+    "coalition": "Subset of features present",
+    "marginalContribution": "Change in prediction when feature added to coalition",
+    "explanation": "SHAP values distribute the prediction fairly among features based on their contribution in all possible feature combinations."
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "Need local explanations (why this prediction?)",
+      "Global feature importance (average impact)",
+      "Model debugging and validation",
+      "Regulatory compliance (explainable AI)",
+      "Stakeholder communication"
+    ],
+    "avoidWhen": [
+      "Very high-dimensional data (computationally expensive)",
+      "Real-time requirements (without fast approximations)",
+      "When correlation between features makes interpretation difficult",
+      "Very large datasets for exact calculation"
+    ]
+  },
+  "keyParameters": {
+    "backgroundData": {
+      "description": "Reference dataset for baseline",
+      "type": "array/DataFrame",
+      "default": "Training data sample",
+      "impact": "Affects interpretation of SHAP values"
+    },
+    "explainerType": {
+      "description": "Type of SHAP explainer",
+      "type": "enum",
+      "options": ["TreeExplainer", "DeepExplainer", "KernelExplainer", "LinearExplainer", "GradientExplainer"],
+      "impact": "Different approximations for different model types"
+    },
+    "nsamples": {
+      "description": "Samples for KernelExplainer approximation",
+      "type": "integer",
+      "default": "auto",
+      "impact": "More samples = more accurate but slower"
+    }
+  },
+  "explainers": {
+    "treeExplainer": {
+      "description": "Exact SHAP for tree models (XGBoost, LightGBM, sklearn trees)",
+      "speed": "Fast (polynomial time)",
+      "exactness": "Exact for trees"
+    },
+    "deepExplainer": {
+      "description": "Approximate SHAP for neural networks",
+      "speed": "Medium",
+      "exactness": "Approximate"
+    },
+    "kernelExplainer": {
+      "description": "Model-agnostic, uses LIME-style sampling",
+      "speed": "Slow (exponential samples needed)",
+      "exactness": "Approximate, samples-based"
+    },
+    "linearExplainer": {
+      "description": "Exact SHAP for linear models",
+      "speed": "Fast",
+      "exactness": "Exact"
+    }
+  },
+  "properties": {
+    "localAccuracy": "SHAP values sum to difference between prediction and baseline",
+    "missingness": "Features not in model have SHAP value of 0",
+    "consistency": "If model changes so feature has higher impact, its SHAP value increases"
+  },
+  "workflow": {
+    "setup": [
+      "Train model",
+      "Choose appropriate SHAP explainer",
+      "Select background/reference data"
+    ],
+    "calculation": [
+      "Initialize explainer with model",
+      "Compute SHAP values for test samples",
+      "For TreeExplainer: uses efficient polynomial algorithm",
+      "For KernelExplainer: samples coalitions"
+    ],
+    "interpretation": [
+      "SHAP summary plot: global feature importance",
+      "SHAP dependence plot: feature value vs. SHAP value",
+      "SHAP force/waterfall plot: individual prediction",
+      "SHAP interaction values: pairwise effects"
+    ]
+  },
+  "complexity": {
+    "treeExplainer": "O(T × L × D) where T=trees, L=leaves, D=depth",
+    "kernelExplainer": "O(2^M) exact, O(M × samples) approximate",
+    "space": "O(n × M) for SHAP values",
+    "scalability": "TreeExplainer fast; KernelExplainer slow for many features"
+  },
+  "pros": [
+    "Theoretically grounded (Shapley values)",
+    "Consistent and locally accurate",
+    "Works with any model type",
+    "Rich visualization options",
+    "Handles feature interactions",
+    "Positive/negative contribution clear"
+  ],
+  "cons": [
+    "Computationally expensive (especially KernelExplainer)",
+    "Correlated features can be misleading",
+    "Requires background dataset choice",
+    "Approximate for non-tree models",
+    "Can be slow for large datasets",
+    "Interpretation requires care with correlated features"
+  ],
+  "visualizations": {
+    "summaryPlot": "Beeswarm/dot plot of SHAP values per feature",
+    "forcePlot": "Visualization of single prediction contributions",
+    "waterfallPlot": "Bar chart showing additive contributions",
+    "dependencePlot": "SHAP value vs. feature value",
+    "heatmap": "Global patterns across many samples"
+  },
+  "useCases": [
+    "Explaining credit decisions",
+    "Medical diagnosis explanations",
+    "Debugging model predictions",
+    "Feature selection",
+    "Model comparison",
+    "Regulatory compliance (GDPR right to explanation)"
+  ],
+  "relatedAlgorithms": ["lime", "permutation-importance", "partial-dependence", "ice-plots"],
+  "resources": {
+    "shapLibrary": "https://shap.readthedocs.io/",
+    "neuripsPaper": "https://papers.nips.cc/paper/7062-a-unified-approach-to-interpreting-model-predictions",
+    "github": "https://github.com/shap/shap"
+  }
+}

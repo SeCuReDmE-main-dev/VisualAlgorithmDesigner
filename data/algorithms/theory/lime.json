@@ -1,0 +1,126 @@
+{
+  "id": "lime",
+  "name": "LIME (Local Interpretable Model-agnostic Explanations)",
+  "category": "Model Interpretation",
+  "subcategory": "Local Explanations",
+  "description": "LIME explains individual predictions by approximating the model locally with an interpretable model (linear regression or decision tree). It perturbs the input sample, gets predictions from the original model, and fits a simple model to explain the prediction in the neighborhood of the instance.",
+  "concept": {
+    "localExplanation": "Approximate complex model locally with interpretable model",
+    "perturbation": "Generate similar samples by perturbing features",
+    "blackBoxModel": "Original model being explained",
+    "surrogateModel": "Simple interpretable model fitted locally",
+    "proximity": "Weight samples by proximity to original instance",
+    "explanation": "Fit interpretable model to (perturbed_sample, black_box_prediction) pairs weighted by distance to original."
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "Explain individual predictions",
+      "Model-agnostic interpretation",
+      "Non-technical stakeholder communication",
+      "Debugging specific predictions",
+      "When SHAP too slow"
+    ],
+    "avoidWhen": [
+      "Need global explanations",
+      "Require theoretical guarantees",
+      "When local linearity assumption violated",
+      "Complex feature interactions",
+      "High-dimensional sparse data"
+    ]
+  },
+  "keyParameters": {
+    "kernel": {
+      "description": "Kernel for proximity weighting",
+      "type": "function",
+      "default": "exponential kernel",
+      "impact": "Determines how sample distance affects weight"
+    },
+    "nSamples": {
+      "description": "Number of perturbed samples",
+      "type": "integer",
+      "default": 5000,
+      "impact": "More samples = better approximation but slower"
+    },
+    "numFeatures": {
+      "description": "Number of features in explanation",
+      "type": "integer",
+      "default": 10,
+      "impact": "Explanation complexity"
+    },
+    "distanceMetric": {
+      "description": "Distance function for sample comparison",
+      "type": "string",
+      "default": "euclidean",
+      "impact": "Affects proximity weights"
+    }
+  },
+  "workflow": {
+    "setup": [
+      "Train black box model",
+      "Choose instance to explain",
+      "Select interpretable representation (tabular, text, image)"
+    ],
+    "perturbation": [
+      "Generate N perturbed samples around instance",
+      "For tabular: sample from feature distributions",
+      "For text: remove words",
+      "For images: superpixel perturbation"
+    ],
+    "prediction": [
+      "Get black box predictions for all perturbed samples",
+      "Calculate proximity weights to original instance",
+      "Weight samples by distance (closer = higher weight)"
+    ],
+    "explanation": [
+      "Fit interpretable model (linear or decision tree)",
+      "Select top K features",
+      "Return feature contributions"
+    ]
+  },
+  "complexity": {
+    "time": "O(n_samples × black_box_prediction_time)",
+    "space": "O(n_samples × features)",
+    "scalability": "Depends on black box speed; preprocessing can help"
+  },
+  "pros": [
+    "Model-agnostic (works with any model)",
+    "Fast for individual explanations",
+    "Intuitive local approximations",
+    "Works with text and images",
+    "Easy to understand output",
+    "Good for debugging"
+  ],
+  "cons": [
+    "Approximate (not exact like SHAP)",
+    "Explanation varies with random sampling",
+    "Kernel width choice affects results",
+    "Can be unstable (different runs, different explanations)",
+    "Limited to local explanations",
+    "Linear assumption may not hold",
+    "Feature correlation can cause issues"
+  ],
+  "dataTypes": {
+    "tabular": "Perturb continuous features, sample from training distribution",
+    "text": "Remove words to create interpretable representation",
+    "image": "Hide superpixels, explain which regions matter"
+  },
+  "variants": {
+    "anchor": "IF-THEN rules instead of linear weights",
+    "globalLime": "Apply LIME to representative samples for global view",
+    "submodularPick": "Select diverse explanations"
+  },
+  "useCases": [
+    "Explaining loan denials",
+    "Medical diagnosis explanations",
+    "NLP model interpretation",
+    "Image classifier explanations",
+    "Debugging incorrect predictions",
+    "Trust assessment of models"
+  ],
+  "relatedAlgorithms": ["shap", "anchors", "interpretml", "shapley-values"],
+  "resources": {
+    "paper": "https://arxiv.org/abs/1602.04938",
+    "limeLibrary": "https://github.com/marcotcr/lime",
+    "kdd": "https://www.kdd.org/kdd2016/subtopic/view/why-should-i-trust-you-explaining-the-predictions-of-any-classifier/670/"
+  }
+}

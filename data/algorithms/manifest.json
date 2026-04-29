@@ -1,0 +1,1613 @@
+{
+  "version": "1.0",
+  "source": "https://docs.h2o.ai/h2o/latest-stable/h2o-docs/data-science/algo-params/",
+  "total_parameters": 143,
+  "parameters": [
+    {
+      "name": "alpha",
+      "file": "h2o-params/alpha.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "auc_type",
+      "file": "h2o-params/auc_type.json",
+      "algorithms": [
+        "Random Forest",
+        "GBM",
+        "Deep Learning",
+        "XGBoost",
+        "GLM",
+        "GAM",
+        "Naive Bayes",
+        "Stack Ensembles"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "auuc_nbins",
+      "file": "h2o-params/auuc_nbins.json",
+      "algorithms": [
+        "Uplift DRF"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "auuc_type",
+      "file": "h2o-params/auuc_type.json",
+      "algorithms": [
+        "Uplift DRF"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "balance_classes",
+      "file": "h2o-params/balance_classes.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "NaÃ¯ve-Bayes",
+        "AutoML"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "base_models",
+      "file": "h2o-params/base_models.json",
+      "algorithms": [
+        "Stacked Ensembles"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "beta_constraints",
+      "file": "h2o-params/beta_constraints.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "beta_epsilon",
+      "file": "h2o-params/beta_epsilon.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "binomial_double_trees",
+      "file": "h2o-params/binomial_double_trees.json",
+      "algorithms": [
+        "DRF"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "blending",
+      "file": "h2o-params/blending.json",
+      "algorithms": [
+        "Target Encoding"
+      ],
+      "type": "unknown"
+    },
+    {
+      "name": "blending_frame",
+      "file": "h2o-params/blending_frame.json",
+      "algorithms": [
+        "Stacked Ensembles",
+        "AutoML"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "build_tree_one_node",
+      "file": "h2o-params/build_tree_one_node.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Isolation Forest",
+        "XGBoost",
+        "Uplift DRF"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "calibrate_model",
+      "file": "h2o-params/calibrate_model.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "XGBoost"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "calibration_frame",
+      "file": "h2o-params/calibration_frame.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "XGBoost"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "categorical_encoding",
+      "file": "h2o-params/categorical_encoding.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "K-Means",
+        "Aggregator",
+        "XGBoost",
+        "Isolation Forest",
+        "Extended Isolation Forest",
+        "Uplift DRF"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "check_constant_response",
+      "file": "h2o-params/check_constant_response.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Uplift DRF"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "checkpoint",
+      "file": "h2o-params/checkpoint.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "XGBoost",
+        "Deep Learning",
+        "GLM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "class_sampling_factors",
+      "file": "h2o-params/class_sampling_factors.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "NaÃ¯ve-Bayes",
+        "AutoML"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "cluster_size_constraints",
+      "file": "h2o-params/cluster_size_constraints.json",
+      "algorithms": [
+        "K-Means"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "col_sample_rate",
+      "file": "h2o-params/col_sample_rate.json",
+      "algorithms": [
+        "GBM",
+        "XGBoost"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "col_sample_rate_change_per_level",
+      "file": "h2o-params/col_sample_rate_change_per_level.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Isolation Forest",
+        "Uplift DRF"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "col_sample_rate_per_tree",
+      "file": "h2o-params/col_sample_rate_per_tree.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "XGBoost",
+        "Isolation Forest",
+        "Uplift DRF"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "compute_metrics",
+      "file": "h2o-params/compute_metrics.json",
+      "algorithms": [
+        "NaÃ¯ve-Bayes",
+        "PCA"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "compute_p_values",
+      "file": "h2o-params/compute_p_values.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "custom_distribution_func",
+      "file": "h2o-params/custom_distribution_func.json",
+      "algorithms": [
+        "GBM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "custom_metric_func",
+      "file": "h2o-params/custom_metric_func.json",
+      "algorithms": [
+        "GBM",
+        "GLM",
+        "HGLM",
+        "DRF",
+        "Deeplearning",
+        "Stacked Ensembles",
+        "XGBoost"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "data_leakage_handling",
+      "file": "h2o-params/data_leakage_handling.json",
+      "algorithms": [
+        "Target Encoding"
+      ],
+      "type": "unknown"
+    },
+    {
+      "name": "distribution",
+      "file": "h2o-params/distribution.json",
+      "algorithms": [
+        "GBM",
+        "Deep Learning",
+        "XGBoost",
+        "AutoML"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "early_stopping",
+      "file": "h2o-params/early_stopping.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "eps_prob",
+      "file": "h2o-params/eps_prob.json",
+      "algorithms": [
+        "NaÃ¯ve-Bayes"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "eps_sdev",
+      "file": "h2o-params/eps_sdev.json",
+      "algorithms": [
+        "NaÃ¯ve-Bayes"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "estimate_k",
+      "file": "h2o-params/estimate_k.json",
+      "algorithms": [
+        "K-Means"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "exclude_algos",
+      "file": "h2o-params/exclude_algos.json",
+      "algorithms": [
+        "AutoML"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "export_checkpoints_dir",
+      "file": "h2o-params/export_checkpoints_dir.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "PCA",
+        "GLRM",
+        "NaÃ¯ve-Bayes",
+        "K-Means",
+        "Word2Vec",
+        "Stacked Ensembles",
+        "XGBoost",
+        "Aggregator",
+        "CoxPH",
+        "Isolation Forest",
+        "AutoML"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "extension_level",
+      "file": "h2o-params/extension_level.json",
+      "algorithms": [
+        "Extended Isolation Forest"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "family",
+      "file": "h2o-params/family.json",
+      "algorithms": [
+        "GLM",
+        "GAM",
+        "HGLM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "fold_assignment",
+      "file": "h2o-params/fold_assignment.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "NaÃ¯ve-Bayes",
+        "K-Means",
+        "XGBoost"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "fold_column",
+      "file": "h2o-params/fold_column.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "NaÃ¯ve-Bayes",
+        "K-Means",
+        "AutoML",
+        "XGBoost"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "gainslift_bins",
+      "file": "h2o-params/gainslift_bins.json",
+      "algorithms": [
+        "Deeplearning",
+        "DRF",
+        "GAM",
+        "GBM",
+        "GLM",
+        "NaÃ¯ve-Bayes",
+        "Stacked Ensemble",
+        "XGBoost"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "gradient_epsilon",
+      "file": "h2o-params/gradient_epsilon.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "histogram_type",
+      "file": "h2o-params/histogram_type.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Uplift DRF"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "huber_alpha",
+      "file": "h2o-params/huber_alpha.json",
+      "algorithms": [
+        "GBM",
+        "Deep Learning"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "ignore_const_cols",
+      "file": "h2o-params/ignore_const_cols.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "HGLM",
+        "PCA",
+        "GLRM",
+        "NaÃ¯ve-Bayes",
+        "K-Means",
+        "XGBoost",
+        "Aggregator",
+        "Isolation Forest",
+        "Extended Isolation Forest",
+        "Uplift DRF",
+        "AdaBoost",
+        "Decision Tree",
+        "ANOVAGLM",
+        "ModelSelection"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "ignored_columns",
+      "file": "h2o-params/ignored_columns.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "HGLM",
+        "PCA",
+        "GLRM",
+        "NaÃ¯ve-Bayes",
+        "K-Means",
+        "XGBoost",
+        "Aggregator",
+        "CoxPH",
+        "Isolation Forest",
+        "Extended Isolation Forest",
+        "Uplift DRF",
+        "AdaBoost",
+        "Decision Tree",
+        "ANOVAGLM",
+        "ModelSelection"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "impute_missing",
+      "file": "h2o-params/impute_missing.json",
+      "algorithms": [
+        "PCA"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "in_training_checkpoints_dir",
+      "file": "h2o-params/in_training_checkpoints_dir.json",
+      "algorithms": [
+        "GBM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "in_training_checkpoints_tree_interval",
+      "file": "h2o-params/in_training_checkpoints_tree_interval.json",
+      "algorithms": [
+        "GBM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "include_algos",
+      "file": "h2o-params/include_algos.json",
+      "algorithms": [
+        "AutoML"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "inflection_point",
+      "file": "h2o-params/inflection_point.json",
+      "algorithms": [
+        "Target Encoding"
+      ],
+      "type": "unknown"
+    },
+    {
+      "name": "init1",
+      "file": "h2o-params/init1.json",
+      "algorithms": [
+        "GLRM",
+        "K-means"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "init2",
+      "file": "h2o-params/init2.json",
+      "algorithms": [
+        "CoxPH"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "interaction_constraints",
+      "file": "h2o-params/interaction_constraints.json",
+      "algorithms": [
+        "XGBoost",
+        "GBM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "interaction_pairs",
+      "file": "h2o-params/interaction_pairs.json",
+      "algorithms": [
+        "GLM",
+        "GAM",
+        "CoxPH"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "interactions",
+      "file": "h2o-params/interactions.json",
+      "algorithms": [
+        "GLM",
+        "GAM",
+        "CoxPH"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "intercept",
+      "file": "h2o-params/intercept.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "k",
+      "file": "h2o-params/k.json",
+      "algorithms": [
+        "K-Means",
+        "PCA",
+        "GLRM"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "keep_cross_validation_fold_assignment",
+      "file": "h2o-params/keep_cross_validation_fold_assignment.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "NaÃ¯ve-Bayes",
+        "K-Means",
+        "XGBoost",
+        "AutoML"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "keep_cross_validation_models",
+      "file": "h2o-params/keep_cross_validation_models.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "NaÃ¯ve-Bayes",
+        "K-Means",
+        "XGBoost",
+        "AutoML"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "keep_cross_validation_predictions",
+      "file": "h2o-params/keep_cross_validation_predictions.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "NaÃ¯ve-Bayes",
+        "K-Means",
+        "XGBoost",
+        "AutoML"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "lambda",
+      "file": "h2o-params/lambda.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "lambda_min_ratio",
+      "file": "h2o-params/lambda_min_ratio.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "lambda_search",
+      "file": "h2o-params/lambda_search.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "laplace",
+      "file": "h2o-params/laplace.json",
+      "algorithms": [
+        "NaÃ¯ve-Bayes"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "learn_rate",
+      "file": "h2o-params/learn_rate.json",
+      "algorithms": [
+        "GBM",
+        "XGBoost",
+        "AdaBoost"
+      ],
+      "type": "unknown"
+    },
+    {
+      "name": "learn_rate_annealing",
+      "file": "h2o-params/learn_rate_annealing.json",
+      "algorithms": [
+        "GBM"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "link",
+      "file": "h2o-params/link.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "lre_min",
+      "file": "h2o-params/lre_min.json",
+      "algorithms": [
+        "CoxPH"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "max_abs_leafnode_pred",
+      "file": "h2o-params/max_abs_leafnode_pred.json",
+      "algorithms": [
+        "GBM",
+        "XGBoost"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "max_active_predictors",
+      "file": "h2o-params/max_active_predictors.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "max_after_balance_size",
+      "file": "h2o-params/max_after_balance_size.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "NaÃ¯ve-Bayes",
+        "AutoML",
+        "Uplift DRF"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "max_depth",
+      "file": "h2o-params/max_depth.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "XGBoost",
+        "Isolation Forest",
+        "Uplift DRF"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "max_iterations",
+      "file": "h2o-params/max_iterations.json",
+      "algorithms": [
+        "GLM",
+        "GAM",
+        "HGLM",
+        "PCA",
+        "GLRM",
+        "K-Means",
+        "CoxPH",
+        "ANOVAGLM",
+        "ModelSelection"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "max_models",
+      "file": "h2o-params/max_models.json",
+      "algorithms": [
+        "AutoML"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "max_runtime_secs",
+      "file": "h2o-params/max_runtime_secs.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "HGLM",
+        "PCA",
+        "GLRM",
+        "NaÃ¯ve-Bayes",
+        "K-Means",
+        "AutoML",
+        "XGBoost",
+        "Word2vec",
+        "Isolation Forest",
+        "Stacked Ensembles",
+        "Uplift DRF",
+        "ANOVAGLM",
+        "ModelSelection"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "max_runtime_secs_per_model",
+      "file": "h2o-params/max_runtime_secs_per_model.json",
+      "algorithms": [
+        "AutoML"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "metalearner_algorithm",
+      "file": "h2o-params/metalearner_algorithm.json",
+      "algorithms": [
+        "Stacked Ensembles"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "metalearner_params",
+      "file": "h2o-params/metalearner_params.json",
+      "algorithms": [
+        "Stacked Ensembles"
+      ],
+      "type": "unknown"
+    },
+    {
+      "name": "metalearner_transform",
+      "file": "h2o-params/metalearner_transform.json",
+      "algorithms": [
+        "Stacked Ensembles"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "min_prob",
+      "file": "h2o-params/min_prob.json",
+      "algorithms": [
+        "NaÃ¯ve-Bayes"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "min_rows",
+      "file": "h2o-params/min_rows.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "XGBoost",
+        "Isolation Forest",
+        "Uplift DRF"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "min_sdev",
+      "file": "h2o-params/min_sdev.json",
+      "algorithms": [
+        "NaÃ¯ve-Bayes"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "min_split_improvement",
+      "file": "h2o-params/min_split_improvement.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "XGBoost",
+        "Uplift DRF"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "missing_values_handling",
+      "file": "h2o-params/missing_values_handling.json",
+      "algorithms": [
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "HGLM",
+        "ANOVAGLM",
+        "ModelSelection"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "model_id",
+      "file": "h2o-params/model_id.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "HGLM",
+        "PCA",
+        "GLRM",
+        "NaÃ¯ve-Bayes",
+        "K-Means",
+        "Word2Vec",
+        "Stacked Ensembles",
+        "XGBoost",
+        "Aggregator",
+        "CoxPH",
+        "Isolation Forest",
+        "Extended Isolation Forest",
+        "Uplift DRF",
+        "AdaBoost",
+        "Decision Tree",
+        "ANOVAGLM",
+        "ModelSelection"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "monotone_constraints",
+      "file": "h2o-params/monotone_constraints.json",
+      "algorithms": [
+        "AutoML",
+        "GBM",
+        "XGBoost"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "mtries",
+      "file": "h2o-params/mtries.json",
+      "algorithms": [
+        "DRF",
+        "Isolation Forest",
+        "Uplift DRF"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "nbins",
+      "file": "h2o-params/nbins.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Uplift DRF"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "nbins_cats",
+      "file": "h2o-params/nbins_cats.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Uplift DRF"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "nbins_top_level",
+      "file": "h2o-params/nbins_top_level.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Uplift DRF"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "nfolds",
+      "file": "h2o-params/nfolds.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "NaÃ¯ve-Bayes",
+        "K-Means",
+        "XGBoost",
+        "AutoML"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "nlambdas",
+      "file": "h2o-params/nlambdas.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "noise",
+      "file": "h2o-params/noise.json",
+      "algorithms": [
+        "Target Encoding"
+      ],
+      "type": "unknown"
+    },
+    {
+      "name": "non_negative",
+      "file": "h2o-params/non_negative.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "ntrees",
+      "file": "h2o-params/ntrees.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "XGBoost",
+        "Isolation Forest",
+        "Extended Isolation Forest",
+        "Uplift DRF"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "objective_epsilon",
+      "file": "h2o-params/objective_epsilon.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "offset_column",
+      "file": "h2o-params/offset_column.json",
+      "algorithms": [
+        "GBM",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "HGLM",
+        "CoxPH",
+        "XGBoost",
+        "Stacked Ensembles",
+        "ANOVAGLM",
+        "ModelSelection"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "out_of_bounds",
+      "file": "h2o-params/out_of_bounds.json",
+      "algorithms": [
+        "Isotonic Regression"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "pca_impl",
+      "file": "h2o-params/pca_impl.json",
+      "algorithms": [
+        "PCA"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "pca_method",
+      "file": "h2o-params/pca_method.json",
+      "algorithms": [
+        "PCA"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "plug_values",
+      "file": "h2o-params/plug_values.json",
+      "algorithms": [
+        "GLM",
+        "GAM",
+        "HGLM",
+        "ANOVAGLM",
+        "ModelSelection"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "pred_noise_bandwidth",
+      "file": "h2o-params/pred_noise_bandwidth.json",
+      "algorithms": [
+        "GBM"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "prior",
+      "file": "h2o-params/prior.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "quantile_alpha",
+      "file": "h2o-params/quantile_alpha.json",
+      "algorithms": [
+        "GBM",
+        "Deep Learning"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "rand_family",
+      "file": "h2o-params/rand_family.json",
+      "algorithms": [
+        "HGLM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "random_columns",
+      "file": "h2o-params/random_columns.json",
+      "algorithms": [
+        "HGLM"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "rate",
+      "file": "h2o-params/rate.json",
+      "algorithms": [
+        "Deep Learning"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "rate_annealing",
+      "file": "h2o-params/rate_annealing.json",
+      "algorithms": [
+        "Deep Learning"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "rate_decay",
+      "file": "h2o-params/rate_decay.json",
+      "algorithms": [
+        "Deep Learning"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "remove_collinear_columns",
+      "file": "h2o-params/remove_collinear_columns.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "sample_rate",
+      "file": "h2o-params/sample_rate.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "XGBoost",
+        "Isolation Forest",
+        "Uplift DRF"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "sample_rate_per_class",
+      "file": "h2o-params/sample_rate_per_class.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Uplift DRF"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "sample_size",
+      "file": "h2o-params/sample_size.json",
+      "algorithms": [
+        "Isolation Forest",
+        "Extended Isolation Forest"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "score_each_iteration",
+      "file": "h2o-params/score_each_iteration.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "HGLM",
+        "PCA",
+        "GLRM",
+        "NaÃ¯ve-Bayes",
+        "K-Means",
+        "XGBoost",
+        "Isolation Forest",
+        "Extended Isolation Forest",
+        "Uplift DRF",
+        "ANOVAGLM",
+        "ModelSelection"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "score_tree_interval",
+      "file": "h2o-params/score_tree_interval.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "XGBoost",
+        "Isolation Forest",
+        "Extended Isolation Forest",
+        "Uplift DRF"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "seed",
+      "file": "h2o-params/seed.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "HGLM",
+        "PCA",
+        "GLRM",
+        "NaÃ¯ve-Bayes",
+        "K-Means",
+        "AutoML",
+        "XGBoost",
+        "Stacked Ensembles",
+        "Isolation Forest",
+        "Target Encoding",
+        "Extended Isolation Forest",
+        "Uplift DRF",
+        "AdaBoost",
+        "Decision Tree",
+        "ANOVAGLM",
+        "ModelSelection"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "single_node_mode",
+      "file": "h2o-params/single_node_mode.json",
+      "algorithms": [
+        "CoxPH",
+        "Deep Learning"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "smoothing",
+      "file": "h2o-params/smoothing.json",
+      "algorithms": [
+        "Target Encoding"
+      ],
+      "type": "unknown"
+    },
+    {
+      "name": "solver",
+      "file": "h2o-params/solver.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "sort_metric",
+      "file": "h2o-params/sort_metric.json",
+      "algorithms": [
+        "AutoML"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "standardize",
+      "file": "h2o-params/standardize.json",
+      "algorithms": [
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "HGLM",
+        "K-Means",
+        "ANOVAGLM",
+        "ModelSelection"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "start_column",
+      "file": "h2o-params/start_column.json",
+      "algorithms": [
+        "CoxPH"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "stop_column",
+      "file": "h2o-params/stop_column.json",
+      "algorithms": [
+        "CoxPH"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "stopping_metric",
+      "file": "h2o-params/stopping_metric.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "AutoML",
+        "XGBoost",
+        "Isolation Forest",
+        "UpliftDRF"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "stopping_rounds",
+      "file": "h2o-params/stopping_rounds.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "AutoML",
+        "XGBoost",
+        "Isolation Forest"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "stopping_tolerance",
+      "file": "h2o-params/stopping_tolerance.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "AutoML",
+        "XGBoost",
+        "Isolation Forest"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "stratify_by",
+      "file": "h2o-params/stratify_by.json",
+      "algorithms": [
+        "CoxPH"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "theta",
+      "file": "h2o-params/theta.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "ties",
+      "file": "h2o-params/ties.json",
+      "algorithms": [
+        "CoxPH"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "training_frame",
+      "file": "h2o-params/training_frame.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "HGLM",
+        "PCA",
+        "GLRM",
+        "NaÃ¯ve-Bayes",
+        "K-Means",
+        "Word2Vec",
+        "Stacked Ensembles",
+        "AutoML",
+        "XGBoost",
+        "Aggregator",
+        "CoxPH",
+        "Isolation Forest",
+        "Extended Isolation Forest",
+        "Uplift DRF",
+        "AdaBoost",
+        "Decision Tree",
+        "ANOVAGLM",
+        "ModelSelection"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "transform",
+      "file": "h2o-params/transform.json",
+      "algorithms": [
+        "GLRM",
+        "PCA",
+        "Aggregator"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "treatment_column",
+      "file": "h2o-params/treatment_column.json",
+      "algorithms": [
+        "Uplift DRF"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "tweedie_link_power",
+      "file": "h2o-params/tweedie_link_power.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "tweedie_power",
+      "file": "h2o-params/tweedie_power.json",
+      "algorithms": [
+        "GBM",
+        "Deep Learning",
+        "XGBoost"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "tweedie_variance_power",
+      "file": "h2o-params/tweedie_variance_power.json",
+      "algorithms": [
+        "GLM",
+        "GAM"
+      ],
+      "type": "hyperparameter"
+    },
+    {
+      "name": "uplift_metric",
+      "file": "h2o-params/uplift_metric.json",
+      "algorithms": [
+        "Uplift DRF"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "upload_custom_distribution",
+      "file": "h2o-params/upload_custom_distribution.json",
+      "algorithms": [
+        "GBM"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "upload_custom_metric",
+      "file": "h2o-params/upload_custom_metric.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deeplearning",
+        "GLM",
+        "UpliftDRF"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "use_all_factor_levels",
+      "file": "h2o-params/use_all_factor_levels.json",
+      "algorithms": [
+        "Deep Learning",
+        "PCA",
+        "CoxPH"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "user_points",
+      "file": "h2o-params/user_points.json",
+      "algorithms": [
+        "K-Means"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "validation_frame",
+      "file": "h2o-params/validation_frame.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "HGLM",
+        "PCA",
+        "GLRM",
+        "NaÃ¯ve-Bayes",
+        "K-Means",
+        "Stacked Ensembles",
+        "AutoML",
+        "XGBoost",
+        "Uplift DRF",
+        "ModelSelection"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "weights_column",
+      "file": "h2o-params/weights_column.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "HGLM",
+        "AutoML",
+        "XGBoost",
+        "CoxPH",
+        "Stacked Ensembles",
+        "AdaBoost",
+        "ANOVAGLM",
+        "ModelSelection"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "x",
+      "file": "h2o-params/x.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "HGLM",
+        "PCA",
+        "GLRM",
+        "NaÃ¯ve-Bayes",
+        "K-Means",
+        "Stacked Ensembles",
+        "AutoML",
+        "XGBoost",
+        "Uplift DRF",
+        "AdaBoost",
+        "Decision Tree",
+        "ANOVAGLM",
+        "ModelSelection"
+      ],
+      "type": "parameter"
+    },
+    {
+      "name": "y",
+      "file": "h2o-params/y.json",
+      "algorithms": [
+        "GBM",
+        "DRF",
+        "Deep Learning",
+        "GLM",
+        "GAM",
+        "HGLM",
+        "NaÃ¯ve-Bayes",
+        "Stacked Ensembles",
+        "AutoML",
+        "XGBoost",
+        "Aggregator",
+        "Uplift DRF",
+        "AdaBoost",
+        "Decision Tree",
+        "ANOVAGLM",
+        "ModelSelection"
+      ],
+      "type": "parameter"
+    }
+  ],
+  "failed": []
+}

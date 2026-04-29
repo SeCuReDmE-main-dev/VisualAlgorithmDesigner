@@ -1,0 +1,27 @@
+{
+  "name": "Gradient Boosting",
+  "description": "Gradient Boosting is a machine learning technique for regression and classification problems that produces a prediction model in the form of an ensemble of weak prediction models, typically decision trees. It builds models sequentially, with each new tree correcting errors made by previous trees.",
+  "category": "machine_learning",
+  "real_world_examples": [
+    "XGBoost (eXtreme Gradient Boosting)",
+    "LightGBM (Microsoft)",
+    "CatBoost (Yandex)",
+    "H2O GBM",
+    "Kaggle competition winners (structured data)"
+  ],
+  "how_it_works": "The algorithm starts with a simple model and iteratively adds weak learners (typically shallow decision trees). Each new tree is trained to predict the negative gradient (pseudo-residuals) of the loss function with respect to the current ensemble predictions. A learning rate shrinks each tree's contribution to prevent overfitting.",
+  "complexity": {
+    "time": "O(n * log(n) * d * T) where n=samples, d=features, T=trees",
+    "space": "O(n + T * nodes_per_tree) for data and model storage"
+  },
+  "key_parameters": [
+    "learning_rate (eta): shrinkage factor (0.01-0.3)",
+    "n_estimators: number of boosting rounds/trees",
+    "max_depth: maximum tree depth (controls complexity)",
+    "min_child_weight: minimum sum of instance weight in leaf",
+    "subsample: fraction of samples used per tree",
+    "colsample_bytree: fraction of features per tree",
+    "reg_alpha/reg_lambda: L1/L2 regularization"
+  ],
+  "pseudocode_or_diagram_description": "Initialize F_0(x) = argmin_gamma sum L(y_i, gamma). For m=1 to M: compute pseudo-residuals r_im = -[dL(y_i, F(x_i))/dF(x_i)] for all i. Fit tree h_m(x) to residuals. Find optimal step size rho_m via line search. Update: F_m(x) = F_{m-1}(x) + learning_rate * rho_m * h_m(x). Final model F_M(x) is the ensemble."
+}

@@ -1,0 +1,154 @@
+{
+  "id": "evolutionary-algorithms",
+  "name": "Evolutionary Algorithms (Genetic Algorithms)",
+  "category": "Optimization",
+  "subcategory": "Metaheuristics",
+  "description": "Evolutionary Algorithms (EAs) are population-based metaheuristics inspired by natural selection and evolution. They maintain a population of candidate solutions that evolve over generations through selection, crossover, and mutation. Genetic Algorithms (GAs) are the most well-known variant, used for optimization and search problems where traditional methods struggle.",
+  "concept": {
+    "population": "Set of candidate solutions (individuals)",
+    "chromosome": "Encoding of a solution (e.g., binary string, real-valued vector)",
+    "fitnessFunction": "Evaluates quality of each individual",
+    "selection": "Choose parents based on fitness (survival of the fittest)",
+    "crossover": "Combine two parents to create offspring",
+    "mutation": "Random changes to maintain diversity",
+    "explanation": "Initialize random population. Evaluate fitness. Select parents. Create offspring via crossover and mutation. Replace old population. Repeat until convergence criteria met."
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "Non-differentiable objective functions",
+      "Discrete or combinatorial optimization",
+      "Multi-modal landscapes with many local optima",
+      "Black-box optimization (no gradient available)",
+      "When search space is vast but structured"
+    ],
+    "avoidWhen": [
+      "Gradient information available (use gradient descent)",
+      "Convex optimization (overkill)",
+      "Real-time requirements (slow per evaluation)",
+      "Very expensive fitness evaluations",
+      "Simple problems with known efficient algorithms"
+    ]
+  },
+  "keyParameters": {
+    "populationSize": {
+      "description": "Number of individuals in population",
+      "type": "integer",
+      "default": 100,
+      "range": "[10, 1000+]",
+      "impact": "Larger = more diversity but slower"
+    },
+    "generations": {
+      "description": "Number of evolution iterations",
+      "type": "integer",
+      "default": 100,
+      "impact": "More generations = better solutions but more time"
+    },
+    "crossoverRate": {
+      "description": "Probability of crossover occurring",
+      "type": "float",
+      "default": 0.8,
+      "range": "[0, 1]",
+      "impact": "Higher = more exploitation of good solutions"
+    },
+    "mutationRate": {
+      "description": "Probability of mutation per gene",
+      "type": "float",
+      "default": 0.01,
+      "range": "[0, 1]",
+      "impact": "Higher = more exploration, maintains diversity"
+    },
+    "elitism": {
+      "description": "Number of best individuals to preserve unchanged",
+      "type": "integer",
+      "default": 1,
+      "impact": "Prevents losing best solution found"
+    }
+  },
+  "selectionMethods": {
+    "tournament": "Select best from random subset (size k)",
+    "rouletteWheel": "Probability proportional to fitness",
+    "rank": "Probability based on rank (not raw fitness)",
+    "truncation": "Keep top N%, select randomly from them"
+  },
+  "crossoverOperators": {
+    "singlePoint": "Swap all genes after random point",
+    "uniform": "Each gene independently from either parent",
+    "blend": "Linear combination of parent values (real-valued)",
+    "order": "Preserve order for permutation problems"
+  },
+  "mutationOperators": {
+    "bitFlip": "Flip binary bit (0↔1)",
+    "gaussian": "Add Gaussian noise (real-valued)",
+    "swap": "Swap two positions (permutation)",
+    "scramble": "Randomly shuffle subset"
+  },
+  "workflow": {
+    "initialization": [
+      "Generate random population",
+      "Choose encoding for solutions",
+      "Define fitness function",
+      "Set GA parameters"
+    ],
+    "evolutionLoop": [
+      "Evaluate fitness of all individuals",
+      "Check termination criteria (max generations, convergence)",
+      "Selection: choose parents based on fitness",
+      "Crossover: create offspring from parents",
+      "Mutation: apply random changes",
+      "Replacement: form new population",
+      "Apply elitism (keep best individuals)"
+    ],
+    "termination": [
+      "Maximum generations reached",
+      "Fitness plateau (no improvement)",
+      "Target fitness achieved",
+      "Diversity threshold (population converged)"
+    ]
+  },
+  "complexity": {
+    "timePerGeneration": "O(pop_size × fitness_eval_cost)",
+    "space": "O(pop_size × chromosome_size)",
+    "scalability": "Good for parallel fitness evaluation; poor for large chromosomes",
+    "interpretability": "Low - stochastic search"
+  },
+  "pros": [
+    "No gradient required (works on black-box functions)",
+    "Global search capability",
+    "Handles discrete/combinatorial problems",
+    "Parallelizable (independent fitness evaluations)",
+    "Flexible encoding for any problem",
+    "Robust to local optima"
+  ],
+  "cons": [
+    "Many hyperparameters to tune",
+    "No guarantee of optimal solution",
+    "Computationally expensive (many evaluations)",
+    "Slow convergence near optimum",
+    "Premature convergence without diversity maintenance",
+    "Problem-specific encoding design required"
+  ],
+  "variants": {
+    "geneticProgramming": "Evolve computer programs (tree representation)",
+    "evolutionStrategies": "Self-adaptive mutation rates",
+    "differentialEvolution": "Mutation based on population differences",
+    "particleSwarm": "Swarm intelligence approach",
+    "nsga2": "Non-dominated Sorting GA for multi-objective",
+    "cmaes": "Covariance Matrix Adaptation ES"
+  },
+  "useCases": [
+    "Hyperparameter optimization",
+    "Neural architecture search",
+    "Feature selection",
+    "Scheduling and routing",
+    "Portfolio optimization",
+    "Game strategy evolution",
+    "Symbolic regression"
+  ],
+  "relatedAlgorithms": ["simulated-annealing", "particle-swarm", "ant-colony", "bayesian-optimization"],
+  "resources": {
+    "deap": "https://deap.readthedocs.io/",
+    "pymoo": "https://pymoo.org/",
+    "wikipedia": "https://en.wikipedia.org/wiki/Genetic_algorithm",
+    "introductionGA": "https://www.obitko.com/tutorials/genetic-algorithms/"
+  }
+}

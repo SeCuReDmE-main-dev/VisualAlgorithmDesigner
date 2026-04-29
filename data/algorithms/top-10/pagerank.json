@@ -1,0 +1,24 @@
+{
+  "name": "PageRank",
+  "description": "PageRank is a link analysis algorithm that assigns a numerical weighting to each element of a hyperlinked set of documents, such as the World Wide Web, with the purpose of measuring its relative importance within the set. It was the foundation of Google's original search engine ranking system.",
+  "category": "search",
+  "real_world_examples": [
+    "Google Search (original ranking algorithm)",
+    "Academic paper citation networks",
+    "Social network influence measurement",
+    "Website authority scoring",
+    "Recommendation systems"
+  ],
+  "how_it_works": "PageRank treats the web as a directed graph where pages are nodes and links are edges. It models a 'random surfer' who clicks links randomly. The algorithm iteratively computes scores: each page distributes its current PageRank equally among its outgoing links, and each page's new rank is the sum of incoming ranks. The process converges to a stationary distribution representing page importance.",
+  "complexity": {
+    "time": "O(k * n) where k is iterations and n is number of pages",
+    "space": "O(n) for storing the graph and ranks"
+  },
+  "key_parameters": [
+    "damping_factor (typically 0.85): probability of continuing to click links vs jumping randomly",
+    "convergence_threshold: when to stop iterating",
+    "max_iterations: maximum number of iterations to prevent infinite loops",
+    "teleportation_probability: probability of random jump to any page"
+  ],
+  "pseudocode_or_diagram_description": "Initialize all pages with rank = 1/n. Repeat until convergence: for each page p: new_rank[p] = (1-d)/n + d * sum(rank[q]/out_degree[q] for all q linking to p). Then normalize ranks so they sum to 1. The damping factor d (usually 0.85) represents the probability of following a link vs. teleporting randomly."
+}

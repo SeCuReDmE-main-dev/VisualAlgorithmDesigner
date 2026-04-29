@@ -1,0 +1,155 @@
+{
+  "id": "h2o-automl",
+  "name": "H2O AutoML",
+  "category": "Platform",
+  "subcategory": "Automated ML",
+  "description": "H2O AutoML automatically trains and tunes multiple machine learning models, creates stacked ensembles, and ranks results on a leaderboard. It handles preprocessing, feature engineering, model selection, and hyperparameter optimization automatically, making it ideal for rapid prototyping and baseline modeling.",
+  "concept": {
+    "automation": "End-to-end ML pipeline automation",
+    "modelSelection": "Trains multiple algorithms in parallel",
+    "hyperparameterTuning": "Random grid search with early stopping",
+    "stackedEnsembles": "Combines best models for improved performance",
+    "leaderboard": "Ranking of all trained models by performance",
+    "explanation": "User provides data and target; AutoML tries algorithms, tunes them, creates ensembles, and returns ranked models."
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "Rapid prototyping and baseline modeling",
+      "When ML expertise limited",
+      "Benchmarking multiple algorithms",
+      "Time-constrained projects",
+      "Exploring which algorithms work best for data"
+    ],
+    "avoidWhen": [
+      "When full control over model needed",
+      "Very specific domain requirements",
+      "Custom loss functions not supported",
+      "Extremely large datasets (time limit)",
+      "When interpretability paramount (ensembles are black box)"
+    ]
+  },
+  "keyParameters": {
+    "maxRuntimeSecs": {
+      "description": "Maximum time for AutoML run",
+      "type": "integer",
+      "default": 3600,
+      "impact": "More time = more models tried"
+    },
+    "maxModels": {
+      "description": "Maximum models to train",
+      "type": "integer",
+      "default": null,
+      "impact": "Limits total models if set"
+    },
+    "stoppingMetric": {
+      "description": "Metric to optimize",
+      "type": "enum",
+      "options": ["AUTO", "deviance", "logloss", "MSE", "RMSE", "MAE", "RMSLE", "AUC", "AUCPR", "lift_top_group", "misclassification", "mean_per_class_error"],
+      "default": "AUTO",
+      "impact": "Chooses best model based on this"
+    },
+    "seed": {
+      "description": "Random seed for reproducibility",
+      "type": "integer",
+      "default": null,
+      "impact": "Same seed = reproducible results"
+    },
+    "excludeAlgos": {
+      "description": "Algorithms to exclude",
+      "type": "array",
+      "options": ["DRF", "GLM", "XGBoost", "GBM", "DeepLearning", "StackedEnsemble"],
+      "default": [],
+      "impact": "Speed up by skipping slow algorithms"
+    }
+  },
+  "pipeline": {
+    "preprocessing": [
+      "Automatic handling of categorical variables",
+      "Missing value imputation",
+      "Feature engineering (limited)"
+    ],
+    "baseModels": [
+      "Generalized Linear Models (GLM)",
+      "Distributed Random Forest (DRF)",
+      "Gradient Boosting Machines (GBM)",
+      "XGBoost",
+      "Deep Learning",
+      "Naive Bayes"
+    ],
+    "hyperparameterSearch": [
+      "Random grid search",
+      "Early stopping per model",
+      "Cross-validation for robust estimates"
+    ],
+    "ensembles": [
+      "Two Stacked Ensembles created",
+      "All models ensemble",
+      "Best of family ensemble"
+    ]
+  },
+  "workflow": {
+    "setup": [
+      "Start H2O cluster",
+      "Prepare H2OFrame with data",
+      "Specify target and features",
+      "Set time/number constraints"
+    ],
+    "training": [
+      "Call h2o.automl() with parameters",
+      "Monitor progress",
+      "AutoML trains models in parallel",
+      "Creates leaderboard automatically"
+    ],
+    "results": [
+      "View leaderboard: aml.leaderboard",
+      "Access best model: aml.leader",
+      "Get predictions from any model",
+      "Download for deployment"
+    ],
+    "deployment": [
+      "Export MOJO or POJO",
+      "Deploy to production",
+      "Score new data"
+    ]
+  },
+  "complexity": {
+    "time": "Controlled by max_runtime_secs; can run for hours",
+    "space": "Stores all trained models",
+    "scalability": "Limited by H2O cluster capacity",
+    "interpretability": "Low for ensembles; medium for individual models"
+  },
+  "pros": [
+    "Fully automated",
+    "Tries many algorithms",
+    "Built-in ensembling",
+    "Handles preprocessing",
+    "Fast to get baseline results",
+    "Easy to use API"
+  ],
+  "cons": [
+    "Less control than manual tuning",
+    "Stacked ensembles are black boxes",
+    "May overfit with limited time",
+    "Not as optimized as expert tuning",
+    "Limited customization options"
+  ],
+  "outputs": {
+    "leaderboard": "Data frame ranking all models",
+    "leader": "Best performing model",
+    "predictions": "Can get predictions from any model",
+    "modelIds": "Access to individual trained models"
+  },
+  "useCases": [
+    "Competition baselines",
+    "Initial data exploration",
+    "Proof of concept",
+    "When unsure which algorithm to use",
+    "Production AutoML pipelines"
+  ],
+  "relatedAlgorithms": ["tpot", "auto-sklearn", "h2o-grid-search"],
+  "resources": {
+    "documentation": "https://docs.h2o.ai/h2o/latest-stable/h2o-docs/automl.html",
+    "h2oAutoML": "https://h2o.ai/platform/h2o-automl/",
+    "tutorial": "https://github.com/h2oai/h2o-3/tree/master/h2o-py/demos"
+  }
+}

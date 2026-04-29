@@ -1,0 +1,176 @@
+{
+  "id": "neural-networks",
+  "name": "Neural Networks / Deep Learning",
+  "category": "Supervised Learning",
+  "subcategory": "Deep Learning",
+  "description": "Neural Networks are computational models inspired by biological neurons. They consist of interconnected layers of nodes (neurons) that process information through weighted connections. Deep Learning refers to networks with many hidden layers that can learn hierarchical representations of data.",
+  "concept": {
+    "perceptron": "Basic unit: weighted sum of inputs + bias, passed through activation function",
+    "layers": {
+      "input": "Receives raw features",
+      "hidden": "Learn intermediate representations (can be many)",
+      "output": "Produces final prediction"
+    },
+    "forwardPropagation": "Input flows through network: z = Wx + b, a = activation(z)",
+    "backpropagation": "Calculate gradients of loss w.r.t. weights using chain rule, update weights",
+    "universalApproximation": "Single hidden layer can approximate any continuous function (given enough neurons)",
+    "deepAdvantage": "Multiple layers learn hierarchical features automatically"
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "Large amounts of training data",
+      "Complex patterns (images, text, audio)",
+      "When feature engineering is difficult",
+      "High-dimensional unstructured data",
+      "When accuracy trumps interpretability"
+    ],
+    "avoidWhen": [
+      "Small datasets (risk of overfitting)",
+      "When interpretability is required",
+      "Tabular data with clear features (trees often better)",
+      "Resource-constrained environments",
+      "When training time is limited"
+    ]
+  },
+  "keyParameters": {
+    "hiddenLayers": {
+      "description": "Number and size of hidden layers",
+      "type": "array of integers",
+      "example": "[128, 64, 32]",
+      "impact": "More/larger layers = more capacity but risk overfitting"
+    },
+    "activation": {
+      "description": "Non-linearity applied to neuron outputs",
+      "type": "enum",
+      "options": ["relu", "tanh", "sigmoid", "softmax", "leaky_relu", "elu"],
+      "default": "relu",
+      "impact": "ReLU common for hidden; Sigmoid/Softmax for output"
+    },
+    "learningRate": {
+      "description": "Step size for weight updates",
+      "type": "float",
+      "default": 0.001,
+      "range": "[1e-6, 1.0]",
+      "impact": "Too high = unstable; too low = slow convergence"
+    },
+    "optimizer": {
+      "description": "Algorithm for weight updates",
+      "type": "enum",
+      "options": ["sgd", "momentum", "adam", "rmsprop", "adagrad"],
+      "default": "adam",
+      "impact": "Adam most popular; SGD with momentum for large data"
+    },
+    "batchSize": {
+      "description": "Samples per gradient update",
+      "type": "integer",
+      "default": 32,
+      "impact": "Larger = faster but less frequent updates"
+    },
+    "epochs": {
+      "description": "Number of complete passes through data",
+      "type": "integer",
+      "default": 100,
+      "impact": "More epochs = better fit but risk overfitting"
+    },
+    "dropout": {
+      "description": "Fraction of neurons randomly disabled during training",
+      "type": "float",
+      "default": 0.0,
+      "range": "[0, 1)",
+      "impact": "Prevents overfitting; common: 0.2-0.5"
+    },
+    "regularization": {
+      "description": "L1/L2 weight penalties",
+      "type": "float",
+      "default": 0.0,
+      "impact": "Prevents overfitting by penalizing large weights"
+    }
+  },
+  "activationFunctions": {
+    "relu": "max(0, x) - fast, avoids vanishing gradient, most popular",
+    "sigmoid": "1/(1+e^-x) - outputs 0-1, good for binary classification",
+    "tanh": "(e^x - e^-x)/(e^x + e^-x) - centered at 0, stronger gradients than sigmoid",
+    "softmax": "exp(xᵢ)/Σexp(xⱼ) - for multi-class probability distribution",
+    "leakyRelu": "max(αx, x) - allows small negative gradients"
+  },
+  "architectures": {
+    "mlp": "Multi-Layer Perceptron - fully connected feedforward",
+    "cnn": "Convolutional Neural Network - for images, spatial data",
+    "rnn": "Recurrent Neural Network - for sequences, time series",
+    "lstm": "Long Short-Term Memory - handles long sequences",
+    "transformer": "Attention-based - for NLP, state-of-the-art",
+    "autoencoder": "Encoder-decoder for unsupervised learning"
+  },
+  "workflow": {
+    "preprocessing": [
+      "Standardize/normalize features (critical)",
+      "Encode categorical variables",
+      "Handle missing values",
+      "Data augmentation (for images)"
+    ],
+    "architectureDesign": [
+      "Define layer structure",
+      "Choose activation functions",
+      "Set dropout and regularization",
+      "Initialize weights"
+    ],
+    "training": [
+      "Forward pass: compute predictions",
+      "Calculate loss (MSE, Cross-Entropy, etc.)",
+      "Backpropagation: compute gradients",
+      "Update weights with optimizer",
+      "Repeat for epochs with early stopping"
+    ],
+    "evaluation": [
+      "Validation loss monitoring",
+      "Metrics on holdout set",
+      "Learning curves analysis",
+      "Overfitting detection"
+    ]
+  },
+  "complexity": {
+    "timeTraining": "O(epochs × n × params) - highly variable",
+    "timePrediction": "O(params) - once trained, fast inference",
+    "space": "O(params + batch × activations)",
+    "scalability": "Excellent with GPUs; distributed training available",
+    "interpretability": "Very Low - black box model"
+  },
+  "pros": [
+    "State-of-the-art accuracy on many tasks",
+    "Automatic feature learning",
+    "Handles unstructured data (images, text, audio)",
+    "Flexible architectures for any problem",
+    "Scales with data and compute",
+    "Transfer learning from pre-trained models"
+  ],
+  "cons": [
+    "Requires large amounts of data",
+    "Computationally expensive to train",
+    "Many hyperparameters to tune",
+    "Difficult to interpret (black box)",
+    "Risk of overfitting",
+    "Hardware requirements (GPUs for large models)"
+  ],
+  "regularization": {
+    "dropout": "Randomly disable neurons during training",
+    "l1l2": "Weight decay penalties",
+    "earlyStopping": "Stop when validation loss plateaus",
+    "dataAugmentation": "Create synthetic training examples",
+    "batchNormalization": "Normalize layer inputs"
+  },
+  "useCases": [
+    "Image classification (CNNs)",
+    "Natural language processing (Transformers)",
+    "Speech recognition",
+    "Recommendation systems",
+    "Game playing (AlphaGo, etc.)",
+    "Generative models (GANs, VAEs)"
+  ],
+  "relatedAlgorithms": ["cnn", "rnn", "transformer", "gradient-descent", "backpropagation"],
+  "resources": {
+    "tensorflow": "https://www.tensorflow.org/",
+    "pytorch": "https://pytorch.org/",
+    "deepLearningBook": "https://www.deeplearningbook.org/",
+    "googleML": "https://developers.google.com/machine-learning/crash-course"
+  }
+}

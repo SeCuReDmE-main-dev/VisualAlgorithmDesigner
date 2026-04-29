@@ -1,0 +1,177 @@
+{
+  "id": "gradient-descent",
+  "name": "Gradient Descent and Variants",
+  "category": "Optimization",
+  "subcategory": "First-Order Methods",
+  "description": "Gradient Descent is an iterative optimization algorithm that minimizes a loss function by moving in the direction of steepest descent (negative gradient). Variants add momentum, adaptive learning rates, or per-parameter updates to improve convergence speed and stability.",
+  "concept": {
+    "gradient": "∇f(θ) - vector of partial derivatives showing direction of steepest ascent",
+    "updateRule": "θ = θ - α × ∇f(θ) where α is learning rate",
+    "learningRate": "Step size determining how far to move in gradient direction",
+    "convergence": "Local minimum when gradient ≈ 0 (or below threshold)",
+    "globalVsLocal": "May converge to local minimum in non-convex functions",
+    "explanation": "Calculate gradient of loss w.r.t. parameters. Update parameters in opposite direction. Repeat until convergence."
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "Differentiable loss functions",
+      "Neural network training",
+      "Linear/logistic regression",
+      "Large-scale optimization",
+      "When gradient computable"
+    ],
+    "avoidWhen": [
+      "Non-differentiable functions (use subgradient or other methods)",
+      "Discrete optimization",
+      "Very noisy gradients",
+      "When global optimum required in non-convex case"
+    ]
+  },
+  "keyParameters": {
+    "learningRate": {
+      "description": "Step size for parameter updates",
+      "type": "float",
+      "default": 0.01,
+      "range": "(0, ∞)",
+      "impact": "Too high: diverges; too low: slow convergence"
+    },
+    "batchSize": {
+      "description": "Samples per gradient update",
+      "type": "integer",
+      "default": 32,
+      "options": [1, "n", "varies"],
+      "impact": "1=SGD (noisy but fast); n=Batch (stable but slow)"
+    },
+    "epochs": {
+      "description": "Passes through entire dataset",
+      "type": "integer",
+      "default": 100,
+      "impact": "More epochs = better convergence (risk overfitting)"
+    },
+    "momentum": {
+      "description": "Velocity accumulation factor",
+      "type": "float",
+      "default": 0.0,
+      "range": "[0, 1]",
+      "impact": "Accelerates in consistent direction, dampens oscillations"
+    }
+  },
+  "variants": {
+    "batchGd": {
+      "description": "Use entire dataset for each gradient",
+      "pros": "Stable, converges to minimum",
+      "cons": "Slow for large datasets, memory intensive"
+    },
+    "sgd": {
+      "description": "Stochastic Gradient Descent - one sample at a time",
+      "pros": "Fast updates, escapes local minima, memory efficient",
+      "cons": "Noisy, high variance, slow convergence near optimum"
+    },
+    "miniBatch": {
+      "description": "Small batch (e.g., 32-256 samples)",
+      "pros": "Balance of speed and stability, hardware-efficient",
+      "cons": "Requires tuning batch size"
+    },
+    "momentum": {
+      "description": "Add fraction of previous update to current",
+      "pros": "Faster convergence, dampens oscillations",
+      "cons": "Additional hyperparameter"
+    },
+    "nesterov": {
+      "description": "Nesterov Accelerated Gradient - look ahead before update",
+      "pros": "Better convergence than standard momentum",
+      "cons": "Slightly more complex"
+    },
+    "adagrad": {
+      "description": "Adaptive learning rate per parameter",
+      "pros": "Good for sparse data",
+      "cons": "Learning rate decays too fast"
+    },
+    "rmsprop": {
+      "description": "Root Mean Square Propagation - moving average of squared gradients",
+      "pros": "Fixes Adagrad's aggressive decay",
+      "cons": "Still requires global learning rate"
+    },
+    "adam": {
+      "description": "Adaptive Moment Estimation - momentum + adaptive LR",
+      "pros": "Most popular, good default, fast convergence",
+      "cons": "May not generalize as well as SGD + momentum"
+    }
+  },
+  "adamParameters": {
+    "beta1": {
+      "description": "Exponential decay for first moment (momentum)",
+      "default": 0.9
+    },
+    "beta2": {
+      "description": "Exponential decay for second moment (RMS)",
+      "default": 0.999
+    },
+    "epsilon": {
+      "description": "Small constant for numerical stability",
+      "default": 1e-8
+    }
+  },
+  "workflow": {
+    "initialization": [
+      "Initialize parameters (often random)",
+      "Set learning rate and optimizer hyperparameters",
+      "Define loss function and its gradient"
+    ],
+    "trainingLoop": [
+      "Shuffle data (SGD/Mini-batch)",
+      "For each batch:",
+      "  - Compute predictions",
+      "  - Calculate loss",
+      "  - Compute gradient (backpropagation for neural nets)",
+      "  - Update parameters using optimizer",
+      "  - Optionally decay learning rate"
+    ],
+    "monitoring": [
+      "Track loss on training and validation",
+      "Check for convergence (loss plateaus)",
+      "Detect divergence (loss increases)",
+      "Early stopping if validation loss increases"
+    ]
+  },
+  "complexity": {
+    "timePerIteration": "O(params) for gradient computation",
+    "timeConvergence": "Depends on problem conditioning",
+    "space": "O(params) - store parameters; O(params) for momentum methods",
+    "scalability": "Excellent - basis for all deep learning",
+    "interpretability": "N/A - optimization method"
+  },
+  "pros": [
+    "Simple and intuitive",
+    "Works for any differentiable function",
+    "Scalable to millions of parameters",
+    "Many efficient variants",
+    "Convergence guarantees for convex functions"
+  ],
+  "cons": [
+    "Requires careful learning rate tuning",
+    "Sensitive to feature scaling",
+    "Local minima in non-convex functions",
+    "Slow in ravines and plateaus",
+    "Vanishing/exploding gradients in deep networks"
+  ],
+  "learningRateScheduling": {
+    "stepDecay": "Reduce LR by factor every N epochs",
+    "exponentialDecay": "LR = initial × exp(-k × epoch)",
+    "cosine": "Cosine annealing schedule",
+    "warmRestarts": "SGDR - periodic warm restarts with cosine"
+  },
+  "useCases": [
+    "Training neural networks",
+    "Linear/logistic regression",
+    "Support Vector Machine training",
+    "Matrix factorization",
+    "Any differentiable optimization"
+  ],
+  "relatedAlgorithms": ["newton-method", "quasi-newton", "lbfgs", "evolutionary-algorithms"],
+  "resources": {
+    "ruderOverview": "https://ruder.io/optimizing-gradient-descent/",
+    "deepLearningBook": "https://www.deeplearningbook.org/",
+    "arxiv": "https://arxiv.org/abs/1609.04747"
+  }
+}

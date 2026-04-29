@@ -1,0 +1,13 @@
+{
+  "name": "interaction_constraints",
+  "description": "Specify the feature column interactions which are allowed to interact during tree building. Use column names to define which features can interact together. This option defaults to None/Null, which means that all column features are included.\n\nNote: This option can only be used when the categorical encoding is set to AUTO (one_hot_internal or OneHotInternal).",
+  "type": "parameter",
+  "supported_algorithms": [
+    "XGBoost",
+    "GBM"
+  ],
+  "r_example": "library(h2o) h2o.init() # import the prostate dataset: prostate = h2o.importFile(\"http://s3.amazonaws.com/h2o-public-test-data/smalldata/prostate/prostate.csv.zip\") # convert the CAPSULE column to a factor prostate$CAPSULE <- as.factor(prostate$CAPSULE) response <- \"CAPSULE\" # train a model using the interaction_constraints option prostate_xgb <- h2o.xgboost(y = response, interaction_constraints = list(list(\"AGE\", \"DCAPS\")), seed = 1234, training_frame = prostate)",
+  "python_example": "import h2o from h2o.estimators.xgboost import H2OXGBoostEstimator h2o.init() # import the prostate dataset: prostate = h2o.import_file(\"http://s3.amazonaws.com/h2o-public-test-data/smalldata/prostate/prostate.csv.zip\") # convert the CAPSULE column to a factor prostate[\"CAPSULE\"] = prostate[\"CAPSULE\"].asfactor() response = \"CAPSULE\" seed = 1234 # train a model using the interaction_constraints option xgb_model = H2OXGBoostEstimator(seed=seed, interaction_constraints=[[\"AGE\", \"DCAPS\"]]) xgb_model.train(y=response, ignored_columns=[\"ID\"], training_frame=prostate)",
+  "default_value": null,
+  "related_parameters": []
+}

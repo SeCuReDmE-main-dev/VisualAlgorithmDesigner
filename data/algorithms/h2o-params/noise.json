@@ -1,0 +1,12 @@
+{
+  "name": "noise",
+  "description": "If random noise should be added to the target average, the noise parameter can be used to specify the amount of noise to be added. This value defaults to 0.01 * range of y of random noise.",
+  "type": "unknown",
+  "supported_algorithms": [
+    "Target Encoding"
+  ],
+  "r_example": "",
+  "python_example": "",
+  "default_value": null,
+  "related_parameters": []
+}

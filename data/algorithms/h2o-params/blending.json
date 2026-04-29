@@ -1,0 +1,12 @@
+{
+  "name": "blending",
+  "description": "The blending parameter defines whether the target average should be weighted based on the count of the group. It is often the case that some groups may have a small number of records and the target average will be unreliable. To prevent this, the blended average takes a weighted average of the groupâs target value and the global target value.",
+  "type": "unknown",
+  "supported_algorithms": [
+    "Target Encoding"
+  ],
+  "r_example": "",
+  "python_example": "",
+  "default_value": null,
+  "related_parameters": []
+}

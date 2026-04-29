@@ -1,0 +1,145 @@
+{
+  "id": "svm",
+  "name": "Support Vector Machines (SVM)",
+  "category": "Supervised Learning",
+  "subcategory": "Classification & Regression",
+  "description": "Support Vector Machines are supervised learning models that find the optimal hyperplane to separate classes with maximum margin. For non-linear data, SVM uses the kernel trick to map data to higher dimensions where separation is possible. Effective in high-dimensional spaces and versatile through kernel functions.",
+  "concept": {
+    "maximalMargin": "Find hyperplane with largest distance to nearest training samples",
+    "supportVectors": "Critical training points that define the decision boundary",
+    "kernelTrick": "Maps data to higher dimensions without explicit computation",
+    "primalForm": "min ½||w||² subject to yᵢ(w·xᵢ + b) ≥ 1",
+    "dualForm": "Maximize Σαᵢ - ½ΣΣαᵢαⱼyᵢyⱼK(xᵢ,xⱼ) subject to Σαᵢyᵢ = 0",
+    "softMargin": "Allows some misclassification with slack variables (C parameter)"
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "High-dimensional data (text, genomic)",
+      "When number of features > number of samples",
+      "Clear margin of separation exists",
+      "Memory-efficient model needed (stores only support vectors)",
+      "When kernel methods appropriate"
+    ],
+    "avoidWhen": [
+      "Very large datasets (quadratic complexity)",
+      "Overlapping classes without clear boundary",
+      "Noisy data with many outliers",
+      "When probability estimates needed (not calibrated)",
+      "Many classes (one-vs-one expensive)"
+    ]
+  },
+  "keyParameters": {
+    "C": {
+      "description": "Regularization parameter (penalty for misclassification)",
+      "type": "float",
+      "default": 1.0,
+      "range": "(0, ∞)",
+      "impact": "Lower C = more regularization, wider margin, more misclassifications allowed"
+    },
+    "kernel": {
+      "description": "Kernel type for transformation",
+      "type": "enum",
+      "options": ["linear", "poly", "rbf", "sigmoid", "precomputed"],
+      "default": "rbf",
+      "impact": "Determines decision boundary shape"
+    },
+    "gamma": {
+      "description": "Kernel coefficient for rbf, poly, sigmoid",
+      "type": "enum or float",
+      "options": ["scale", "auto", "float"],
+      "default": "scale",
+      "impact": "Higher gamma = closer fit to training data (risk overfitting)"
+    },
+    "degree": {
+      "description": "Degree for polynomial kernel",
+      "type": "integer",
+      "default": 3,
+      "impact": "Higher degree = more complex decision boundary"
+    },
+    "coef0": {
+      "description": "Independent term in poly/sigmoid kernel",
+      "type": "float",
+      "default": 0.0,
+      "impact": "Affects decision boundary shape"
+    },
+    "shrinking": {
+      "description": "Use shrinking heuristic",
+      "type": "boolean",
+      "default": true,
+      "impact": "Speeds up optimization"
+    }
+  },
+  "kernels": {
+    "linear": "K(x,y) = x·y - for linearly separable data",
+    "rbf": "K(x,y) = exp(-γ||x-y||²) - most common, handles non-linear",
+    "polynomial": "K(x,y) = (γx·y + r)^d - captures polynomial relationships",
+    "sigmoid": "K(x,y) = tanh(γx·y + r) - similar to neural network"
+  },
+  "workflow": {
+    "preprocessing": [
+      "Standardize features (critical for SVM)",
+      "Handle missing values",
+      "Encode categorical variables",
+      "Consider feature scaling/normalization"
+    ],
+    "training": [
+      "Choose appropriate kernel",
+      "Set C (regularization) and kernel parameters",
+      "Solve quadratic optimization problem",
+      "Identify support vectors"
+    ],
+    "tuning": [
+      "Grid search C and gamma (logarithmic scale: 0.001 to 1000)",
+      "Use stratified k-fold for imbalanced data",
+      "Start with RBF kernel for non-linear data"
+    ],
+    "evaluation": [
+      "Accuracy, Precision, Recall",
+      "Number of support vectors (fewer = better generalization)",
+      "Cross-validation performance"
+    ]
+  },
+  "complexity": {
+    "timeTraining": "O(n² × p) to O(n³ × p) depending on implementation",
+    "timePrediction": "O(s × p) where s = support vectors",
+    "space": "O(s × p) - stores support vectors only",
+    "scalability": "Poor for large datasets (consider SGD variant)",
+    "interpretability": "Low - decision boundary in high-dimensional space"
+  },
+  "pros": [
+    "Effective in high dimensions",
+    "Memory efficient (uses support vectors only)",
+    "Versatile with kernel functions",
+    "Works well with clear margin",
+    "Robust to overfitting in high-dim space",
+    "Only boundary points matter"
+  ],
+  "cons": [
+    "Doesn't scale well to large datasets",
+    "No probability estimates (requires Platt scaling)",
+    "Sensitive to feature scaling",
+    "Kernel and regularization selection challenging",
+    "Black box model (hard to interpret)",
+    "Multi-class requires one-vs-one or one-vs-rest"
+  ],
+  "variants": {
+    "svc": "Standard C-Support Vector Classification",
+    "nusvc": "Nu-SVM with nu parameter controlling error bound",
+    "linearsvc": "Faster linear SVM using liblinear",
+    "svr": "Support Vector Regression for continuous targets",
+    "sgd": "Stochastic Gradient Descent approximation for large data"
+  },
+  "useCases": [
+    "Text classification (high-dim sparse features)",
+    "Image classification (with feature extraction)",
+    "Bioinformatics (gene expression)",
+    "Handwriting recognition",
+    "Protein classification"
+  ],
+  "relatedAlgorithms": ["logistic-regression", "kernel-methods", "neural-networks"],
+  "resources": {
+    "scikitLearn": "https://scikit-learn.org/stable/modules/svm.html",
+    "svmlib": "https://www.csie.ntu.edu.tw/~cjlin/libsvm/",
+    "pythonDataScienceHandbook": "https://jakevdp.github.io/PythonDataScienceHandbook/05.07-support-vector-machines.html"
+  }
+}

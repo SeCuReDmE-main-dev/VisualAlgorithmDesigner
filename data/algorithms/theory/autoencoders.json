@@ -1,0 +1,142 @@
+{
+  "id": "autoencoders",
+  "name": "Autoencoders",
+  "category": "Unsupervised Learning",
+  "subcategory": "Neural Networks",
+  "description": "Autoencoders are neural networks trained to copy their input to their output through a compressed representation (bottleneck). The architecture consists of an encoder that compresses data to a latent representation and a decoder that reconstructs the original input. Used for dimensionality reduction, denoising, and feature learning.",
+  "concept": {
+    "architecture": {
+      "encoder": "Maps input x to latent representation z = f(x)",
+      "bottleneck": "Compressed latent space (code)",
+      "decoder": "Reconstructs input x̂ = g(z) from latent representation"
+    },
+    "objective": "Minimize reconstruction loss: L(x, g(f(x)))",
+    "undercomplete": "Bottleneck smaller than input forces learning useful representations",
+    "overcomplete": "Bottleneck larger or equal; needs regularization to learn",
+    "explanation": "By forcing data through a bottleneck, autoencoders learn to capture most important aspects of data for reconstruction."
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "Non-linear dimensionality reduction",
+      "Denoising and anomaly detection",
+      "Feature learning for downstream tasks",
+      "Image compression and reconstruction",
+      "Generating embeddings (variational autoencoders)"
+    ],
+    "avoidWhen": [
+      "Linear relationships sufficient (use PCA)",
+      "Small datasets (neural nets need data)",
+      "When interpretability needed",
+      "Exact reconstruction required (lossy compression)"
+    ]
+  },
+  "keyParameters": {
+    "encoderArchitecture": {
+      "description": "Layers and units in encoder",
+      "type": "array",
+      "example": "[input_dim, 128, 64, latent_dim]",
+      "impact": "Determines compression and representation quality"
+    },
+    "latentDim": {
+      "description": "Size of bottleneck layer",
+      "type": "integer",
+      "impact": "Smaller = more compression, risk of information loss"
+    },
+    "activation": {
+      "description": "Non-linearity in hidden layers",
+      "type": "enum",
+      "options": ["relu", "sigmoid", "tanh", "elu"],
+      "default": "relu",
+      "impact": "ReLU common for hidden layers"
+    },
+    "lossFunction": {
+      "description": "Reconstruction error measure",
+      "type": "enum",
+      "options": ["mse", "binary_crossentropy", "mae"],
+      "default": "mse",
+      "impact": "MSE for continuous, BCE for binary/normalized data"
+    },
+    "learningRate": {
+      "description": "Optimizer step size",
+      "type": "float",
+      "default": 0.001,
+      "impact": "Controls convergence speed"
+    },
+    "regularization": {
+      "description": "L1/L2 penalty or dropout",
+      "type": "float",
+      "default": 0.0,
+      "impact": "Prevents overfitting, especially in overcomplete autoencoders"
+    }
+  },
+  "workflow": {
+    "preprocessing": [
+      "Normalize/standardize input features",
+      "Handle missing values",
+      "Flatten if image data",
+      "Add noise for denoising autoencoder"
+    ],
+    "architectureDesign": [
+      "Symmetric encoder-decoder (mirror architecture)",
+      "Bottleneck size determines compression ratio",
+      "Add dropout for regularization",
+      "Tied weights (decoder uses encoder weights transposed) optional"
+    ],
+    "training": [
+      "Feed input through encoder → bottleneck → decoder",
+      "Compute reconstruction loss",
+      "Backpropagate and update weights",
+      "Use validation set for early stopping"
+    ],
+    "usage": [
+      "Encoder for dimensionality reduction (extract latent features)",
+      "Full network for denoising",
+      "Reconstruction error for anomaly detection"
+    ]
+  },
+  "complexity": {
+    "timeTraining": "O(epochs × n × params) like other neural nets",
+    "timeEncoding": "O(params_encoder) - fast forward pass",
+    "timeDecoding": "O(params_decoder)",
+    "space": "O(params + batch × activations)",
+    "scalability": "Good with GPUs; mini-batch training",
+    "interpretability": "Low - latent features learned, not designed"
+  },
+  "pros": [
+    "Non-linear dimensionality reduction (vs PCA)",
+    "Flexible architecture (can use CNN for images)",
+    "Learns task-specific representations",
+    "Can handle various data types",
+    "Useful for denoising and anomaly detection",
+    "Foundation for generative models (VAE)"
+  ],
+  "cons": [
+    "Requires sufficient training data",
+    "Risk of learning identity function (trivial solution)",
+    "Latent space not structured (unlike VAE)",
+    "Less interpretable than PCA",
+    "Sensitive to hyperparameters",
+    "Lossy compression"
+  ],
+  "variants": {
+    "denoising": "Train on corrupted input, reconstruct clean",
+    "sparse": "Add sparsity constraint on latent representation",
+    "contractive": "Penalize sensitivity of latent to input changes",
+    "variationalVae": "Probabilistic latent space, generative model",
+    "convolutional": "Use CNN layers for image data"
+  },
+  "useCases": [
+    "Image denoising",
+    "Anomaly detection (high reconstruction error = anomaly)",
+    "Dimensionality reduction",
+    "Pretraining for supervised learning",
+    "Data compression",
+    "Recommendation systems (collaborative filtering)"
+  ],
+  "relatedAlgorithms": ["pca", "variational-autoencoder", "neural-networks"],
+  "resources": {
+    "tensorflow": "https://www.tensorflow.org/tutorials/generative/autoencoder",
+    "stanford": "http://ufldl.stanford.edu/tutorial/unsupervised/Autoencoders/",
+    "ibm": "https://www.ibm.com/think/topics/autoencoder"
+  }
+}

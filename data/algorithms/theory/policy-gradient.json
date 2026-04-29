@@ -1,0 +1,136 @@
+{
+  "id": "policy-gradient",
+  "name": "Policy Gradient Methods",
+  "category": "Reinforcement Learning",
+  "subcategory": "Policy-Based",
+  "description": "Policy Gradient methods directly optimize the policy (action selection probabilities) by estimating gradients of expected cumulative reward. Unlike value-based methods, they can handle continuous action spaces and naturally explore through stochastic policies. The policy is typically represented by a neural network.",
+  "concept": {
+    "policyRepresentation": "π(a|s,θ) - probability of action given state and parameters",
+    "objective": "Maximize expected return J(θ) = E[Σγᵗrₜ]",
+    "policyGradient": "∇J(θ) = E[∇log π(a|s,θ) × G] where G is return",
+    "scoreFunction": "∇log π(a|s,θ) - how to increase action probability",
+    "baseline": "Subtract baseline to reduce variance (e.g., value function)",
+    "explanation": "Increase probability of actions that lead to high returns, decrease for low returns. Gradient ascent on policy parameters."
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "Continuous action spaces",
+      "High-dimensional or continuous states (neural policy)",
+      "When stochastic policies preferred",
+      "Complex policies where value function hard to learn",
+      "Robotics, continuous control"
+    ],
+    "avoidWhen": [
+      "Discrete small action spaces (Q-learning simpler)",
+      "When sample efficiency critical",
+      "Environments with sparse rewards (hard to credit)",
+      "When deterministic policies sufficient"
+    ]
+  },
+  "keyParameters": {
+    "learningRate": {
+      "description": "Step size for policy updates",
+      "type": "float",
+      "default": 0.001,
+      "range": "(0, ∞)",
+      "impact": "Too high: unstable; too low: slow convergence"
+    },
+    "gamma": {
+      "description": "Discount factor",
+      "type": "float",
+      "default": 0.99,
+      "range": "[0, 1]",
+      "impact": "Weight of future rewards"
+    },
+    "episodes": {
+      "description": "Number of episodes for training",
+      "type": "integer",
+      "default": 1000,
+      "impact": "Policy gradient typically needs many episodes"
+    },
+    "policyArchitecture": {
+      "description": "Neural network for policy",
+      "type": "dict",
+      "example": "hidden_layers: [64, 64], activation: tanh",
+      "impact": "Capacity to represent complex policies"
+    },
+    "baseline": {
+      "description": "Use baseline to reduce variance",
+      "type": "boolean",
+      "default": true,
+      "impact": "Typically value function baseline (Actor-Critic)"
+    }
+  },
+  "algorithms": {
+    "reinforce": "Monte Carlo policy gradient (full episode returns)",
+    "actorCritic": "Combine policy gradient with value function estimation",
+    "a2c": "Advantage Actor-Critic (synchronous)",
+    "a3c": "Asynchronous Advantage Actor-Critic (parallel workers)",
+    "ppo": "Proximal Policy Optimization - clipped surrogate objective",
+    "trpo": "Trust Region Policy Optimization - constrained updates"
+  },
+  "workflow": {
+    "initialization": [
+      "Initialize policy network parameters θ",
+      "Optionally initialize value function V(s) for baseline",
+      "Set hyperparameters"
+    ],
+    "episodeCollection": [
+      "Run full episode with current policy",
+      "Record states, actions, rewards",
+      "Compute returns Gₜ for each timestep (discounted sum of future rewards)"
+    ],
+    "gradientUpdate": [
+      "Compute log probabilities of taken actions",
+      "Calculate advantage: A = G - V(s) (if using baseline)",
+      "Compute gradient: ∇J = Σ ∇log π(aₜ|sₜ) × Aₜ",
+      "Update parameters: θ += α × ∇J"
+    ],
+    "convergence": [
+      "Monitor average episode return",
+      "Policy entropy (exploration)",
+      "KL divergence between old and new policy (for TRPO/PPO)"
+    ]
+  },
+  "complexity": {
+    "timeTraining": "O(episodes × episode_length × network_ops)",
+    "timePrediction": "O(network_forward_pass) - single forward pass",
+    "space": "O(network_parameters)",
+    "scalability": "Good with GPUs; parallel environments (A3C) speed up",
+    "interpretability": "Low - neural policy is black box"
+  },
+  "pros": [
+    "Handles continuous action spaces naturally",
+    "Stochastic policies built-in",
+    "Can learn complex policies with neural networks",
+    "Direct policy optimization",
+    "Better convergence properties than Q-learning for some problems",
+    "Policy often smoother than value-based"
+  ],
+  "cons": [
+    "High variance in gradient estimates",
+    "Sample inefficient (needs many episodes)",
+    "Local optima (policy gradient is hill climbing)",
+    "Sensitive to reward scaling",
+    "May converge to suboptimal deterministic policy"
+  ],
+  "varianceReduction": {
+    "baseline": "Subtract state value V(s) from return",
+    "advantage": "A(s,a) = Q(s,a) - V(s) - how much better than average",
+    "gae": "Generalized Advantage Estimation - balance bias/variance"
+  },
+  "useCases": [
+    "Robot control (continuous joints)",
+    "Game playing (Dota 2, StarCraft)",
+    "Autonomous driving",
+    "Portfolio management",
+    "Recommendation systems",
+    "Natural language generation"
+  ],
+  "relatedAlgorithms": ["q-learning", "actor-critic", "trpo", "ppo", "sac"],
+  "resources": {
+    "deepRLBook": "https://deepreinforcementlearningbook.org/",
+    "spinningUp": "https://spinningup.openai.com/",
+    "wikipedia": "https://en.wikipedia.org/wiki/Policy_gradient_methods"
+  }
+}

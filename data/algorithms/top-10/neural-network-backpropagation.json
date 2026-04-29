@@ -1,0 +1,26 @@
+{
+  "name": "Neural Network Backpropagation",
+  "description": "Backpropagation is the fundamental algorithm for training neural networks. It efficiently computes gradients of the loss function with respect to network weights using the chain rule, enabling gradient-based optimization of millions of parameters.",
+  "category": "machine_learning",
+  "real_world_examples": [
+    "Training deep neural networks (CNNs, RNNs, Transformers)",
+    "GPT and LLM training",
+    "Image recognition systems",
+    "Speech recognition",
+    "AlphaGo and game-playing AI"
+  ],
+  "how_it_works": "Backpropagation operates in two phases: forward pass computes predictions and loss, backward pass propagates error gradients backward through the network. Using the chain rule, it computes how each weight contributes to the loss, allowing gradient descent to update weights and minimize error.",
+  "complexity": {
+    "time": "O(W) where W is number of weights (linear in network size)",
+    "space": "O(L) where L is largest layer size (for activations during backward pass)"
+  },
+  "key_parameters": [
+    "learning_rate: step size for weight updates",
+    "loss_function: MSE, cross-entropy, etc.",
+    "activation_function: ReLU, sigmoid, tanh",
+    "batch_size: number of samples per update",
+    "momentum: acceleration term for optimization",
+    "weight_initialization: Xavier, He initialization"
+  ],
+  "pseudocode_or_diagram_description": "Forward: compute layer activations z^l = W^l * a^(l-1) + b^l, apply activation. Backward: compute error at output δ^L = ∇a C ⊙ σ'(z^L). Propagate: δ^l = ((W^(l+1))^T δ^(l+1)) ⊙ σ'(z^l). Compute gradients: ∂C/∂W^l = δ^l (a^(l-1))^T. Update: W^l -= lr * ∂C/∂W^l."
+}

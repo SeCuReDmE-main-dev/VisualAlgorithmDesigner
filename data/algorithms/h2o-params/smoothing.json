@@ -1,0 +1,12 @@
+{
+  "name": "smoothing",
+  "description": "The smoothing value is used for blending and to calculate lambda. Smoothing controls the rate of transition between the particular levelâs posterior probability and the prior probability. For smoothing values approaching infinity, it becomes a hard threshold between the posterior and the prior probability. This value defaults to 20.",
+  "type": "unknown",
+  "supported_algorithms": [
+    "Target Encoding"
+  ],
+  "r_example": "",
+  "python_example": "",
+  "default_value": null,
+  "related_parameters": []
+}

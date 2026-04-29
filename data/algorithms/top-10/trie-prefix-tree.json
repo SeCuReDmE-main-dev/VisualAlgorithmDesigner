@@ -1,0 +1,25 @@
+{
+  "name": "Trie (Prefix Tree)",
+  "description": "A Trie is a tree-like data structure used to store a dynamic set of strings. Unlike binary search trees, no node stores the key associated with that node; instead, its position in the tree defines the key. It enables efficient prefix-based searches and is ideal for autocomplete and dictionary implementations.",
+  "category": "data_structure",
+  "real_world_examples": [
+    "Search autocomplete (Google, Bing)",
+    "Spell checking and correction",
+    "IP routing tables (longest prefix matching)",
+    "Phone contact search",
+    "DNA sequence analysis"
+  ],
+  "how_it_works": "Each node represents a character, and paths from root to nodes form strings. Nodes have children for each possible next character. Leaf nodes or special markers indicate complete words. Insertion traverses/creates character nodes. Search follows character path. Prefix search can enumerate all words under a node.",
+  "complexity": {
+    "time": "O(m) for insert/search where m is string length",
+    "space": "O(ALPHABET_SIZE * N * m) worst case, O(N) average with compression"
+  },
+  "key_parameters": [
+    "alphabet_size: number of possible characters",
+    "case_sensitivity: treat 'A' and 'a' as same or different",
+    "compression: use compressed/radix tries to save space",
+    "max_depth: limit search depth for autocomplete",
+    "top_k_results: number of suggestions to return"
+  ],
+  "pseudocode_or_diagram_description": "Insert(word): node = root. For each char c in word: if c not in node.children: node.children[c] = new Node. node = node.children[c]. Mark node as end-of-word. Search(word): node = root. For each char c in word: if c not in node.children: return false. node = node.children[c]. Return node.is_end. Prefix search: traverse to prefix node, then DFS/BFS to collect all words below."
+}

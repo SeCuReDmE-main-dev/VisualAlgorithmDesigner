@@ -1,0 +1,128 @@
+{
+  "id": "logistic-regression",
+  "name": "Logistic Regression",
+  "category": "Supervised Learning",
+  "subcategory": "Classification",
+  "description": "Logistic Regression is a classification algorithm used to predict binary or categorical outcomes. Despite its name, it's not a regression algorithm but a probabilistic classifier that uses the logistic (sigmoid) function to map predictions to probabilities between 0 and 1.",
+  "concept": {
+    "mathematicalFormulation": "P(y=1|x) = 1 / (1 + e^-(β₀ + β₁x₁ + ... + βₙxₙ))",
+    "explanation": "The algorithm applies a sigmoid function to a linear combination of features, outputting probabilities. If P(y=1|x) ≥ 0.5, predict class 1; otherwise predict class 0. The decision boundary is linear in feature space.",
+    "sigmoidFunction": "σ(z) = 1 / (1 + e^(-z)), where z = β·x",
+    "logOdds": "log(P/(1-P)) = β₀ + β₁x₁ + ... + βₙxₙ - The log-odds (logit) is linear"
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "Binary classification problems",
+      "Multi-class classification (one-vs-rest or softmax)",
+      "When probability estimates are needed",
+      "Baseline model for classification",
+      "When interpretability is important"
+    ],
+    "avoidWhen": [
+      "Non-linear decision boundaries needed",
+      "Highly imbalanced classes (without adjustment)",
+      "Complex feature interactions",
+      "When exact probabilities aren't necessary"
+    ]
+  },
+  "keyParameters": {
+    "penalty": {
+      "description": "Regularization type",
+      "type": "enum",
+      "options": ["l1", "l2", "elasticnet", "none"],
+      "default": "l2",
+      "impact": "L1 for feature selection, L2 for handling multicollinearity"
+    },
+    "C": {
+      "description": "Inverse of regularization strength",
+      "type": "float",
+      "default": 1.0,
+      "range": "(0.0, ∞)",
+      "impact": "Smaller values = stronger regularization"
+    },
+    "solver": {
+      "description": "Optimization algorithm",
+      "type": "enum",
+      "options": ["newton-cg", "lbfgs", "liblinear", "sag", "saga"],
+      "default": "lbfgs",
+      "impact": "Different solvers support different penalties and dataset sizes"
+    },
+    "maxIter": {
+      "description": "Maximum iterations for solver convergence",
+      "type": "integer",
+      "default": 100,
+      "impact": "Increase if convergence warnings appear"
+    },
+    "classWeight": {
+      "description": "Weights for classes (handle imbalance)",
+      "type": "enum",
+      "options": ["balanced", "dict", "None"],
+      "default": null,
+      "impact": "Adjusts for imbalanced datasets"
+    }
+  },
+  "workflow": {
+    "preprocessing": [
+      "Handle missing values",
+      "Standardize features (highly recommended)",
+      "Encode categorical variables",
+      "Handle class imbalance (SMOTE, class weights, or sampling)"
+    ],
+    "training": [
+      "Split data into train/test sets",
+      "Initialize with chosen regularization",
+      "Optimize using gradient-based methods or IRLS",
+      "Minimize log-loss (cross-entropy)"
+    ],
+    "evaluation": [
+      "Accuracy, Precision, Recall, F1-score",
+      "ROC-AUC (Area Under ROC Curve)",
+      "Log-loss / Cross-entropy",
+      "Confusion Matrix"
+    ],
+    "interpretation": [
+      "Odds ratio: exp(β) is the multiplicative change in odds",
+      "Positive β increases probability of class 1",
+      "Feature importance from absolute coefficient values"
+    ]
+  },
+  "complexity": {
+    "timeTraining": "O(n × p × iterations)",
+    "timePrediction": "O(p)",
+    "space": "O(p)",
+    "scalability": "Excellent - handles large datasets",
+    "interpretability": "High - coefficients indicate feature impact on log-odds"
+  },
+  "pros": [
+    "Fast and efficient",
+    "Outputs calibrated probabilities",
+    "Highly interpretable coefficients",
+    "Less prone to overfitting (with regularization)",
+    "Works well with linearly separable data",
+    "No assumption about feature distribution"
+  ],
+  "cons": [
+    "Linear decision boundary only",
+    "Requires feature scaling",
+    "Can struggle with complex relationships",
+    "Assumes independence of observations",
+    "May underfit with non-linear data"
+  ],
+  "variants": {
+    "multinomial": "Softmax regression for multi-class classification",
+    "ovr": "One-vs-Rest for multi-class (train binary classifier per class)",
+    "regularized": "L1/L2/ElasticNet regularization for feature selection"
+  },
+  "useCases": [
+    "Email spam detection",
+    "Medical diagnosis (disease presence)",
+    "Credit scoring (default risk)",
+    "Customer churn prediction",
+    "Ad click prediction"
+  ],
+  "relatedAlgorithms": ["linear-regression", "svm", "naive-bayes"],
+  "resources": {
+    "scikitLearn": "https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression",
+    "googleML": "https://developers.google.com/machine-learning/crash-course/logistic-regression"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "Collaborative Filtering",
+  "description": "Collaborative Filtering is a recommendation technique that predicts user preferences by collecting preferences from many users. It assumes that if users agreed in the past, they will agree in the future, and that user preferences remain stable over time.",
+  "category": "recommendation",
+  "real_world_examples": [
+    "Netflix movie recommendations",
+    "Spotify music discovery",
+    "Amazon product recommendations",
+    "YouTube video suggestions",
+    "Steam game recommendations"
+  ],
+  "how_it_works": "The algorithm uses matrix factorization to decompose the user-item interaction matrix into two lower-dimensional matrices: user embeddings and item embeddings. It learns latent factors that explain observed interactions, then predicts missing values by computing dot products of user and item embeddings. Similarity between users or items is measured using cosine similarity or Pearson correlation.",
+  "complexity": {
+    "time": "O(m * n * k) where m=users, n=items, k=latent factors; training is O(epochs * observations)",
+    "space": "O((m + n) * k) for storing embeddings"
+  },
+  "key_parameters": [
+    "number_of_latent_factors: dimensionality of embeddings",
+    "learning_rate: step size for gradient descent updates",
+    "regularization_strength: prevents overfitting (L2 penalty)",
+    "number_of_epochs: training iterations",
+    "similarity_metric: cosine, Pearson, or Jaccard"
+  ],
+  "pseudocode_or_diagram_description": "Initialize user matrix U (m x k) and item matrix V (n x k) with random values. For each observed rating r_ui: predict = dot(U[u], V[i]), error = r_ui - predict, then update: U[u] += lr * (error * V[i] - reg * U[u]), V[i] += lr * (error * U[u] - reg * V[i]). Repeat for many epochs. Prediction for new user-item pair is dot(U[u], V[i])."
+}

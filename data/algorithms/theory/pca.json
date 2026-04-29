@@ -1,0 +1,135 @@
+{
+  "id": "pca",
+  "name": "Principal Component Analysis (PCA)",
+  "category": "Unsupervised Learning",
+  "subcategory": "Dimensionality Reduction",
+  "description": "PCA is a linear dimensionality reduction technique that transforms data to a new coordinate system where the greatest variance lies on the first coordinate (first principal component), the second greatest on the second coordinate, and so on. It finds orthogonal directions of maximum variance in the data.",
+  "concept": {
+    "eigenDecomposition": "Find eigenvectors and eigenvalues of covariance matrix",
+    "principalComponents": "Eigenvectors of covariance matrix, ordered by eigenvalue magnitude",
+    "varianceExplanation": "Each PC explains a portion of total variance",
+    "projection": "Map data onto top k principal components",
+    "mathematicalFormulation": "X' = XW where W contains top k eigenvectors of Σ = (1/n)XᵀX",
+    "explanation": "PCA finds directions where data varies most. First PC captures maximum variance, second PC captures max variance orthogonal to first, etc."
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "High-dimensional data visualization",
+      "Reduce dimensionality before ML (speed/curse of dimensionality)",
+      "Remove multicollinearity",
+      "Noise reduction",
+      "Feature extraction",
+      "Data compression"
+    ],
+    "avoidWhen": [
+      "Non-linear relationships (use t-SNE, UMAP, autoencoders)",
+      "Categorical data (use MCA instead)",
+      "When feature interpretability required (features become combinations)",
+      "Very sparse data"
+    ]
+  },
+  "keyParameters": {
+    "nComponents": {
+      "description": "Number of components to keep",
+      "type": "integer, float, or 'mle'",
+      "default": null,
+      "impact": "If float (0-1), select number to explain that variance proportion"
+    },
+    "svdSolver": {
+      "description": "SVD solver method",
+      "type": "enum",
+      "options": ["auto", "full", "arpack", "randomized"],
+      "default": "auto",
+      "impact": "Randomized faster for large data; arpack for few components"
+    },
+    "whiten": {
+      "description": "Whiten components (unit variance)",
+      "type": "boolean",
+      "default": false,
+      "impact": "Removes correlations, useful for downstream ML"
+    },
+    "tol": {
+      "description": "Tolerance for singular values (arpack solver)",
+      "type": "float",
+      "default": 0.0,
+      "impact": "Components with singular values <= tol removed"
+    },
+    "iteratedPower": {
+      "description": "Iterations for randomized solver",
+      "type": "integer or 'auto'",
+      "default": "auto",
+      "impact": "Higher = better accuracy but slower"
+    }
+  },
+  "workflow": {
+    "preprocessing": [
+      "Center data (subtract mean) - critical for PCA",
+      "Standardize features (optional, recommended if different scales)",
+      "Handle missing values",
+      "Outliers can skew results (consider robust PCA)"
+    ],
+    "training": [
+      "Compute covariance matrix of data",
+      "Calculate eigenvectors and eigenvalues",
+      "Sort eigenvectors by eigenvalue (descending)",
+      "Select top k eigenvectors (principal components)",
+      "Project data onto selected components"
+    ],
+    "determineComponents": [
+      "Scree plot: variance vs component number",
+      "Cumulative variance: find k explaining 90-95% variance",
+      "Kaiser criterion: keep components with eigenvalue > 1",
+      "Cross-validation for downstream task"
+    ],
+    "evaluation": [
+      "Explained variance ratio per component",
+      "Cumulative explained variance",
+      "Reconstruction error (if inverse transform)",
+      "Performance on downstream task"
+    ]
+  },
+  "complexity": {
+    "timeTraining": "O(min(n²p, np²)) for SVD",
+    "timeTransform": "O(k × p) - project to k components",
+    "space": "O(p²) - covariance matrix",
+    "scalability": "Good for moderate dimensions; randomized for large",
+    "interpretability": "Medium - components are linear combinations"
+  },
+  "pros": [
+    "Removes correlation between features",
+    "Reduces overfitting in high dimensions",
+    "Speeds up algorithms",
+    "Helps visualization (2D, 3D)",
+    "Unsupervised - no labels needed",
+    "Deterministic and well-understood"
+  ],
+  "cons": [
+    "Linear only (misses non-linear patterns)",
+    "Assumes orthogonal components",
+    "Components less interpretable than original features",
+    "Sensitive to outliers",
+    "May remove discriminative information",
+    "Affected by feature scaling"
+  ],
+  "variants": {
+    "kernelPca": "PCA in high-dimensional feature space via kernel trick",
+    "sparsePca": "Sparse principal components (feature selection)",
+    "incrementalPca": "For out-of-core computation",
+    "probabilisticPca": "Probabilistic interpretation using EM",
+    "robustPca": "Handles outliers better"
+  },
+  "useCases": [
+    "Gene expression analysis (visualization)",
+    "Image compression (eigenfaces)",
+    "Portfolio optimization (finance)",
+    "Preprocessing before clustering",
+    "Exploratory data analysis",
+    "Anomaly detection"
+  ],
+  "relatedAlgorithms": ["svd", "tsne", "umap", "factor-analysis", "ica"],
+  "resources": {
+    "scikitLearn": "https://scikit-learn.org/stable/modules/decomposition.html#pca",
+    "pythonDataScienceHandbook": "https://jakevdp.github.io/PythonDataScienceHandbook/05.09-principal-component-analysis.html",
+    "wikipedia": "https://en.wikipedia.org/wiki/Principal_component_analysis"
+  }
+}

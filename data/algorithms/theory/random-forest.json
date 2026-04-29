@@ -1,0 +1,152 @@
+{
+  "id": "random-forest",
+  "name": "Random Forest",
+  "category": "Supervised Learning",
+  "subcategory": "Ensemble",
+  "description": "Random Forest is an ensemble learning method that constructs multiple decision trees and aggregates their predictions. It uses bootstrap aggregating (bagging) and random feature selection to create diverse trees, reducing overfitting and improving prediction accuracy over single decision trees.",
+  "concept": {
+    "ensembleMethod": "Bagging (Bootstrap Aggregating) - trains trees on random subsets of data",
+    "randomFeatureSelection": "At each split, only a random subset of features is considered",
+    "voting": {
+      "classification": "Majority vote across all trees",
+      "regression": "Average of all tree predictions"
+    },
+    "outOfBagError": "Estimate of prediction error using samples not selected in bootstrap",
+    "explanation": "Each tree is trained on a bootstrap sample (random sampling with replacement). Feature randomness at splits ensures tree diversity. The ensemble averages out individual tree errors."
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "High-dimensional data with many features",
+      "Mixed data types (numerical and categorical)",
+      "When decision tree overfitting is a concern",
+      "Need for feature importance rankings",
+      "Missing values in data",
+      "When interpretability is less critical than accuracy"
+    ],
+    "avoidWhen": [
+      "Real-time prediction with latency constraints",
+      "When model size is limited (many trees = large model)",
+      "Very sparse data",
+      "When exact prediction reasoning is required",
+      "Extrapolation tasks"
+    ]
+  },
+  "keyParameters": {
+    "nEstimators": {
+      "description": "Number of trees in forest",
+      "type": "integer",
+      "default": 100,
+      "range": "[1, ∞)",
+      "impact": "More trees = better performance but slower; diminishing returns after 100-500"
+    },
+    "maxDepth": {
+      "description": "Maximum depth of each tree",
+      "type": "integer",
+      "default": null,
+      "impact": "Limits overfitting; null = unlimited (trees grow until pure)"
+    },
+    "minSamplesSplit": {
+      "description": "Minimum samples to split internal node",
+      "type": "integer or float",
+      "default": 2,
+      "impact": "Higher = more regularization"
+    },
+    "minSamplesLeaf": {
+      "description": "Minimum samples at leaf node",
+      "type": "integer or float",
+      "default": 1,
+      "impact": "Smooths predictions, prevents overfitting"
+    },
+    "maxFeatures": {
+      "description": "Features to consider at each split",
+      "type": "enum",
+      "options": ["sqrt", "log2", "auto", "int", "float", "None"],
+      "default": "sqrt",
+      "impact": "Lower = more tree diversity, less correlation"
+    },
+    "bootstrap": {
+      "description": "Whether to use bootstrap samples",
+      "type": "boolean",
+      "default": true,
+      "impact": "False uses whole dataset (less diversity)"
+    },
+    "oobScore": {
+      "description": "Use out-of-bag samples for validation",
+      "type": "boolean",
+      "default": false,
+      "impact": "Provides unbiased error estimate without separate validation set"
+    }
+  },
+  "workflow": {
+    "preprocessing": [
+      "Handle missing values (Random Forest can handle them)",
+      "No scaling required",
+      "Encode categorical variables if necessary"
+    ],
+    "training": [
+      "Create n bootstrap samples from training data",
+      "For each sample, train a decision tree",
+      "At each node, randomly select max_features features",
+      "Grow tree until stopping criteria (no pruning)",
+      "Repeat for all n_estimators trees"
+    ],
+    "prediction": [
+      "Pass input through all trees",
+      "Aggregate predictions (vote for classification, average for regression)"
+    ],
+    "evaluation": [
+      "OOB score for validation",
+      "Cross-validation accuracy",
+      "Feature importance analysis",
+      "Compare to single decision tree baseline"
+    ]
+  },
+  "complexity": {
+    "timeTraining": "O(n × p × log(n) × n_estimators)",
+    "timePrediction": "O(n_estimators × log(n)) - parallelizable",
+    "space": "O(n_estimators × nodes_per_tree)",
+    "scalability": "Good - highly parallelizable",
+    "interpretability": "Medium - feature importance available but no single tree"
+  },
+  "pros": [
+    "Reduces overfitting vs single decision trees",
+    "Handles high-dimensional data well",
+    "Provides feature importance automatically",
+    "Robust to outliers and noise",
+    "Handles missing values",
+    "No feature scaling needed",
+    "Parallel training possible"
+  ],
+  "cons": [
+    "Less interpretable than single trees",
+    "Slower prediction than single tree",
+    "Memory intensive with many trees",
+    "Can overfit with noisy data if depth unlimited",
+    "Biased toward features with more categories",
+    "Not ideal for very high-dimensional sparse data"
+  ],
+  "featureImportance": {
+    "description": "Mean decrease in impurity (Gini importance)",
+    "calculation": "Total decrease in node impurity weighted by probability of reaching node",
+    "limitations": "Biased toward high-cardinality features; use permutation importance for better accuracy"
+  },
+  "variants": {
+    "extraTrees": "Extremely Randomized Trees - more randomness in split thresholds",
+    "quantileForest": "For estimating conditional quantiles",
+    "balancedRandomForest": "Handles imbalanced classification"
+  },
+  "useCases": [
+    "Credit scoring and risk assessment",
+    "Customer churn prediction",
+    "Medical diagnosis",
+    "Image classification (feature extraction)",
+    "Bioinformatics (gene expression)",
+    "Recommendation systems"
+  ],
+  "relatedAlgorithms": ["decision-trees", "gradient-boosting", "extra-trees"],
+  "resources": {
+    "scikitLearn": "https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html",
+    "googleML": "https://developers.google.com/machine-learning/decision-forests/random-forests",
+    "ibm": "https://www.ibm.com/think/topics/random-forest"
+  }
+}

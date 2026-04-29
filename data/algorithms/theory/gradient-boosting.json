@@ -1,0 +1,152 @@
+{
+  "id": "gradient-boosting",
+  "name": "Gradient Boosting Machines (GBM)",
+  "category": "Supervised Learning",
+  "subcategory": "Ensemble",
+  "description": "Gradient Boosting is an ensemble technique that builds trees sequentially, where each new tree corrects errors made by previous trees. It minimizes a loss function by adding trees that follow the negative gradient (steepest descent) of the loss, creating a strong learner from weak learners.",
+  "concept": {
+    "additiveModel": "F_M(x) = Σ(γₘ × hₘ(x)) where hₘ are weak learners",
+    "gradientDescentInFunctionSpace": "Each tree fits the negative gradient of loss function",
+    "forwardStagewise": "Trees added one at a time, previous trees frozen",
+    "explanation": "Start with initial prediction. Calculate residuals (errors). Train new tree to predict residuals. Update prediction: new_prediction = old_prediction + learning_rate × tree_prediction. Repeat.",
+    "shrinkage": "Learning rate controls contribution of each tree (prevents overfitting)"
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "Structured/tabular data competitions",
+      "When highest accuracy is priority",
+      "Heterogeneous features (mixed types)",
+      "Medium-sized datasets (thousands to millions)",
+      "When feature interactions are complex"
+    ],
+    "avoidWhen": [
+      "Real-time inference requirements (slow prediction)",
+      "Very large datasets (consider LightGBM/XGBoost)",
+      "High-dimensional sparse data",
+      "When fast training is needed",
+      "When extrapolation is required"
+    ]
+  },
+  "keyParameters": {
+    "nEstimators": {
+      "description": "Number of boosting stages (trees)",
+      "type": "integer",
+      "default": 100,
+      "range": "[1, ∞)",
+      "impact": "More trees = better fit but risk of overfitting"
+    },
+    "learningRate": {
+      "description": "Shrinks contribution of each tree",
+      "type": "float",
+      "default": 0.1,
+      "range": "(0.0, 1.0]",
+      "impact": "Lower = need more trees but better generalization"
+    },
+    "maxDepth": {
+      "description": "Maximum depth of individual trees",
+      "type": "integer",
+      "default": 3,
+      "range": "[1, ∞)",
+      "impact": "Controls complexity; higher = more prone to overfitting"
+    },
+    "minSamplesSplit": {
+      "description": "Minimum samples to split node",
+      "type": "integer or float",
+      "default": 2,
+      "impact": "Higher = more regularization"
+    },
+    "minSamplesLeaf": {
+      "description": "Minimum samples at leaf",
+      "type": "integer or float",
+      "default": 1,
+      "impact": "Smooths predictions"
+    },
+    "subsample": {
+      "description": "Fraction of samples for fitting each tree",
+      "type": "float",
+      "default": 1.0,
+      "range": "(0.0, 1.0]",
+      "impact": "Stochastic gradient boosting; <1.0 reduces variance"
+    },
+    "loss": {
+      "description": "Loss function to optimize",
+      "type": "enum",
+      "options": ["deviance", "exponential"],
+      "default": "deviance",
+      "impact": "Deviance for probabilistic outputs"
+    }
+  },
+  "workflow": {
+    "preprocessing": [
+      "Handle missing values",
+      "No scaling strictly required but can help",
+      "Handle categorical encoding"
+    ],
+    "training": [
+      "Initialize with constant prediction (mean for regression, log-odds for classification)",
+      "For m = 1 to M (number of trees):",
+      "  - Calculate pseudo-residuals (negative gradient of loss)",
+      "  - Fit regression tree to residuals",
+      "  - Find optimal leaf values (minimize loss)",
+      "  - Update model: F_m = F_{m-1} + learning_rate × tree_m",
+      "Return final ensemble"
+    ],
+    "tuning": [
+      "Grid search or randomized search over key parameters",
+      "Common: n_estimators vs learning_rate trade-off",
+      "Early stopping to prevent overfitting"
+    ],
+    "evaluation": [
+      "Monitor train/validation loss curves",
+      "Cross-validation for final performance",
+      "Feature importance analysis"
+    ]
+  },
+  "complexity": {
+    "timeTraining": "O(n × p × n_estimators × max_depth)",
+    "timePrediction": "O(n_estimators × max_depth)",
+    "space": "O(n_estimators × nodes_per_tree)",
+    "scalability": "Moderate - sequential training (not parallel)",
+    "interpretability": "Low-Medium - feature importance available"
+  },
+  "pros": [
+    "Often best-in-class accuracy on tabular data",
+    "Handles mixed data types",
+    "Handles missing values (in some implementations)",
+    "Feature importance scores",
+    "No data normalization needed",
+    "Can handle non-linear relationships"
+  ],
+  "cons": [
+    "Sequential training (slow, not parallel)",
+    "Prone to overfitting (requires careful tuning)",
+    "Sensitive to hyperparameters",
+    "Longer prediction time than linear models",
+    "Less interpretable than single trees",
+    "Memory intensive"
+  ],
+  "variants": {
+    "xgboost": "Extreme Gradient Boosting - optimized, regularized",
+    "lightgbm": "Light GBM - histogram-based, leaf-wise growth",
+    "catboost": "Categorical Boosting - handles categoricals natively",
+    "stochasticGB": "Uses subsampling for variance reduction"
+  },
+  "comparisons": {
+    "vsRandomForest": "GBM builds sequentially (bias reduction); RF builds independently (variance reduction)",
+    "vsXGBoost": "XGB adds regularization, parallelization, handles missing values better",
+    "vsLightGBM": "LightGBM faster with large datasets, leaf-wise vs level-wise growth"
+  },
+  "useCases": [
+    "Kaggle competitions (tabular data)",
+    "Click-through rate prediction",
+    "Search ranking",
+    "Fraud detection",
+    "Risk scoring"
+  ],
+  "relatedAlgorithms": ["xgboost", "lightgbm", "random-forest", "adaboost"],
+  "resources": {
+    "scikitLearn": "https://scikit-learn.org/stable/modules/ensemble.html#gradient-boosting",
+    "xgboost": "https://xgboost.readthedocs.io/",
+    "lightgbm": "https://lightgbm.readthedocs.io/"
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "id": "q-learning",
+  "name": "Q-Learning",
+  "category": "Reinforcement Learning",
+  "subcategory": "Value-Based",
+  "description": "Q-Learning is a model-free reinforcement learning algorithm that learns the value of actions in states (Q-values). It uses the Bellman equation to iteratively update Q-values based on observed rewards, learning an optimal policy without requiring a model of the environment. The Q-value represents expected cumulative reward.",
+  "concept": {
+    "qValue": "Q(s,a) = expected return of taking action a in state s",
+    "bellmanEquation": "Q(s,a) = r + γ × max(Q(s',a'))",
+    "temporalDifference": "TD error: δ = r + γ × max(Q(s')) - Q(s,a)",
+    "qTable": "Table storing Q-values for all state-action pairs (tabular case)",
+    "epsilonGreedy": "Balance exploration (random) vs exploitation (best known action)",
+    "explanation": "Agent learns by trial and error. After each action, updates Q-value estimate based on immediate reward and estimated future value of next state."
+  },
+  "whenToUse": {
+    "idealScenarios": [
+      "Discrete state and action spaces",
+      "No model of environment available",
+      "When learning from experience without simulation",
+      "Small to medium state spaces (tabular)",
+      "Game playing, robotics navigation"
+    ],
+    "avoidWhen": [
+      "Continuous state/action spaces (use DQN or Policy Gradient)",
+      "Very large state spaces (curse of dimensionality)",
+      "When model is available (use model-based methods)",
+      "Safety-critical applications (exploration risky)"
+    ]
+  },
+  "keyParameters": {
+    "alpha": {
+      "description": "Learning rate",
+      "type": "float",
+      "default": 0.1,
+      "range": "(0, 1]",
+      "impact": "How much new information overrides old"
+    },
+    "gamma": {
+      "description": "Discount factor",
+      "type": "float",
+      "default": 0.9,
+      "range": "[0, 1]",
+      "impact": "Importance of future rewards; 0 = myopic, 1 = far-sighted"
+    },
+    "epsilon": {
+      "description": "Exploration rate (epsilon-greedy)",
+      "type": "float",
+      "default": 0.1,
+      "range": "[0, 1]",
+      "impact": "Probability of random action vs greedy"
+    },
+    "epsilonDecay": {
+      "description": "Decay rate for epsilon",
+      "type": "float",
+      "default": 1.0,
+      "impact": "Reduce exploration over time"
+    },
+    "episodes": {
+      "description": "Number of training episodes",
+      "type": "integer",
+      "default": 1000,
+      "impact": "More episodes = better convergence"
+    }
+  },
+  "workflow": {
+    "initialization": [
+      "Initialize Q-table (zeros or random small values)",
+      "Set hyperparameters (alpha, gamma, epsilon)",
+      "Define state and action space"
+    ],
+    "trainingPerEpisode": [
+      "Reset environment to initial state",
+      "While not terminal:",
+      "  - Choose action: ε-greedy selection",
+      "  - Take action, observe reward and next state",
+      "  - Update Q-value: Q(s,a) += α × [r + γ×max(Q(s')) - Q(s,a)]",
+      "  - s = s'",
+      "Decay epsilon if using decay"
+    ],
+    "convergence": [
+      "Monitor episode rewards",
+      "Q-values stabilize",
+      "Policy stops changing significantly"
+    ]
+  },
+  "complexity": {
+    "timeTraining": "O(episodes × steps_per_episode × |A|) - depends on exploration",
+    "timePrediction": "O(|A|) - argmax over actions",
+    "space": "O(|S| × |A|) - Q-table size",
+    "scalability": "Poor for large state spaces; use DQN (neural network) instead",
+    "interpretability": "Medium - can inspect Q-values"
+  },
+  "pros": [
+    "Model-free (no environment model needed)",
+    "Guaranteed convergence to optimal policy (tabular case)",
+    "Simple to implement",
+    "Works with stochastic environments",
+    "Off-policy (can learn from any experience)"
+  ],
+  "cons": [
+    "Struggles with large/continuous state spaces",
+    "Requires sufficient exploration",
+    "Slow convergence in large spaces",
+    "Tabular form limited (use function approximation)",
+    "Hyperparameter sensitive"
+  ],
+  "variants": {
+    "sarsa": "On-policy version (uses actual next action, not max)",
+    "expectedSarsa": "Uses expected value over next actions",
+    "doubleQ": "Two Q-tables to reduce overestimation",
+    "dqn": "Deep Q-Network: neural network approximates Q-function",
+    "duelingDqn": "Separate value and advantage streams"
+  },
+  "explorationStrategies": {
+    "epsilonGreedy": "Random action with probability ε",
+    "boltzmann": "Softmax over Q-values for probabilistic selection",
+    "ucb": "Upper Confidence Bound (optimism in face of uncertainty)"
+  },
+  "useCases": [
+      "Game playing (Atari, Go)",
+    "Robot navigation",
+    "Resource allocation",
+    "Adaptive control systems",
+    "Recommendation systems",
+    "Autonomous vehicles (low-level)"
+  ],
+  "relatedAlgorithms": ["sarsa", "policy-gradient", "actor-critic", "monte-carlo"],
+  "resources": {
+    "wikipedia": "https://en.wikipedia.org/wiki/Q-learning",
+    "diveDeepLearning": "https://d2l.ai/chapter_reinforcement-learning/qlearning.html",
+    "googleML": "https://developers.google.com/machine-learning"
+  }
+}

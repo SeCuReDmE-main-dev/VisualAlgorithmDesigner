@@ -1,0 +1,12 @@
+{
+  "name": "data_leakage_handling",
+  "description": "The data_leakage_handling parameter defines the strategy used to compute the target average in order to avoid data leakage. Overfitting can be prevented by removing some holdout data when calculating the target average on the training data.\n\nThe following strategies can be specified:\n\nnone: The mean is calculated on all rows of data (no holdout).\n\nThis should be used for validation or test data.\n\nleave_one_out: The mean is calculated on all rows of data excluding the row itself.\n\nThis can be used for the training data. The target of the row itself is not included in the average to prevent overfitting.\n\nk_fold: The mean is calculated on out-of-fold data only. This options requires a fold column.\n\nThis can be used for the training data. The target average is calculated on the out-of-fold data to prevent overfitting.",
+  "type": "unknown",
+  "supported_algorithms": [
+    "Target Encoding"
+  ],
+  "r_example": "",
+  "python_example": "",
+  "default_value": null,
+  "related_parameters": []
+}
