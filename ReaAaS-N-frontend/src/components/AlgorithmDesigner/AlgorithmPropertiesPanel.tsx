@@ -56,7 +56,7 @@ export default function AlgorithmPropertiesPanel({
         <Button fullWidth variant="contained" disabled={!canExplain} onClick={onExplain}>
           Explain
         </Button>
-        <Button fullWidth variant="outlined" disabled={!canEvaluate || evaluationLoading} onClick={onEvaluate}>
+        <Button fullWidth variant="outlined" aria-disabled={!canEvaluate || evaluationLoading} aria-busy={evaluationLoading} onClick={(!canEvaluate || evaluationLoading) ? undefined : onEvaluate} sx={{ opacity: (!canEvaluate || evaluationLoading) ? 0.5 : 1, cursor: (!canEvaluate || evaluationLoading) ? 'not-allowed' : 'pointer' }}>
           {evaluationLoading ? 'Evaluating' : 'Evaluate'}
         </Button>
       </Stack>

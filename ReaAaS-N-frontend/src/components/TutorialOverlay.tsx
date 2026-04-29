@@ -37,9 +37,23 @@ export function TutorialOverlay({ open, steps = TUTORIAL_STEPS, onClose }: Tutor
   return (
     <div role="presentation" className="tov-backdrop">
       <section aria-labelledby="tutorial-title" className="tov-panel">
-        <div className="tov-progress">
+        <div className="tov-progress" role="tablist" aria-label="Tutorial steps">
           {safeSteps.map((item, stepIndex) => (
-            <span key={item.id} aria-current={stepIndex === index ? 'step' : undefined} aria-label={`Go to step ${stepIndex + 1}`} role="button" tabIndex={0} onClick={() => setIndex(stepIndex)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIndex(stepIndex); } }} className={stepIndex === index ? 'tov-dot--active' : 'tov-dot'} />
+            <span
+              key={item.id}
+              role="tab"
+              tabIndex={0}
+              aria-selected={stepIndex === index}
+              aria-label={`Step ${stepIndex + 1}: ${item.title}`}
+              className={stepIndex === index ? 'tov-dot--active' : 'tov-dot'}
+              onClick={() => setIndex(stepIndex)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setIndex(stepIndex);
+                }
+              }}
+            />
           ))}
         </div>
 

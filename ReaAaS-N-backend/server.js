@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
+const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
 const { SQLiteMemoryRepository } = require('./services/sqliteMemoryRepository');
 const { AIPipelineService } = require('./services/aiPipelineService');
 require('dotenv').config();
@@ -12,6 +14,18 @@ const dbPath = path.resolve(__dirname, process.env.DB_PATH || './data/memory.sql
 const memoryRepository = new SQLiteMemoryRepository(dbPath);
 const aiPipelineService = new AIPipelineService({ memoryRepository });
 
+const trustProxyEnv = process.env.TRUST_PROXY;
+let trustProxy = false;
+
+if (trustProxyEnv === 'true') {
+  trustProxy = true;
+} else if (trustProxyEnv && /^\d+$/.test(trustProxyEnv)) {
+  trustProxy = Number(trustProxyEnv);
+} else if (trustProxyEnv && trustProxyEnv !== 'false') {
+  trustProxy = trustProxyEnv;
+}
+
+app.set('trust proxy', trustProxy);
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
 app.use(cors({
   origin(origin, callback) {
@@ -26,6 +40,21 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json()); // Middleware to parse JSON bodies
+
+app.use(session({
+  store: new SQLiteStore({
+    dir: path.dirname(dbPath),
+    db: 'sessions.sqlite',
+  }),
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: 'lax',
+  }
+}));
 
 const aiLimiter = rateLimit({
   windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60000),
@@ -73,6 +102,7 @@ app.get('/api/health', (req, res) => {
 app.post('/api/ai/explain-pipeline', aiLimiter, asyncHandler(async (req, res) => {
   const data = await aiPipelineService.explainPipeline(req.body, {
     sessionId: getSessionId(req),
+    authorization: req.get('Authorization'),
   });
 
   res.json({
@@ -85,6 +115,7 @@ app.post('/api/ai/explain', aiLimiter, asyncHandler(async (req, res) => {
   if (Array.isArray(req.body?.nodes)) {
     const data = await aiPipelineService.explainPipeline(req.body, {
       sessionId: getSessionId(req),
+      authorization: req.get('Authorization'),
     });
     res.json({ status: 'success', data });
     return;
@@ -103,6 +134,7 @@ app.post('/api/ai/explain', aiLimiter, asyncHandler(async (req, res) => {
 app.post('/api/ai/evaluate-pipeline', evaluateLimiter, asyncHandler(async (req, res) => {
   const data = await aiPipelineService.evaluatePipeline(req.body, {
     sessionId: getSessionId(req),
+    authorization: req.get('Authorization'),
   });
 
   res.json({
@@ -157,7 +189,7 @@ app.listen(PORT, () => {
 });
 
 function getSessionId(req) {
-  return req.get('X-Session-Id') || req.body?.sessionId || 'anonymous';
+  return req.session ? req.session.id : 'anonymous';
 }
 
 function asyncHandler(handler) {

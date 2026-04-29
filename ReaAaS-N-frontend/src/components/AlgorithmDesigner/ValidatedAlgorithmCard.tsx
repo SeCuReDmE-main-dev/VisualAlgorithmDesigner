@@ -36,12 +36,12 @@ export function ValidatedAlgorithmCard({ algorithm, onLoad, onDelete }: Validate
 
       <footer style={actionsStyle}>
         {onLoad && (
-          <button type="button" onClick={() => onLoad(algorithm)} style={buttonStyle}>
+          <button type="button" onClick={() => onLoad(algorithm)} style={buttonStyle} aria-label={`Load algorithm ${algorithm.name}`}>
             Load
           </button>
         )}
         {onDelete && (
-          <button type="button" aria-label={`Delete algorithm ${algorithm.name}`} onClick={() => onDelete(algorithm.id)} style={dangerButtonStyle}>
+          <button type="button" onClick={() => onDelete(algorithm.id)} style={dangerButtonStyle} aria-label={`Delete algorithm ${algorithm.name}`}>
             Delete
           </button>
         )}

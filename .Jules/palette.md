@@ -5,3 +5,6 @@
 ## 2024-04-28 - Safely Enhancing Form Accessibility
 **Learning:** While explicitly linking inputs and labels via `htmlFor` and `id` is a best practice, extracting inputs from within their wrapper `<label>` tags can break existing CSS layouts (e.g., flexbox styling that relies on nesting).
 **Action:** Always add the explicit `htmlFor` and `id` attributes, but keep the `<input>` nested inside the `<label>` wrapper to preserve visual styling.
+## 2024-05-24 - Accessibility for Hover-to-Reveal Overlays
+**Learning:** Hover-to-reveal overlays that translate off-screen (`translateY`) remain in the accessibility tree. Keyboard users tabbing into the hidden elements won't trigger standard `onMouseEnter` events, leaving them navigating invisible controls.
+**Action:** Always add `onFocusCapture` and `onBlurCapture` (with `contains` checks on `relatedTarget`) to the parent container of hover-to-reveal overlays so they automatically slide into view when tabbed into.

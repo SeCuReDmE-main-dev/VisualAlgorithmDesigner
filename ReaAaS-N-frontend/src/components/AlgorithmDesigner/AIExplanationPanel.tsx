@@ -29,6 +29,8 @@ export default function AIExplanationPanel({ explanation, loading, error, latenc
       {error && <Alert severity="error">{error}</Alert>}
       <Box
         className={explanation ? 'vad-fade-in' : undefined}
+        aria-live="polite"
+        aria-atomic="true"
         sx={{
           minHeight: 150,
           p: 1.25,
@@ -43,10 +45,10 @@ export default function AIExplanationPanel({ explanation, loading, error, latenc
         </Typography>
       </Box>
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
-        <Button size="small" variant="outlined" disabled={!explanation || loading} onClick={() => onFeedback('helpful')}>
+        <Button size="small" variant="outlined" disabled={!explanation || loading} aria-label="Mark explanation as helpful" onClick={() => onFeedback('helpful')}>
           Helpful
         </Button>
-        <Button size="small" variant="outlined" disabled={!explanation || loading} onClick={() => onFeedback('unclear')}>
+        <Button size="small" variant="outlined" disabled={!explanation || loading} aria-label="Mark explanation as unclear" onClick={() => onFeedback('unclear')}>
           Unclear
         </Button>
       </Box>

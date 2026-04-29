@@ -34,6 +34,7 @@ function createId() {
 }
 
 let catalogCache: ValidatedAlgorithmRecord[] | null = null;
+let catalogMapCache: Map<string, ValidatedAlgorithmRecord> | null = null;
 
 function readCatalog(): ValidatedAlgorithmRecord[] {
   if (catalogCache !== null) {
@@ -60,6 +61,7 @@ function readCatalog(): ValidatedAlgorithmRecord[] {
 function writeCatalog(records: ValidatedAlgorithmRecord[]) {
   localStorage.setItem(VALIDATED_ALGORITHMS_STORAGE_KEY, JSON.stringify(records));
   catalogCache = records;
+  catalogMapCache = null;
 }
 
 export function isPromotionEligible(evaluation: Pick<PipelineEvaluation, 'coherenceScore'> | null | undefined) {
@@ -71,7 +73,14 @@ export function listValidatedAlgorithms() {
 }
 
 export function getValidatedAlgorithm(id: string) {
-  return readCatalog().find((record) => record.id === id) ?? null;
+  if (catalogMapCache === null) {
+    catalogMapCache = new Map();
+    for (const record of readCatalog()) {
+      catalogMapCache.set(record.id, record);
+    }
+  }
+
+  return catalogMapCache.get(id) ?? null;
 }
 
 export function promoteValidatedAlgorithm(input: PromoteValidatedAlgorithmInput) {
@@ -129,4 +138,5 @@ export function deleteValidatedAlgorithm(id: string) {
 export function clearValidatedAlgorithms() {
   localStorage.removeItem(VALIDATED_ALGORITHMS_STORAGE_KEY);
   catalogCache = null;
+  catalogMapCache = null;
 }

@@ -11,7 +11,7 @@ describe('api pipeline helpers', () => {
     vi.unstubAllGlobals();
   });
 
-  it('posts explain requests with X-Session-Id', async () => {
+  it('posts explain requests with credentials included', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ data: { explanation: 'ok' } }),
@@ -23,7 +23,7 @@ describe('api pipeline helpers', () => {
       '/api/ai/explain-pipeline',
       expect.objectContaining({
         method: 'POST',
-        headers: expect.objectContaining({ 'X-Session-Id': 'session-123' }),
+        credentials: 'include',
       }),
     );
   });
