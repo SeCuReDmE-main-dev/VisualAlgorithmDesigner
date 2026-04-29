@@ -90,7 +90,7 @@ export function ModeSelectionDialog({ open, onSelect, onPlayground, onWorkbench 
               },
             }}
           >
-            <Typography variant="h4" component="span" role="img" aria-hidden="true">
+            <Typography variant="h4" component="span" aria-hidden="true">
               🎮
             </Typography>
             <Typography variant="subtitle1" fontWeight={700}>
@@ -120,7 +120,7 @@ export function ModeSelectionDialog({ open, onSelect, onPlayground, onWorkbench 
               },
             }}
           >
-            <Typography variant="h4" component="span" role="img" aria-hidden="true">
+            <Typography variant="h4" component="span" aria-hidden="true">
               🔧
             </Typography>
             <Typography variant="subtitle1" fontWeight={700}>

@@ -59,38 +59,34 @@ export default function AlgorithmDesignerPage() {
   });
 
   const selectedNode = useMemo(() => nodes.find((node) => node.id === selectedNodeId) ?? null, [nodes, selectedNodeId]);
-  const pipelinePayload = useMemo(
-    () => ({
-      nodes: nodes.map(toPipelinePayloadNode),
-      edges: edges.map((edge) => ({
-        id: edge.id,
-        source: edge.source,
-        target: edge.target,
-        animated: edge.animated,
-      })),
-    }),
-    [edges, nodes],
-  );
+  const buildPipelinePayload = useCallback(() => ({
+    nodes: nodes.map(toPipelinePayloadNode),
+    edges: edges.map((edge) => ({
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+      animated: edge.animated,
+    })),
+  }), [nodes, edges]);
 
   const updateParam = useCallback((nodeId: string, key: string, value: unknown) => {
-    setNodes((current) =>
-      current.map((node) => {
-        if (node.id !== nodeId) {
-          return node;
-        }
+    setNodes((current) => {
+      const index = current.findIndex((node) => node.id === nodeId);
+      if (index === -1) return current;
 
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            params: {
-              ...(node.data.params ?? {}),
-              [key]: value,
-            },
+      const newNodes = [...current];
+      newNodes[index] = {
+        ...newNodes[index],
+        data: {
+          ...newNodes[index].data,
+          params: {
+            ...(newNodes[index].data.params ?? {}),
+            [key]: value,
           },
-        };
-      }),
-    );
+        },
+      };
+      return newNodes;
+    });
   }, []);
 
   const runExplain = useCallback(async () => {
@@ -103,7 +99,7 @@ export default function AlgorithmDesignerPage() {
     const startedAt = performance.now();
 
     try {
-      const result = await explainPipeline({ ...pipelinePayload, focusNodeId: selectedNode.id, securityProfile });
+      const result = await explainPipeline({ ...buildPipelinePayload(), focusNodeId: selectedNode.id, securityProfile });
       setExplanation(result.explanation);
       setLatencyMs(Math.round(performance.now() - startedAt));
     } catch (error) {
@@ -111,13 +107,13 @@ export default function AlgorithmDesignerPage() {
     } finally {
       setExplanationLoading(false);
     }
-  }, [pipelinePayload, securityProfile, selectedNode]);
+  }, [buildPipelinePayload, securityProfile, selectedNode]);
 
   const runEvaluate = useCallback(async () => {
     setEvaluationLoading(true);
 
     try {
-      const result = await evaluatePipeline({ ...pipelinePayload, securityProfile });
+      const result = await evaluatePipeline({ ...buildPipelinePayload(), securityProfile });
       setEvaluation(result);
       setToast(`Pipeline coherence: ${result.coherenceScore}%`);
     } catch (error) {
@@ -125,13 +121,12 @@ export default function AlgorithmDesignerPage() {
     } finally {
       setEvaluationLoading(false);
     }
-  }, [pipelinePayload, securityProfile]);
+  }, [buildPipelinePayload, securityProfile]);
 
   const generateReport = useCallback(async () => {
     const report = await generateComplianceReport({
       pipelineName: 'VAD pipeline',
-      nodes: pipelinePayload.nodes,
-      edges: pipelinePayload.edges,
+      ...buildPipelinePayload(),
       securityProfile,
       evaluation: evaluation ?? undefined,
     });
@@ -143,7 +138,7 @@ export default function AlgorithmDesignerPage() {
     link.click();
     URL.revokeObjectURL(url);
     setToast(`Compliance report generated: ${report.sha256.slice(0, 12)}`);
-  }, [evaluation, pipelinePayload.edges, pipelinePayload.nodes, securityProfile]);
+  }, [evaluation, buildPipelinePayload, securityProfile]);
 
   const savePipeline = useCallback(
     (metadata: { name: string; description: string }) => {
@@ -229,6 +224,7 @@ export default function AlgorithmDesignerPage() {
                   onClearRequested={clearPipeline}
                 />
               </ReactFlowProvider>
+              {libraryVisible && <SubpipelineLibraryPanel onSaveRequested={() => setSaveOpen(true)} />}
             </Box>
           </Panel>
           <PanelResizeHandle className="vad-resize-handle" />
@@ -257,11 +253,10 @@ export default function AlgorithmDesignerPage() {
         </PanelGroup>
       </Box>
       <Box>
-        {libraryVisible && <SubpipelineLibraryPanel />}
         <StatusBar nodeCount={nodes.length} edgeCount={edges.length} latencyMs={latencyMs} hasLoop={loops.hasLoop} coherenceScore={evaluation?.coherenceScore} />
       </Box>
       <PipelineSaveDialog open={saveOpen} nodeCount={nodes.length} edgeCount={edges.length} onClose={() => setSaveOpen(false)} onSave={savePipeline} />
-      <PipelinePromoteDialog open={promoteOpen} nodes={pipelinePayload.nodes} edges={pipelinePayload.edges} evaluation={evaluation} onClose={() => setPromoteOpen(false)} onPromoted={() => setToast('Pipeline promoted.')} />
+<PipelinePromoteDialog open={promoteOpen} {...(promoteOpen ? buildPipelinePayload() : { nodes: [], edges: [] })} evaluation={evaluation} onClose={() => setPromoteOpen(false)} onPromoted={() => setToast('Pipeline promoted.')} />
       <TutorialOverlay open={tutorialOpen} onClose={() => setTutorialOpen(false)} />
       <Snackbar open={Boolean(toast)} autoHideDuration={2400} message={toast} onClose={() => setToast('')} />
     </Box>
