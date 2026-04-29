@@ -1,4 +1,3 @@
-import { getOrCreateSessionId } from './sessionManager';
 import { SecurityProfileId } from './securityProfileCatalog';
 
 export interface PipelineNodePayload {
@@ -82,14 +81,13 @@ async function readJsonResponse<T>(response: Response): Promise<T> {
 }
 
 async function postPipeline<TResponse>(endpoint: string, payload: object): Promise<TResponse> {
-  const sessionId = getOrCreateSessionId();
   const response = await fetch(endpoint, {
     method: 'POST',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      'X-Session-Id': sessionId,
     },
-    body: JSON.stringify({ ...payload, sessionId }),
+    body: JSON.stringify(payload),
   });
 
   return readJsonResponse<TResponse>(response);
