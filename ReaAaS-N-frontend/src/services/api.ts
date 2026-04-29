@@ -62,6 +62,53 @@ export interface PipelineEvaluation {
   };
 }
 
+export interface MLJobCompatibility {
+  status: 'h2o_compatible' | 'memory_only' | 'unsupported';
+  reason: string;
+  h2oAlgorithms: string[];
+  supportedNodeIds: string[];
+  unsupportedNodeIds: string[];
+  mojoAvailable: boolean;
+}
+
+export interface CreateMLJobPayload {
+  nodes: PipelineNodePayload[];
+  edges: PipelineEdgePayload[];
+  securityProfile?: SecurityProfileId;
+  mode?: 'h2o' | 'fallback';
+}
+
+export interface CreateMLJobResult {
+  jobId: string;
+  status: 'queued' | 'running' | 'succeeded' | 'failed' | 'canceled';
+  executionMode: 'h2o' | 'fallback';
+  compatibility: MLJobCompatibility;
+  message: string;
+}
+
+export interface MLJob extends Omit<CreateMLJobResult, 'jobId'> {
+  id: string;
+  request: Record<string, unknown>;
+  metrics?: Record<string, unknown> | null;
+  error?: string | null;
+  createdAt: number;
+  updatedAt: number;
+  completedAt?: number | null;
+}
+
+export interface MLJobArtifacts {
+  jobId: string;
+  leaderboard: Array<Record<string, unknown>>;
+  metrics: Record<string, unknown>;
+  memoryTemplate: {
+    title: string;
+    content: string;
+  };
+  mojoAvailable: boolean;
+  runtime?: Record<string, unknown> | null;
+  createdAt?: number;
+}
+
 async function readJsonResponse<T>(response: Response): Promise<T> {
   const json = await response.json().catch(() => ({}));
 
@@ -93,10 +140,35 @@ async function postPipeline<TResponse>(endpoint: string, payload: object): Promi
   return readJsonResponse<TResponse>(response);
 }
 
+async function getJson<TResponse>(endpoint: string): Promise<TResponse> {
+  const response = await fetch(endpoint, {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  return readJsonResponse<TResponse>(response);
+}
+
 export function explainPipeline(payload: ExplainPipelinePayload) {
   return postPipeline<ExplainPipelineResult>('/api/ai/explain-pipeline', payload);
 }
 
 export function evaluatePipeline(payload: EvaluatePipelinePayload) {
   return postPipeline<PipelineEvaluation>('/api/ai/evaluate-pipeline', payload);
+}
+
+export function createMLJob(payload: CreateMLJobPayload) {
+  return postPipeline<CreateMLJobResult>('/api/ml/jobs', payload);
+}
+
+export function getMLJob(jobId: string) {
+  return getJson<MLJob>(`/api/ml/jobs/${jobId}`);
+}
+
+export function cancelMLJob(jobId: string) {
+  return postPipeline<MLJob>(`/api/ml/jobs/${jobId}/cancel`, {});
+}
+
+export function getMLJobArtifacts(jobId: string) {
+  return getJson<MLJobArtifacts>(`/api/ml/jobs/${jobId}/artifacts`);
 }

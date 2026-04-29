@@ -6,6 +6,9 @@ const session = require('express-session');
 const SQLiteStore = require('connect-sqlite3')(session);
 const { SQLiteMemoryRepository } = require('./services/sqliteMemoryRepository');
 const { AIPipelineService } = require('./services/aiPipelineService');
+const { SQLiteMLJobRepository } = require('./services/sqliteMLJobRepository');
+const { H2OLocalRuntime } = require('./services/h2oLocalRuntime');
+const { MLJobService } = require('./services/mlJobService');
 require('dotenv').config();
 
 const app = express();
@@ -13,6 +16,14 @@ const PORT = process.env.PORT || 3001; // Backend port
 const dbPath = path.resolve(__dirname, process.env.DB_PATH || './data/memory.sqlite');
 const memoryRepository = new SQLiteMemoryRepository(dbPath);
 const aiPipelineService = new AIPipelineService({ memoryRepository });
+const mlJobDbPath = path.resolve(__dirname, process.env.ML_JOB_DB_PATH || './data/ml-jobs.sqlite');
+const mlJobRepository = new SQLiteMLJobRepository(mlJobDbPath);
+const h2oRuntime = new H2OLocalRuntime();
+const mlJobService = new MLJobService({
+  repository: mlJobRepository,
+  runtime: h2oRuntime,
+  memoryRepository,
+});
 
 const trustProxyEnv = process.env.TRUST_PROXY;
 let trustProxy = false;
@@ -155,6 +166,39 @@ app.post('/api/memory/feedback', asyncHandler(async (req, res) => {
   });
 }));
 
+app.post('/api/ml/jobs', evaluateLimiter, asyncHandler(async (req, res) => {
+  const data = await mlJobService.createJob(req.body, {
+    sessionId: getSessionId(req),
+    authorization: req.get('Authorization'),
+  });
+
+  res.status(201).json({
+    status: 'success',
+    data,
+  });
+}));
+
+app.get('/api/ml/jobs/:id', asyncHandler(async (req, res) => {
+  res.json({
+    status: 'success',
+    data: mlJobService.getJob(req.params.id),
+  });
+}));
+
+app.post('/api/ml/jobs/:id/cancel', asyncHandler(async (req, res) => {
+  res.json({
+    status: 'success',
+    data: mlJobService.cancelJob(req.params.id),
+  });
+}));
+
+app.get('/api/ml/jobs/:id/artifacts', asyncHandler(async (req, res) => {
+  res.json({
+    status: 'success',
+    data: mlJobService.getArtifacts(req.params.id),
+  });
+}));
+
 // --- Catch-all for Frontend Routing ---
 // For any other GET request, serve the React app's index.html
 // This allows client-side routing to work.
@@ -183,10 +227,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
+  });
+}
 
 function getSessionId(req) {
   return req.session ? req.session.id : 'anonymous';
@@ -195,3 +240,10 @@ function getSessionId(req) {
 function asyncHandler(handler) {
   return (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
 }
+
+module.exports = {
+  app,
+  aiPipelineService,
+  memoryRepository,
+  mlJobService,
+};
