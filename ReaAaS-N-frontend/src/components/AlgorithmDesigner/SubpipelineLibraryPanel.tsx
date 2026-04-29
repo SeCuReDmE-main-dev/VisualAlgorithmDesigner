@@ -102,7 +102,7 @@ export default function SubpipelineLibraryPanel({ sessionMode, onSaveRequested }
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-text)', outline: 'none' }}
           />
-          <Button variant="contained" size="small" onClick={onSaveRequested} sx={{ textTransform: 'none', fontWeight: 700 }}>
+          <Button variant="contained" size="small" onClick={onSaveRequested} disabled={!onSaveRequested} sx={{ textTransform: 'none', fontWeight: 700 }}>
             + Save Now
           </Button>
           <IconButton aria-label={isPinned ? "Unpin panel" : "Pin panel"} size="small" onClick={() => setIsPinned(!isPinned)} sx={{ color: isPinned ? 'var(--color-primary)' : 'var(--color-text-muted)' }}>
