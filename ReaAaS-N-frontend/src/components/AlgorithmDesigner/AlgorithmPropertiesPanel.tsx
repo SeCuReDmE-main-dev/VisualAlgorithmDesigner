@@ -4,6 +4,7 @@ import type { PipelineEvaluation, PipelineNodePayload } from '../../services/api
 import type { PipelineStatus } from '../../hooks/usePipelineStatus';
 import { getAlgorithmById } from '../../services/algorithmCatalog';
 import type { AlgorithmNodeData } from './AlgorithmNode';
+import '../../styles/properties.css';
 
 interface AlgorithmPropertiesPanelProps {
   selectedNode: Node<AlgorithmNodeData> | null;
@@ -43,12 +44,12 @@ export default function AlgorithmPropertiesPanel({
   const canEvaluate = status === 'ready' || status === 'single-node';
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+    <Box className="properties-panel" sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
       <Box>
         <Typography variant="h6" sx={{ fontWeight: 800 }}>
           Properties
         </Typography>
-        <Typography variant="body2" sx={{ color: 'var(--color-text-muted)' }}>
+        <Typography variant="body2">
           Pipeline status: {status}
         </Typography>
       </Box>
@@ -61,29 +62,29 @@ export default function AlgorithmPropertiesPanel({
         </Button>
       </Stack>
       {evaluation && (
-        <Box sx={{ p: 1, border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)' }}>
-          <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.75 }}>
+        <Box sx={{ p: 1.5, border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', background: 'rgba(0,0,0,0.2)' }}>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
             <Chip size="small" color={evaluation.coherenceScore >= 93 ? 'success' : 'warning'} label={`${evaluation.coherenceScore}%`} />
             <Chip size="small" variant="outlined" label={evaluation.recommendation} />
           </Stack>
-          <Typography variant="caption" sx={{ color: 'var(--color-text-muted)' }}>
+          <Typography variant="caption">
             {evaluation.explanation}
           </Typography>
         </Box>
       )}
       <Divider />
       {!selectedNode && (
-        <Typography variant="body2" sx={{ color: 'var(--color-text-muted)' }}>
+        <Typography variant="body2" sx={{ fontStyle: 'italic', opacity: 0.8 }}>
           Select a node on the canvas to edit algorithm parameters.
         </Typography>
       )}
       {selectedNode && nodeData && (
-        <Stack spacing={1.25}>
+        <Stack spacing={2}>
           <Box>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '1.1rem', mb: 0.5 }}>
               {nodeData.label}
             </Typography>
-            <Typography variant="caption" sx={{ color: 'var(--color-text-muted)' }}>
+            <Typography variant="caption">
               {nodeData.description || algorithm?.description || nodeData.algorithmId}
             </Typography>
           </Box>
@@ -100,6 +101,11 @@ export default function AlgorithmPropertiesPanel({
                   value={String(value)}
                   onChange={(event) => onParamChange(selectedNode.id, param.key, coerceParamValue(event.target.value, param.type))}
                   helperText={param.description}
+                  SelectProps={{
+                    MenuProps: {
+                      classes: { paper: 'glass-menu-paper' }
+                    }
+                  }}
                 >
                   {options.map((option) => (
                     <MenuItem key={option} value={option}>
@@ -124,8 +130,8 @@ export default function AlgorithmPropertiesPanel({
             );
           })}
           {!algorithm && (
-            <Typography variant="caption" sx={{ color: 'var(--color-text-muted)' }}>
-              This mechanism has no editable H2O parameters yet.
+            <Typography variant="caption">
+              This mechanism has no editable parameters yet.
             </Typography>
           )}
         </Stack>
