@@ -3,20 +3,15 @@ import {
   addEdge,
   applyEdgeChanges,
   applyNodeChanges,
-  Background,
-  BackgroundVariant,
-  Controls,
   Edge,
   EdgeChange,
-  MiniMap,
   Node,
   NodeChange,
-  ReactFlow,
   useReactFlow,
 } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
 import { v4 as uuidv4 } from 'uuid';
-import AlgorithmNode, { AlgorithmNodeData } from './AlgorithmNode';
+import SpatialCanvas from '../SpatialCanvas';
+import { AlgorithmNodeData } from './AlgorithmNode';
 import CanvasContextMenu from './CanvasContextMenu';
 import CanvasEmptyState from './CanvasEmptyState';
 import { getAlgorithmById, getDefaultParams } from '../../services/algorithmCatalog';
@@ -31,8 +26,6 @@ interface AlgorithmCanvasProps {
   onSaveRequested: () => void;
   onClearRequested: () => void;
 }
-
-const nodeTypes = { algorithmNode: AlgorithmNode };
 
 function buildAlgorithmNode(algorithmId: string, position: { x: number; y: number }, override?: Partial<AlgorithmNodeData>): Node<AlgorithmNodeData> {
   const algorithm = getAlgorithmById(algorithmId);
@@ -222,21 +215,17 @@ export default function AlgorithmCanvas({ nodes, edges, setNodes, setEdges, onSe
           <span>Release to place</span>
         </div>
       )}
-      {nodes.length === 0 && <CanvasEmptyState />}
-      <ReactFlow
+      <SpatialCanvas
         nodes={reactFlowNodes}
         edges={edges}
-        nodeTypes={nodeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        onSelectionChange={({ nodes: selectedNodes }) => onSelectedNodeChange(selectedNodes[0]?.id ?? null)}
+        onSelectionChange={onSelectedNodeChange}
         fitView
       >
-        <Background color="var(--color-canvas-dot)" variant={BackgroundVariant.Dots} />
-        <Controls />
-        <MiniMap nodeColor="var(--color-primary)" style={{ background: 'var(--color-minimap-bg)' }} />
-      </ReactFlow>
+        {nodes.length === 0 && <CanvasEmptyState />}
+      </SpatialCanvas>
       <CanvasContextMenu
         open={contextMenu.open}
         x={contextMenu.x}

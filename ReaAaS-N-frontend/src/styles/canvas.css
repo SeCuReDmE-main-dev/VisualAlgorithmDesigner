@@ -1,0 +1,265 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Spatial Canvas — Cosmic Design Tokens (from docs/DESIGN.md)
+   
+   Deep-space canvas background with radial amber glow,
+   glassmorphic UI chrome, and spatial interaction cursors.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ─── Cosmic Canvas Colors ──────────────────────────────────────── */
+  --spatial-bg:              #0D1117;   /* Deep space background */
+  --spatial-amber:           #FFB74D;   /* Amber primary — radial glow center */
+  --spatial-amber-light:     #FFE0B2;   /* Hover states, highlights */
+  --spatial-amber-dark:      #F57C00;   /* Active borders */
+  --spatial-blue:            #4FC3F7;   /* Data sources, inputs */
+  --spatial-teal:            #26C6DA;   /* Outputs, visualizations */
+
+  /* ─── Cosmic Dust (grid dots) ───────────────────────────────────── */
+  --spatial-dot-color:       rgba(255, 255, 255, 0.06);
+  --spatial-dot-color-zoom:  rgba(255, 255, 255, 0.04);
+
+  /* ─── Cursor Tokens ─────────────────────────────────────────────── */
+  --cursor-idle:             grab;
+  --cursor-pan:              grabbing;
+  --cursor-connect:          crosshair;
+
+  /* ─── Glassmorphism (from DESIGN.md) ────────────────────────────── */
+  --glass-bg:                rgba(22, 27, 34, 0.85);
+  --glass-blur:              blur(16px) saturate(180%);
+  --glass-border:            rgba(255, 255, 255, 0.08);
+  --glass-radius:            12px;
+
+  /* ─── Glow / Pulse (from DESIGN.md) ─────────────────────────────── */
+  --glow-soft:               0 0 20px rgba(255, 183, 77, 0.3),
+                              0 0 60px rgba(255, 183, 77, 0.1);
+  --glow-strong:             0 0 30px rgba(255, 183, 77, 0.5),
+                              0 0 80px rgba(255, 183, 77, 0.2);
+
+  /* ─── Animation Tokens ──────────────────────────────────────────── */
+  --ease-out:                cubic-bezier(0, 0, 0.2, 1);
+  --ease-spring:             cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-standard:           cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ─── Status Colors ─────────────────────────────────────────────── */
+  --status-success:          #3FB950;
+  --status-warning:          #D29922;
+  --status-error:            #F85149;
+  --status-info:             #58A6FF;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Spatial Canvas Container
+   ═══════════════════════════════════════════════════════════════════ */
+
+.spatial-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: var(--spatial-bg);
+  overflow: hidden;
+  cursor: var(--cursor-idle);
+
+  /* Radial gradient: subtle amber glow at center → deep space edges */
+  background-image:
+    radial-gradient(
+      ellipse at 50% 50%,
+      rgba(255, 183, 77, 0.05) 0%,
+      rgba(255, 183, 77, 0.025) 25%,
+      rgba(255, 183, 77, 0.008) 50%,
+      transparent 70%,
+      var(--spatial-bg) 100%
+    );
+}
+
+/* ─── ReactFlow Overrides ─────────────────────────────────────────── */
+
+.spatial-canvas .react-flow {
+  background: transparent !important;
+}
+
+.spatial-canvas .react-flow__background {
+  background: transparent !important;
+}
+
+/* Cosmic dust dots — subtler than default */
+.spatial-canvas .react-flow__background pattern circle {
+  fill: var(--spatial-dot-color);
+  transition: fill 200ms var(--ease-out);
+}
+
+.spatial-canvas .react-flow__pane {
+  cursor: var(--cursor-idle);
+}
+
+.spatial-canvas .react-flow__pane.dragging {
+  cursor: var(--cursor-pan);
+}
+
+/* Connection line cursor — crosshair while drawing edges */
+.spatial-canvas .react-flow__connection-line {
+  cursor: var(--cursor-connect);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Glassmorphic UI Chrome
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Controls panel */
+.spatial-canvas .react-flow__controls {
+  border-radius: var(--glass-radius);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.spatial-canvas .react-flow__controls-button {
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border-bottom: 1px solid var(--glass-border);
+  fill: #E6EDF3;
+  transition: background 200ms var(--ease-out);
+}
+
+.spatial-canvas .react-flow__controls-button:hover {
+  background: rgba(255, 183, 77, 0.12);
+}
+
+.spatial-canvas .react-flow__controls-button:last-child {
+  border-bottom: none;
+}
+
+.spatial-canvas .react-flow__controls-button svg {
+  fill: #E6EDF3;
+  max-width: 14px;
+  max-height: 14px;
+}
+
+/* Minimap */
+.spatial-canvas .react-flow__minimap {
+  border-radius: var(--glass-radius);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Node selection box */
+.spatial-canvas .react-flow__selection {
+  border: 1px solid rgba(255, 183, 77, 0.4);
+  background: rgba(255, 183, 77, 0.06);
+}
+
+/* Edge styling — cosmic theme */
+.spatial-canvas .react-flow__edge-path {
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 1.5px;
+  transition: stroke 200ms var(--ease-out);
+}
+
+.spatial-canvas .react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--spatial-amber);
+  stroke-width: 2.5px;
+}
+
+.spatial-canvas .react-flow__edge:hover .react-flow__edge-path {
+  stroke: rgba(255, 183, 77, 0.5);
+}
+
+/* Edge animated (data flow) */
+.spatial-canvas .react-flow__edge.animated .react-flow__edge-path {
+  stroke: var(--spatial-amber);
+  stroke-dasharray: 5;
+  animation: spatial-edge-flow 1.5s linear infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Utility Classes (from DESIGN.md)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+}
+
+.node-glow {
+  box-shadow: var(--glow-soft);
+  transition: box-shadow 300ms var(--ease-out);
+}
+
+.node-glow:hover {
+  box-shadow: var(--glow-strong);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Keyframes (from DESIGN.md)
+   ═══════════════════════════════════════════════════════════════════ */
+
+@keyframes spatial-edge-flow {
+  0%, 100% {
+    opacity: 0.4;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    opacity: 1;
+    stroke-dashoffset: -20;
+  }
+}
+
+@keyframes spatial-pulse-flow {
+  0%, 100% {
+    opacity: 0.4;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    opacity: 1;
+    stroke-dashoffset: -20;
+  }
+}
+
+@keyframes spatial-node-spawn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes spatial-node-delete {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes spatial-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 183, 77, 0.3),
+                0 0 60px rgba(255, 183, 77, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 183, 77, 0.5),
+                0 0 80px rgba(255, 183, 77, 0.2);
+  }
+}
+
+/* ─── Edge pulse utility class ────────────────────────────────────── */
+.edge-pulse {
+  animation: spatial-pulse-flow 2s ease-in-out infinite;
+}
