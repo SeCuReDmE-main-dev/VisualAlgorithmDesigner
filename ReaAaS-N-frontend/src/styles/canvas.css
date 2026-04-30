@@ -1,0 +1,10 @@
+/* Cosmic space background for the algorithm designer canvas */
+.alg-canvas-root .react-flow {
+  background: radial-gradient(circle at center, rgba(255, 183, 77, 0.05) 0%, #0D1117 100%);
+  background-color: #0D1117;
+}
+
+/* Ensure React Flow's native background component doesn't obscure the gradient */
+.alg-canvas-root .react-flow__background {
+  background-color: transparent !important;
+}
