@@ -15,6 +15,7 @@ import { AlgorithmNodeData } from './AlgorithmNode';
 import CanvasContextMenu from './CanvasContextMenu';
 import CanvasEmptyState from './CanvasEmptyState';
 import '../../styles/canvas.css';
+import '../../styles/edges.css';
 import { getAlgorithmById, getDefaultParams } from '../../services/algorithmCatalog';
 import { useDnD } from '../../contexts/DnDContext';
 
