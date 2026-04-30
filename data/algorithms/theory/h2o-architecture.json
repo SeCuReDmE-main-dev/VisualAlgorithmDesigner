@@ -9,7 +9,7 @@
     "mapReduce": "Distributed computation using map-reduce paradigm",
     "columnarStorage": "Data stored by columns for efficient compression and access",
     "h2oFrame": "Distributed data frame (analogous to R/Pandas DataFrame)",
-    "autoMl": "Automated machine learning pipeline",\n    "explanation": "H2O distributes data across nodes in compressed columnar format. Algorithms execute in parallel using fork-join parallelism. Results aggregated across nodes."
+    "autoMl": "Automated machine learning pipeline", "explanation": "H2O distributes data across nodes in compressed columnar format. Algorithms execute in parallel using fork-join parallelism. Results aggregated across nodes."
   },
   "whenToUse": {
     "idealScenarios": [
