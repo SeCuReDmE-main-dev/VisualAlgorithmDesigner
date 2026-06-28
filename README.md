@@ -1,5 +1,8 @@
 # Visual Algorithm Designer (VAD)
 
+> **Development status.** This school tool is currently tagged **pre-alpha / in development**. External PRs are not evaluated for merge until the maintained tool reaches a stable, fully functional 100% classroom release after the pre-alpha phase. Issues and forks remain allowed, but official PR review is paused until that stability gate is met.
+
+
 > **Design, evaluate, and validate AI pipelines visually — from educational playground to professional compliance workbench.**
 
 > **Official school governance.** VAD is for training students and teachers to understand, design, and review algorithms. It is not a tool for theft, fraud, bypass, abuse, or criminal automation. The maintained classroom route supports Codex/OpenAI or Antigravity/Gemini only. See [SCHOOL_TOOL_GOVERNANCE.md](SCHOOL_TOOL_GOVERNANCE.md) and [AGENTS.md](AGENTS.md).
@@ -199,3 +202,5 @@ All architectural decisions are documented in [docs/plan.md](docs/plan.md). Do n
 ## License
 
 MIT
+
+
