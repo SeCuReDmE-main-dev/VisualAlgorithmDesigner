@@ -208,12 +208,12 @@ export const SECURITY_TEMPLATE_CATALOG: SubpipelineTemplate[] = [
     category: 'security',
     description: 'Defensive integrity chain with profile-aware evaluation and audit report output.',
     coherenceScore: 96,
-    tags: ['security', 'integrity', 'efvp'],
+    tags: ['security', 'integrity', 'review-report'],
     loopCompatible: true,
     nodes: [
       { id: 'input-trace', type: 'algorithmNode', position: { x: 0, y: 0 }, data: { algorithmId: 'data_frame', label: 'Evidence Trace', category: 'data' } },
       { id: 'integrity-check', type: 'algorithmNode', position: { x: 260, y: -40 }, data: { algorithmId: 'integrity_check', label: 'Integrity Check', category: 'validation' } },
-      { id: 'audit-report', type: 'algorithmNode', position: { x: 520, y: 0 }, data: { algorithmId: 'compliance_report', label: 'EFVP Report', category: 'deployment' } },
+      { id: 'audit-report', type: 'algorithmNode', position: { x: 520, y: 0 }, data: { algorithmId: 'compliance_report', label: 'Review Report', category: 'deployment' } },
     ],
     edges: [
       { id: 'trace-integrity', source: 'input-trace', target: 'integrity-check', animated: true },

@@ -28,7 +28,7 @@ describe('generateComplianceReport', () => {
 
     const report = await generateComplianceReport(input);
 
-    expect(report.title).toBe('EFVP - Test Pipeline');
+    expect(report.title).toBe('Review Report - Test Pipeline');
     expect(report.status).toBe('pass');
     expect(report.complianceScore).toBe(95);
     expect(report.generatedAt).toBe('2023-01-01T00:00:00.000Z');
@@ -36,7 +36,7 @@ describe('generateComplianceReport', () => {
     expect(report.sha256).toMatch(/^[a-f0-9]{64}$/);
 
     // Check markdown inclusion
-    expect(report.markdown).toContain('# EFVP - Test Pipeline');
+    expect(report.markdown).toContain('# Review Report - Test Pipeline');
     expect(report.markdown).toContain('Prompt hash: abc123hash');
     expect(report.markdown).toContain('Weak points: None');
     expect(report.markdown).toContain('Strong points: Fast; Secure');
@@ -183,7 +183,7 @@ describe('generateComplianceReport', () => {
         edges: [],
         securityProfile: 'general',
       });
-      expect(report.title).toBe('EFVP - Visual Algorithm Designer pipeline');
+      expect(report.title).toBe('Review Report - Visual Algorithm Designer pipeline');
     });
 
     it('generates a new generatedAt date if absent', async () => {

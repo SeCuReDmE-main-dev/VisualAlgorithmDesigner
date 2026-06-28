@@ -7,8 +7,10 @@ The reason for excluding generic local AI routes from official school mode is st
 
 > **Development status.** This school tool is currently tagged **pre-alpha / in development**. External PRs are not evaluated for merge until the maintained tool reaches a stable, fully functional 100% classroom release after the pre-alpha phase. Issues and forks remain allowed, but official PR review is paused until that stability gate is met.
 
+> **SecuredMe Education visual theme.** This pre-alpha school tool uses the shared SecuredMe Education open-source visual identity. See [assets/securedme/education](assets/securedme/education) for light/dark logo and thin banner assets.
 
-> **Design, evaluate, and validate AI pipelines visually — from educational playground to professional compliance workbench.**
+
+> **Design, inspect, and learn algorithm pipelines visually — from classroom playground to supervised review workbench.**
 
 > **Official school governance.** VAD is for training students and teachers to understand, design, and review algorithms. It is not a tool for theft, fraud, bypass, abuse, or criminal automation. The maintained classroom route supports Codex/OpenAI or Antigravity/Gemini only. See [SCHOOL_TOOL_GOVERNANCE.md](SCHOOL_TOOL_GOVERNANCE.md) and [AGENTS.md](AGENTS.md).
 
@@ -23,28 +25,28 @@ The reason for excluding generic local AI routes from official school mode is st
 
 ## What is VAD?
 
-Visual Algorithm Designer is a full-stack web application that lets you **build algorithm pipelines by dragging and dropping nodes on a canvas**, then **evaluate their coherence using AI** (Groq / llama-3.1-8b-instant), and optionally **generate compliance reports** aligned with privacy regulations (Loi 25 / ÉFVP).
+Visual Algorithm Designer is a school-focused web application that lets students and teachers **build algorithm pipelines by dragging and dropping nodes on a canvas**, inspect their structure, and prepare review notes through the maintained school routes: Codex/OpenAI or Antigravity/Gemini. The in-app backend does not require a classroom API key; when no approved external school assistant is attached, it falls back to deterministic local guidance.
 
-The application targets two user profiles on a single spectrum:
+The application targets two supervised learning profiles on a single spectrum:
 
 | Mode | User | Goal |
 |------|------|------|
 | **Playground** | Students, makers, game designers | Understand algorithmic logic with friendly vocabulary and visual feedback |
-| **Workbench** | Data scientists, ML engineers, compliance officers | Design production-grade H2O.ai pipelines with security profiles and audit reports |
+| **Review Workbench** | Teachers, mentors, advanced learners | Review pipeline structure, traceability, and safety boundaries before classroom reuse |
 
 ---
 
 ## Core Features
 
-- **Drag-and-drop canvas** powered by [@xyflow/react](https://reactflow.dev/) — build pipelines by connecting algorithm nodes (GBM, Random Forest, XGBoost, Deep Learning, GLM, Stacked Ensemble)
-- **AI explanation** — select any node and get a plain-language explanation of what it does and why it fits your pipeline, streamed from Groq
+- **Drag-and-drop canvas** powered by [@xyflow/react](https://reactflow.dev/) — build pipelines by connecting algorithm nodes and learning concepts visually
+- **School guidance panel** — select any node and get plain-language guidance from the local fallback or from an approved external school assistant workflow
 - **Pipeline evaluation** — submit your full pipeline for a `coherenceScore` (0–100); pipelines scoring ≥ 93 can be promoted to the validated catalog
 - **Subpipeline library** — 5 pre-built templates (ML Classique, NLP Stack, Anomaly Detection, Time Series, Compliance Pipeline) draggable as prefab node groups
 - **Validated algorithm catalog** — locally persisted list of your promoted pipelines with loop detection (DFS) and version tracking
-- **Security profiles** — 7 profiles (Standard, Red Team, Privacy-First, Regulatory, Minimal, Research, Adversarial) that adjust AI prompt behavior and pipeline validation thresholds
-- **Compliance report generator** — produces ÉFVP-lite reports with SHA-256 hash for auditable pipeline documentation
-- **Excel export** — download H2O.ai parameter sheets (2-tab `.xlsx`) for any algorithm node via SheetJS
-- **Persistent memory** — AI conversations indexed with BM25 (MiniSearch + SQLite) for context-aware follow-up explanations
+- **Safety profiles** — 7 profiles that adjust review thresholds, warnings, and classroom boundaries
+- **Review report generator** — produces structured review notes with SHA-256 hash for auditable classroom documentation; it is not legal, regulatory, or compliance certification
+- **Excel export** — download algorithm parameter sheets (2-tab `.xlsx`) for selected algorithm nodes via SheetJS
+- **Persistent memory** — local review conversations indexed with BM25 (MiniSearch + SQLite) for context-aware follow-up explanations
 - **Keyboard shortcuts** — `Ctrl+B` toggle palette · `Ctrl+J` toggle AI panel · `Ctrl+S` save pipeline
 
 ---
@@ -63,15 +65,15 @@ VisualAlgorithmDesigner/
 │       ├── services/               # api.ts, algorithmCatalog, subpipelineCatalog
 │       └── styles/                 # palette.css (design tokens)
 │
-├── ReaAaS-N-backend/           # Express 5 + Groq SDK
+├── ReaAaS-N-backend/           # Express 5 + local school runtime hooks
 │   ├── server.js               # Routes: /api/ai/*, /api/memory/*, /api/health
 │   ├── services/
-│   │   ├── aiPipelineService.ts     # Groq prompts, loopback guard, security profiles
+│   │   ├── aiPipelineService.js     # school runtime hook, fallback guidance, loopback guard, safety profiles
 │   │   └── sqliteMemoryRepository.ts # SQLite + MiniSearch BM25 memory
 │   └── data/                   # SQLite database (gitignored)
 │
 └── docs/
-    └── plan.md                 # Source of truth — all architecture decisions (Phases 1-10)
+    └── plan.md                 # Historical planning archive; current school-provider policy is in this README and SCHOOL_TOOL_GOVERNANCE.md
 ```
 
 ---
@@ -87,8 +89,8 @@ VisualAlgorithmDesigner/
 | Drag and drop | @hello-pangea/dnd | 18.0.1 |
 | Routing | react-router-dom | 7.6.1 |
 | Backend | Express | 5.2.0 |
-| AI provider | Groq SDK | 1.1.2 |
-| AI model | llama-3.1-8b-instant | — |
+| School AI route | Codex/OpenAI or Antigravity/Gemini external workflow | browser WebAuth |
+| In-app fallback | deterministic school guidance runtime | local |
 | Memory store | better-sqlite3 + MiniSearch | — |
 | Rate limiting | express-rate-limit | — |
 | Excel export | SheetJS (xlsx) | — |
@@ -99,7 +101,7 @@ VisualAlgorithmDesigner/
 
 - **Node.js** ≥ 20 (LTS)
 - **npm** ≥ 10
-- **Groq API key** — free at https://console.groq.com/keys
+- No classroom API key is required for the maintained local fallback path.
 
 ---
 
@@ -115,17 +117,7 @@ git checkout PaQBoT
 
 ### 2. Configure the backend environment
 
-```bash
-cp ReaAaS-N-backend/.env.example ReaAaS-N-backend/.env
-```
-
-Open `ReaAaS-N-backend/.env` and set your Groq API key:
-
-```env
-GROQ_API_KEY=gsk_your_key_here
-```
-
-All other values have safe defaults for local development.
+No `.env` file is required for the default classroom fallback path. Keep official AI-assisted classroom work in Codex/OpenAI or Antigravity/Gemini browser-authenticated sessions; do not add local model secrets or unsupported provider keys to the maintained school route.
 
 ### 3. Install dependencies
 
@@ -173,7 +165,7 @@ Implementation is tracked through **8 milestones** and **63 GitHub issues** on t
 | **M4** — Subpipeline Library | 5 prefab templates, 4-tab panel, drag-to-expand | #46-#51 | ✅ Complete |
 | **M5** — Evaluation & Promotion | coherenceScore, ≥93% promotion, loop detection | #52-#59 | ✅ Complete |
 | **M6** — UX Polish | Excel export, keyboard shortcuts, tutorial, animations | #60-#66 | ✅ Complete |
-| **M7** — Security & Compliance | 7 security profiles, ÉFVP report, audit hash | #67-#72 | ✅ Complete |
+| **M7** — Safety & Review Reporting | 7 safety profiles, review report, audit hash | #67-#72 | ✅ Complete |
 
 Each issue contains a single testable acceptance criterion. Closing an issue with a commit message containing `Closes #NNN` automatically advances the milestone progress bar.
 
@@ -181,7 +173,7 @@ Each issue contains a single testable acceptance criterion. Closing an issue wit
 
 ## Contributing
 
-> **Phase 10 (M0-M7) is implemented.** The codebase is fully functional. See the Phase 10 completion audit in [docs/plan.md](docs/plan.md) for full details.
+> **Current status.** This repository is pre-alpha / in development. Older planning notes remain available in [docs/plan.md](docs/plan.md), but the current school-provider policy is Codex/OpenAI or Antigravity/Gemini only.
 
 1. Browse open issues — Phase 11 issues (browser QA, deployment, Phase 2 features) will appear in new milestones
 2. Read the issue body for the exact file target and acceptance criterion
@@ -189,7 +181,7 @@ Each issue contains a single testable acceptance criterion. Closing an issue wit
 4. Commit with `Closes #NNN` in the message body
 5. The issue closes automatically and the milestone graph updates
 
-All architectural decisions are documented in [docs/plan.md](docs/plan.md). Do not introduce new dependencies or change the stack without updating that file first.
+Do not introduce new dependencies or change the stack without updating this README, [SCHOOL_TOOL_GOVERNANCE.md](SCHOOL_TOOL_GOVERNANCE.md), and the relevant implementation docs. Historical planning notes in [docs/plan.md](docs/plan.md) may contain superseded provider experiments and are not the current school-provider contract.
 
 ---
 
@@ -200,7 +192,7 @@ All architectural decisions are documented in [docs/plan.md](docs/plan.md). Do n
 | Issues | https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/issues |
 | Milestones | https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/milestones |
 | Project board | https://github.com/users/SeCuReDmE-main-dev/projects/3 |
-| Architecture plan | [docs/plan.md](docs/plan.md) |
+| Historical planning archive | [docs/plan.md](docs/plan.md) |
 
 ---
 

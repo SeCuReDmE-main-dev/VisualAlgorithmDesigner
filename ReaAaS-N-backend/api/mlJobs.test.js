@@ -23,7 +23,6 @@ test('ML jobs API creates, reads, cancels, and returns artifacts in fallback mod
   process.env.H2O_ENABLED = 'false';
   process.env.DB_PATH = tempDbPath('api-memory');
   process.env.ML_JOB_DB_PATH = tempDbPath('api-ml-jobs');
-  process.env.GROQ_API_KEY = '';
 
   const { app } = require('../server');
   const server = http.createServer(app);

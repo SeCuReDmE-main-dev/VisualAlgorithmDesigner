@@ -1,5 +1,4 @@
 const crypto = require('crypto');
-const Groq = require('groq-sdk');
 const { normalizeSessionId } = require('./memoryRepository');
 
 const MAX_ITERATIONS = 5;
@@ -57,11 +56,11 @@ const SECURITY_PROFILES = {
 };
 
 class AIPipelineService {
-  constructor({ memoryRepository, groqClient, model, maxTokens } = {}) {
+  constructor({ memoryRepository, schoolModelRuntime, model, maxTokens } = {}) {
     this.memoryRepository = memoryRepository;
-    this.groqClient = groqClient || (process.env.GROQ_API_KEY ? new Groq({ apiKey: process.env.GROQ_API_KEY }) : null);
-    this.model = model || process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
-    this.maxTokens = Number(maxTokens || process.env.GROQ_MAX_TOKENS || 1024);
+    this.schoolModelRuntime = schoolModelRuntime || null;
+    this.model = model || 'school-heuristic';
+    this.maxTokens = Number(maxTokens || 1024);
   }
 
   async explainPipeline(payload, requestContext = {}) {
@@ -97,7 +96,7 @@ class AIPipelineService {
       { role: 'user', content: buildExplainPrompt(pipeline, traversal, relatedMemories) },
     ];
 
-    const aiText = await this.callGroq(messages);
+    const aiText = await this.callSchoolModelRuntime(messages);
     const explanation = aiText || buildFallbackExplanation(pipeline, traversal, relatedMemories);
 
     this.memoryRepository?.addMemory(sessionId, {
@@ -155,7 +154,7 @@ class AIPipelineService {
       { role: 'user', content: buildEvaluatePrompt(pipeline, traversal, relatedMemories) },
     ];
 
-    const aiText = await this.callGroq(messages);
+    const aiText = await this.callSchoolModelRuntime(messages);
     const evaluation = parseEvaluation(aiText) || buildFallbackEvaluation(pipeline, traversal);
     const compliance = buildComplianceAssessment(evaluation, securityProfile, misuse);
 
@@ -188,19 +187,29 @@ class AIPipelineService {
     return this.memoryRepository.search(sessionId, query, 5);
   }
 
-  async callGroq(messages) {
-    if (!this.groqClient) {
+  async callSchoolModelRuntime(messages) {
+    if (!this.schoolModelRuntime) {
       return null;
     }
 
     try {
-      const completion = await this.groqClient.chat.completions.create({
-        model: this.model,
-        messages,
-        temperature: 0.2,
-        max_tokens: this.maxTokens,
-      });
-      return completion.choices?.[0]?.message?.content?.trim() || null;
+      if (typeof this.schoolModelRuntime.complete === 'function') {
+        const content = await this.schoolModelRuntime.complete(messages, {
+          model: this.model,
+          maxTokens: this.maxTokens,
+          temperature: 0.2,
+        });
+        return typeof content === 'string' ? content.trim() || null : null;
+      }
+      if (typeof this.schoolModelRuntime === 'function') {
+        const content = await this.schoolModelRuntime(messages, {
+          model: this.model,
+          maxTokens: this.maxTokens,
+          temperature: 0.2,
+        });
+        return typeof content === 'string' ? content.trim() || null : null;
+      }
+      return null;
     } catch (_error) {
       return null;
     }

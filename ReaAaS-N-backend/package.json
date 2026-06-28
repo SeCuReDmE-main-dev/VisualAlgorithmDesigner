@@ -19,7 +19,6 @@
     "express": "^5.2.0",
     "express-rate-limit": "^7.5.0",
     "express-session": "^1.19.0",
-    "groq-sdk": "^1.1.2",
     "minisearch": "^7.2.0"
   },
   "devDependencies": {

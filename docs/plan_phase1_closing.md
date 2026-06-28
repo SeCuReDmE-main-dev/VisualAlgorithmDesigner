@@ -1,5 +1,7 @@
 # Rapport de Clôture Phase 1 - Visual Algorithm Designer (VAD)
 
+> **Archive historique.** Ce rapport conserve l'état d'une phase ancienne et peut mentionner des fournisseurs, clés `.env`, modèles, ou formulations de conformité qui ne sont plus le contrat scolaire actuel. La route officielle maintenue est Codex/OpenAI ou Antigravity/Gemini via authentification navigateur, avec fallback local déterministe. Voir `README.md` et `SCHOOL_TOOL_GOVERNANCE.md`.
+
 ## 1. Ce qui a été accompli
 
 La Phase 1 a été complétée avec succès, couvrant l'infrastructure de base (M0), le backend (M1), le frontend (M2), le canevas (M3), la bibliothèque de sous-pipelines (M4), l'évaluation (M5), le polissage UX (M6), la sécurité (M7), et le nettoyage de la Phase 10.2 (M10.2).

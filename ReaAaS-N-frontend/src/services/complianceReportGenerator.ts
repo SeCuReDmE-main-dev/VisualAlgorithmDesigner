@@ -36,7 +36,7 @@ export async function generateComplianceReport(input: ComplianceReportInput): Pr
     Math.min(100, Math.round(input.evaluation?.complianceScore ?? input.evaluation?.coherenceScore ?? 0)),
   );
   const status = complianceScore >= profile.promotionThreshold ? 'pass' : complianceScore >= 70 ? 'review' : 'fail';
-  const title = `EFVP - ${input.pipelineName || 'Visual Algorithm Designer pipeline'}`;
+  const title = `Review Report - ${input.pipelineName || 'Visual Algorithm Designer pipeline'}`;
   const canonical = {
     title,
     generatedAt,
@@ -51,8 +51,8 @@ export async function generateComplianceReport(input: ComplianceReportInput): Pr
     '',
     `Generated: ${generatedAt}`,
     `Profile: ${profile.label}`,
-    `Legal basis: ${profile.legalJustification}`,
-    `Compliance score: ${complianceScore}/100 (${status})`,
+    `Review basis: ${profile.legalJustification}`,
+    `Review score: ${complianceScore}/100 (${status})`,
     `Integrity hash: ${sha256}`,
     '',
     `## ${profile.reportSection}`,

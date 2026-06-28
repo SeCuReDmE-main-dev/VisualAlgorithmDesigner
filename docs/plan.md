@@ -3,6 +3,8 @@
 # Branche: PaQBoT | Repo: SeCuReDmE-main-dev/VisualAlgorithmDesigner
 # Dernière mise à jour: 26 avril 2026
 
+> **Historical archive / superseded provider notes.** This file preserves old planning context and may mention provider experiments such as Groq, llama, H2O, local `.env` keys, or compliance-oriented wording that is no longer the current school-provider contract. The current maintained classroom route is Codex/OpenAI or Antigravity/Gemini through browser-authenticated school workflows, with deterministic local fallback when no approved external assistant is attached. Use `README.md` and `SCHOOL_TOOL_GOVERNANCE.md` as the current public boundary.
+
 ---
 
 ## PHASE 1 — az-research-brainstorm-design
