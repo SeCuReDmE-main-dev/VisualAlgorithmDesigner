@@ -2,6 +2,8 @@
 
 > **Design, evaluate, and validate AI pipelines visually — from educational playground to professional compliance workbench.**
 
+> **Official school governance.** VAD is for training students and teachers to understand, design, and review algorithms. It is not a tool for theft, fraud, bypass, abuse, or criminal automation. The maintained classroom route supports Codex/OpenAI or Antigravity/Gemini only. See [SCHOOL_TOOL_GOVERNANCE.md](SCHOOL_TOOL_GOVERNANCE.md) and [AGENTS.md](AGENTS.md).
+
 [![Issues](https://img.shields.io/github/issues/SeCuReDmE-main-dev/VisualAlgorithmDesigner)](https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/issues)
 [![Milestones](https://img.shields.io/badge/milestones-M0--M7-blue)](https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/milestones)
 [![Project Board](https://img.shields.io/badge/project-kanban-purple)](https://github.com/users/SeCuReDmE-main-dev/projects/3)
