@@ -20,3 +20,4 @@ logs/
 # Local backend data
 ReaAaS-N-backend/data/*
 !ReaAaS-N-backend/data/.gitkeep
+site/
