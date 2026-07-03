@@ -1,5 +1,5 @@
 # start-dev.ps1 — VAD Development Launcher
-# Starts ReaAaS-N-backend (:3001) and ReaAaS-N-frontend (:5173) in parallel windows.
+# Starts RaySight-backend (:3001) and RaySight-frontend (:5173) in parallel windows.
 # Usage: .\start-dev.ps1
 # Plan reference: Phase 0, Task #10
 
@@ -10,7 +10,7 @@ Write-Host "Starting VAD development servers..." -ForegroundColor Cyan
 # Backend — Express :3001
 Start-Process pwsh -ArgumentList "-NoExit", "-Command", "
   `$Host.UI.RawUI.WindowTitle = 'VAD Backend :3001';
-  Set-Location '$root\ReaAaS-N-backend';
+  Set-Location '$root\RaySight-backend';
   Write-Host 'Installing backend dependencies...' -ForegroundColor Yellow;
   npm install --prefer-offline 2>&1 | Out-Null;
   Write-Host 'Starting backend on http://localhost:3001' -ForegroundColor Green;
@@ -20,7 +20,7 @@ Start-Process pwsh -ArgumentList "-NoExit", "-Command", "
 # Frontend — Vite :5173
 Start-Process pwsh -ArgumentList "-NoExit", "-Command", "
   `$Host.UI.RawUI.WindowTitle = 'VAD Frontend :5173';
-  Set-Location '$root\ReaAaS-N-frontend';
+  Set-Location '$root\RaySight-frontend';
   Write-Host 'Installing frontend dependencies...' -ForegroundColor Yellow;
   npm install --prefer-offline 2>&1 | Out-Null;
   Write-Host 'Starting frontend on http://localhost:5173' -ForegroundColor Green;

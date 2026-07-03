@@ -6,7 +6,7 @@
     "XGBoost (eXtreme Gradient Boosting)",
     "LightGBM (Microsoft)",
     "CatBoost (Yandex)",
-    "H2O GBM",
+    "open-source gradient boosting implementations",
     "Kaggle competition winners (structured data)"
   ],
   "how_it_works": "The algorithm starts with a simple model and iteratively adds weak learners (typically shallow decision trees). Each new tree is trained to predict the negative gradient (pseudo-residuals) of the loss function with respect to the current ensemble predictions. A learning rate shrinks each tree's contribution to prevent overfitting.",

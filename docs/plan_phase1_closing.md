@@ -46,7 +46,7 @@ Malgré les jalons terminés, quelques problèmes et limites persistent, qui dev
 * La détection d'abus contextuelle dans l'IA pourrait nécessiter plus de tests approfondis (Tenebris / exceptions).
 
 ### 2.2 Frontend / UX
-* Dans `workbookExporter.ts`, les noms des feuilles Excel générées ne correspondent pas exactement à la spécification (ils utilisent `{label} summary` au lieu de `Paramètres H2O`).
+* Dans `workbookExporter.ts`, les noms des feuilles Excel générées ne correspondent pas exactement à la spécification (ils utilisent `{label} summary` au lieu de `Algorithm parameters`).
 * Le canevas ReactFlow n'est pas complètement adaptatif (responsive) pour des écrans de moins de 375px. Un travail spécifique sur les `breakpoints` est requis pour le mode mobile.
 * Un composant "stub" de phase 2, `VocabularyBridge.tsx`, reste vide et demande une véritable implémentation.
 * Le code contient encore quelques erreurs ESLint (type `any`, unused vars) qui nécessiteront une passe de nettoyage en Phase 12.

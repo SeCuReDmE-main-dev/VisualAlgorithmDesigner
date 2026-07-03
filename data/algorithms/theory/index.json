@@ -108,8 +108,8 @@
         }
       ]
     },
-    "h2oPlatform": {
-      "name": "H2O Platform",
+    "h2oAnnex": {
+      "name": "H2O-3 Data Annex",
       "algorithms": [
         {
           "id": "h2o-architecture",

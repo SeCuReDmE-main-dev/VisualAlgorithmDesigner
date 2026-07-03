@@ -1,0 +1,90 @@
+.properties-panel {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  padding: 16px;
+}
+
+.properties-panel:focus-within {
+  border-color: rgba(23, 105, 232, 0.45);
+  box-shadow: 0 0 0 3px rgba(23, 105, 232, 0.10);
+}
+
+.properties-panel .MuiTypography-root {
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  color: var(--color-text);
+}
+
+.properties-panel .MuiTypography-body2,
+.properties-panel .MuiTypography-caption {
+  color: var(--color-text-muted);
+}
+
+.properties-panel .MuiTextField-root {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.properties-panel .MuiInputBase-root {
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  color: var(--color-text);
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 0.875rem;
+}
+
+.properties-panel .MuiOutlinedInput-notchedOutline {
+  border-color: var(--color-border);
+}
+
+.properties-panel .MuiInputBase-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--color-primary);
+}
+
+.properties-panel .MuiInputLabel-root,
+.properties-panel .MuiFormHelperText-root,
+.properties-panel .MuiSelect-icon {
+  color: var(--color-text-muted);
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+}
+
+.properties-panel .MuiInputLabel-root.Mui-focused {
+  color: var(--color-primary);
+}
+
+.glass-menu-paper {
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+  background: #ffffff !important;
+  color: var(--color-text) !important;
+  box-shadow: var(--shadow-panel) !important;
+}
+
+.glass-menu-paper .MuiMenuItem-root {
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 0.875rem;
+}
+
+.glass-menu-paper .MuiMenuItem-root:hover,
+.glass-menu-paper .MuiMenuItem-root.Mui-selected {
+  background: rgba(23, 105, 232, 0.08) !important;
+}
+
+.properties-panel .MuiButton-root {
+  border-radius: var(--radius-md);
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.properties-panel .MuiDivider-root {
+  border-color: var(--color-border);
+  margin: 16px 0;
+}
+
+.properties-panel .MuiChip-root {
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-weight: 700;
+}

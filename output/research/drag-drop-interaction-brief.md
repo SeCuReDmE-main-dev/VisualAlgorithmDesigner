@@ -5,7 +5,7 @@ Repair and improve drag-and-drop into the Algorithm Designer middle canvas, usin
 # Environment / Stack Context
 
 - confirmed by primary sources: the frontend uses React 18, MUI 6, `@xyflow/react` 12, and has `@hello-pangea/dnd` installed.
-- confirmed by local repo truth: the Algorithm Designer canvas is implemented with React Flow in `ReaAaS-N-frontend/src/components/AlgorithmDesigner/AlgorithmCanvas.tsx`.
+- confirmed by local repo truth: the Algorithm Designer canvas is implemented with React Flow in `RaySight-frontend/src/components/AlgorithmDesigner/AlgorithmCanvas.tsx`.
 - confirmed by local repo truth: palette and template cards previously used native HTML `draggable` events and a simple context payload.
 
 # Research Questions
@@ -45,10 +45,10 @@ Use a pointer-driven drag layer in the existing `DnDContext`:
 
 # Sources
 
-- Local repository: `ReaAaS-N-frontend/package.json`
-- Local repository: `ReaAaS-N-frontend/src/components/AlgorithmDesigner/AlgorithmCanvas.tsx`
-- Local repository: `ReaAaS-N-frontend/src/components/AlgorithmDesigner/AlgorithmPalette.tsx`
-- Local repository: `ReaAaS-N-frontend/src/components/AlgorithmDesigner/SubpipelineCard.tsx`
+- Local repository: `RaySight-frontend/package.json`
+- Local repository: `RaySight-frontend/src/components/AlgorithmDesigner/AlgorithmCanvas.tsx`
+- Local repository: `RaySight-frontend/src/components/AlgorithmDesigner/AlgorithmPalette.tsx`
+- Local repository: `RaySight-frontend/src/components/AlgorithmDesigner/SubpipelineCard.tsx`
 - UX Studio, "The 7 Commandments Of Designing Drag And Drop Interfaces": https://www.uxstudioteam.com/ux-blog/drag-and-drop-interface
 - Eleken, "Drag and drop UI examples and UX tips": https://www.eleken.co/blog-posts/drag-and-drop-ui
 - Codrops, "Drag and Drop Interaction Ideas": https://tympanus.net/codrops/2014/11/11/drag-and-drop-interaction-ideas/

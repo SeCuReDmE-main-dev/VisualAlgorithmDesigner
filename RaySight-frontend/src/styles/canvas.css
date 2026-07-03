@@ -1,0 +1,131 @@
+:root {
+  --spatial-bg: var(--color-canvas-bg);
+  --spatial-dot-color: var(--color-canvas-dot);
+  --spatial-accent: var(--color-primary);
+  --cursor-idle: grab;
+  --cursor-pan: grabbing;
+  --cursor-connect: crosshair;
+  --canvas-control-bg: rgba(255, 255, 255, 0.96);
+  --canvas-control-border: var(--color-border);
+}
+
+.spatial-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  cursor: var(--cursor-idle);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(248, 251, 255, 0.92)),
+    var(--spatial-bg);
+}
+
+.spatial-canvas .react-flow {
+  background: transparent !important;
+}
+
+.spatial-canvas .react-flow__background {
+  background: transparent !important;
+}
+
+.spatial-canvas .react-flow__background pattern circle {
+  fill: var(--spatial-dot-color);
+}
+
+.spatial-canvas .react-flow__pane {
+  cursor: var(--cursor-idle);
+}
+
+.spatial-canvas .react-flow__pane.dragging {
+  cursor: var(--cursor-pan);
+}
+
+.spatial-canvas .react-flow__connection-line {
+  cursor: var(--cursor-connect);
+}
+
+.spatial-canvas .react-flow__controls {
+  overflow: hidden;
+  border: 1px solid var(--canvas-control-border);
+  border-radius: var(--radius-md);
+  background: var(--canvas-control-bg);
+  box-shadow: var(--shadow-node);
+}
+
+.spatial-canvas .react-flow__controls-button {
+  width: 30px;
+  height: 30px;
+  border-bottom: 1px solid var(--canvas-control-border);
+  background: transparent;
+  fill: var(--color-text);
+}
+
+.spatial-canvas .react-flow__controls-button:hover {
+  background: rgba(23, 105, 232, 0.08);
+}
+
+.spatial-canvas .react-flow__controls-button:last-child {
+  border-bottom: none;
+}
+
+.spatial-canvas .react-flow__controls-button svg {
+  fill: var(--color-text);
+  max-width: 14px;
+  max-height: 14px;
+}
+
+.spatial-canvas .react-flow__minimap {
+  overflow: hidden;
+  border: 1px solid var(--canvas-control-border);
+  border-radius: var(--radius-md);
+  background: var(--canvas-control-bg);
+  box-shadow: var(--shadow-node);
+}
+
+.spatial-canvas .react-flow__selection {
+  border: 1px solid rgba(23, 105, 232, 0.45);
+  background: rgba(23, 105, 232, 0.08);
+}
+
+.spatial-canvas .react-flow__edge-path {
+  stroke: rgba(23, 105, 232, 0.42);
+  stroke-width: 1.8px;
+  transition: stroke 160ms ease, stroke-width 160ms ease;
+}
+
+.spatial-canvas .react-flow__edge.selected .react-flow__edge-path,
+.spatial-canvas .react-flow__edge:hover .react-flow__edge-path {
+  stroke: var(--color-primary);
+  stroke-width: 2.6px;
+}
+
+.spatial-canvas .react-flow__edge.animated .react-flow__edge-path {
+  stroke-dasharray: 6;
+  animation: vad-edge-flow 1.2s linear infinite;
+}
+
+.glass-panel {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow-node);
+}
+
+.node-glow {
+  box-shadow: var(--shadow-node);
+}
+
+.node-glow:hover {
+  box-shadow: 0 10px 30px rgba(23, 105, 232, 0.18);
+}
+
+.edge-pulse {
+  animation: vad-edge-flow 1.2s linear infinite;
+}
+
+@keyframes vad-edge-flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}

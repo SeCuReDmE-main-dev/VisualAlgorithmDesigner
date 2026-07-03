@@ -3,11 +3,18 @@ const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
 
-const supabase = createClient('http://127.0.0.1:54321', 'sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz', {
+const supabaseUrl = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+
+if (!supabaseKey) {
+  throw new Error('Set SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY before running this import script.');
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: { autoRefreshToken: false, persistSession: false }
 });
 
-const BASE = 'C:\\Users\\jeans\\Desktop\\vad\\VisualAlgorithmDesigner\\data\\algorithms';
+const BASE = process.env.ALGORITHM_DATA_DIR || path.resolve(__dirname, '..', 'data', 'algorithms');
 
 async function importH2OParams() {
   const dir = path.join(BASE, 'h2o-params');

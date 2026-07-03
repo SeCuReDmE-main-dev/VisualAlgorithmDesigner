@@ -37,7 +37,7 @@ The reason for excluding generic local AI routes from official school mode is st
 > **SecuredMe Education visual theme.** This pre-alpha school tool uses the shared SecuredMe Education open-source visual identity. See [assets/securedme/education](assets/securedme/education) for light/dark logo and thin banner assets.
 
 
-> **Design, inspect, and learn algorithm pipelines visually — from classroom playground to supervised review workbench.**
+> **Design, inspect, and learn algorithm pipelines visually — from classroom playground to supervised teacher review.**
 
 > **Official school governance.** VAD is for training students and teachers to understand, design, and review algorithms. It is not a tool for theft, fraud, bypass, abuse, or criminal automation. The maintained classroom route supports Codex/OpenAI or Antigravity/Gemini only. See [SCHOOL_TOOL_GOVERNANCE.md](SCHOOL_TOOL_GOVERNANCE.md) and [AGENTS.md](AGENTS.md).
 
@@ -54,27 +54,29 @@ The reason for excluding generic local AI routes from official school mode is st
 
 Visual Algorithm Designer is a school-focused web application that lets students and teachers **build algorithm pipelines by dragging and dropping nodes on a canvas**, inspect their structure, and prepare review notes through the maintained school routes: Codex/OpenAI or Antigravity/Gemini. The in-app backend does not require a classroom API key; when no approved external school assistant is attached, it falls back to deterministic local guidance.
 
+RaySight is the student-facing mascot and guide inside VAD. It is not the product name, not a provider route, and not a proprietary model endpoint in this open-source repository. The required public attribution is the small `Powered by H2O` visual identity; H2O-3 references stay in backend/data annex material and are not the main student-facing vocabulary.
+
 The application targets two supervised learning profiles on a single spectrum:
 
 | Mode | User | Goal |
 |------|------|------|
 | **Playground** | Students, makers, game designers | Understand algorithmic logic with friendly vocabulary and visual feedback |
-| **Review Workbench** | Teachers, mentors, advanced learners | Review pipeline structure, traceability, and safety boundaries before classroom reuse |
+| **Teacher Review** | Teachers, mentors, advanced learners | Review pipeline structure, traceability, and safety boundaries before classroom reuse |
 
 ---
 
 ## Core Features
 
 - **Drag-and-drop canvas** powered by [@xyflow/react](https://reactflow.dev/) — build pipelines by connecting algorithm nodes and learning concepts visually
-- **School guidance panel** — select any node and get plain-language guidance from the local fallback or from an approved external school assistant workflow
+- **RaySight guide panel** — select any node and get plain-language guidance from the local fallback or from an approved external school assistant workflow
 - **Pipeline evaluation** — submit your full pipeline for a `coherenceScore` (0–100); pipelines scoring ≥ 93 can be promoted to the validated catalog
-- **Subpipeline library** — 5 pre-built templates (ML Classique, NLP Stack, Anomaly Detection, Time Series, Compliance Pipeline) draggable as prefab node groups
+- **Starter kit library** — 5 teen-readable templates (Homework Organizer, Game Map Route, Playlist Recommender, Privacy Message, Image Understanding) draggable as prefab node groups
 - **Validated algorithm catalog** — locally persisted list of your promoted pipelines with loop detection (DFS) and version tracking
 - **Safety profiles** — 7 profiles that adjust review thresholds, warnings, and classroom boundaries
-- **Review report generator** — produces structured review notes with SHA-256 hash for auditable classroom documentation; it is not legal, regulatory, or compliance certification
+- **Review report generator** — produces structured teacher notes with SHA-256 hash for auditable classroom documentation; it is not legal, regulatory, or certification output
 - **Excel export** — download algorithm parameter sheets (2-tab `.xlsx`) for selected algorithm nodes via SheetJS
 - **Persistent memory** — local review conversations indexed with BM25 (MiniSearch + SQLite) for context-aware follow-up explanations
-- **Keyboard shortcuts** — `Ctrl+B` toggle palette · `Ctrl+J` toggle AI panel · `Ctrl+S` save pipeline
+- **Keyboard shortcuts** — `Ctrl+B` toggle palette · `Ctrl+J` toggle RaySight guide · `Ctrl+S` save pipeline
 
 ---
 
@@ -82,7 +84,7 @@ The application targets two supervised learning profiles on a single spectrum:
 
 ```
 VisualAlgorithmDesigner/
-├── ReaAaS-N-frontend/          # React 18 + TypeScript + Vite
+├── RaySight-frontend/          # VAD frontend: React 18 + TypeScript + Vite
 │   └── src/
 │       ├── components/
 │       │   └── AlgorithmDesigner/   # Canvas, Palette, Panels, Nodes
@@ -92,7 +94,7 @@ VisualAlgorithmDesigner/
 │       ├── services/               # api.ts, algorithmCatalog, subpipelineCatalog
 │       └── styles/                 # palette.css (design tokens)
 │
-├── ReaAaS-N-backend/           # Express 5 + local school runtime hooks
+├── RaySight-backend/           # VAD backend: Express 5 + local school runtime hooks
 │   ├── server.js               # Routes: /api/ai/*, /api/memory/*, /api/health
 │   ├── services/
 │   │   ├── aiPipelineService.js     # school runtime hook, fallback guidance, loopback guard, safety profiles
@@ -118,6 +120,7 @@ VisualAlgorithmDesigner/
 | Backend | Express | 5.2.0 |
 | School AI route | Codex/OpenAI or Antigravity/Gemini external workflow | browser WebAuth |
 | In-app fallback | deterministic school guidance runtime | local |
+| H2O boundary | `Powered by H2O` visual attribution + backend/data annex | no student-facing product theme |
 | Memory store | better-sqlite3 + MiniSearch | — |
 | Rate limiting | express-rate-limit | — |
 | Excel export | SheetJS (xlsx) | — |
@@ -150,10 +153,10 @@ No `.env` file is required for the default classroom fallback path. Keep officia
 
 ```bash
 # Backend
-cd ReaAaS-N-backend && npm install
+cd RaySight-backend && npm install
 
 # Frontend
-cd ../ReaAaS-N-frontend && npm install
+cd ../RaySight-frontend && npm install
 ```
 
 ### 4. Start development servers
@@ -162,10 +165,10 @@ Open two terminals:
 
 ```bash
 # Terminal 1 — Backend (port 3001)
-cd ReaAaS-N-backend && npm run dev
+cd RaySight-backend && npm run dev
 
 # Terminal 2 — Frontend (port 5173)
-cd ReaAaS-N-frontend && npm run dev
+cd RaySight-frontend && npm run dev
 ```
 
 Open http://localhost:5173 in your browser.
@@ -226,8 +229,6 @@ Do not introduce new dependencies or change the stack without updating this READ
 ## License
 
 MIT
-
-
 
 
 

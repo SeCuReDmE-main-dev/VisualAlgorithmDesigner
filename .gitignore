@@ -18,6 +18,6 @@ logs/
 .venv/
 
 # Local backend data
-ReaAaS-N-backend/data/*
-!ReaAaS-N-backend/data/.gitkeep
+RaySight-backend/data/*
+!RaySight-backend/data/.gitkeep
 site/

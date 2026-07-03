@@ -8,7 +8,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ============================================================
 -- Table: algorithms
--- Algorithmes connus (top-10, théorie ML, H2O core)
+-- Algorithmes connus (top-10, théorie ML, annexe H2O-3)
 -- ============================================================
 CREATE TABLE algorithms (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -81,7 +81,7 @@ INSERT INTO algorithm_categories (name, slug, description, sort_order) VALUES
     ('Reinforcement Learning', 'reinforcement-learning', 'Apprentissage par renforcement', 9),
     ('Supervised Learning', 'supervised-learning', 'Apprentissage supervisé', 10),
     ('Unsupervised Learning', 'unsupervised-learning', 'Apprentissage non supervisé', 11),
-    ('H2O Platform', 'h2o-platform', 'Plateforme H2O-3 et AutoML', 12);
+    ('Explainability', 'explainability', 'Outils pour expliquer et comparer les décisions algorithmiques', 12);
 
 -- ============================================================
 -- Table: projects

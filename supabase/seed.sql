@@ -15,9 +15,9 @@ INSERT INTO algorithms (name, slug, category, description) VALUES
     ('Policy Gradient', 'policy-gradient', 'Reinforcement Learning', 'Directly optimizes policy by following gradient of expected reward'),
     ('Gradient Descent', 'gradient-descent', 'Optimization', 'Iterative optimization algorithm following negative gradient'),
     ('Evolutionary Algorithms', 'evolutionary-algorithms', 'Optimization', 'Population-based optimization inspired by natural selection'),
-    ('Grid Search', 'grid-search', 'H2O Platform', 'Exhaustive parameter search over specified grid of values'),
-    ('SHAP', 'shap', 'H2O Platform', 'SHapley Additive exPlanations for model interpretability'),
-    ('LIME', 'lime', 'H2O Platform', 'Local Interpretable Model-agnostic Explanations for black-box models')
+    ('Grid Search', 'grid-search', 'Optimization', 'Exhaustive parameter search over specified grid of values'),
+    ('SHAP', 'shap', 'Explainability', 'SHapley Additive exPlanations for model interpretability'),
+    ('LIME', 'lime', 'Explainability', 'Local Interpretable Model-agnostic Explanations for black-box models')
 ON CONFLICT (slug) DO NOTHING;
 
 -- Node templates for canvas spatial
