@@ -257,7 +257,7 @@ export default function AlgorithmDesignerPage() {
         <StatusBar nodeCount={nodes.length} edgeCount={edges.length} latencyMs={latencyMs} hasLoop={loops.hasLoop} coherenceScore={evaluation?.coherenceScore} />
       </Box>
       <PipelineSaveDialog open={saveOpen} nodeCount={nodes.length} edgeCount={edges.length} onClose={() => setSaveOpen(false)} onSave={savePipeline} />
-<PipelinePromoteDialog open={promoteOpen} {...(promoteOpen ? buildPipelinePayload() : { nodes: [], edges: [] })} evaluation={evaluation} onClose={() => setPromoteOpen(false)} onPromoted={() => setToast('Pipeline promoted.')} />
+<PipelinePromoteDialog open={promoteOpen} {...(promoteOpen ? buildPipelinePayload() : { nodes: [], edges: [] })} evaluation={evaluation} onClose={() => setPromoteOpen(false)} onPromoted={() => setToast('Pipeline promoted and sent to AlgoQuest outbox.')} />
       <TutorialOverlay open={tutorialOpen} onClose={() => setTutorialOpen(false)} />
       <Snackbar open={Boolean(toast)} autoHideDuration={2400} message={toast} onClose={() => setToast('')} />
     </Box>

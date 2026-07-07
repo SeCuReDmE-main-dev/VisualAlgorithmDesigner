@@ -1,6 +1,7 @@
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import type { PipelineEvaluation, PipelineEdgePayload, PipelineNodePayload } from '../../services/api';
+import { exportValidatedAlgorithmForAlgoQuest } from '../../services/algoQuestEventBridge';
 import { PROMOTION_THRESHOLD, isPromotionEligible } from '../../services/validatedAlgorithmCatalog';
 import { useValidatedAlgorithms } from '../../hooks/useValidatedAlgorithms';
 
@@ -41,6 +42,10 @@ export function PipelinePromoteDialog({ open, nodes, edges, evaluation, onClose,
         edges,
         evaluation,
         tags: ['validated', evaluation.recommendation],
+      });
+      exportValidatedAlgorithmForAlgoQuest(record, {
+        consentScope: 'suite',
+        writeLocalOutbox: true,
       });
       onPromoted?.(record.id);
       onClose();
