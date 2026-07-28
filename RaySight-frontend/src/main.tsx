@@ -6,7 +6,7 @@ import App from './App';
 import theme from './theme';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

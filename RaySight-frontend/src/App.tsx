@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Alert, Box } from '@mui/material';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router';
 import AlgorithmDesignerPage from './pages/AlgorithmDesignerPage';
 import AlgorithmBuilderPage from './pages/AlgorithmBuilderPage';
 import CircuitDesignerPage from './pages/CircuitDesignerPage';

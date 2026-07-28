@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import App from './App'; 
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { ThemeProvider } from '@mui/material/styles'; // Import ThemeProvider
 import theme from './theme'; // Import your theme
 
