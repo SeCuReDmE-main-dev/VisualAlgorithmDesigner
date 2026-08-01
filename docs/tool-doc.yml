@@ -1,0 +1,37 @@
+schema: securedme.tool-doc.v2
+slug: visual-algorithm-designer
+title: Visual Algorithm Designer
+version: pre-alpha
+status: public-preview
+license: LicenseRef-SEL-2.0
+summary: A visual editor for assembling, inspecting, testing, and communicating algorithms.
+identity:
+  logo: assets/logo final/Dark/1.png
+  family: Visual Algorithm Designer
+runtime:
+  type: browser-app
+  availability: verified
+  public_url: https://visual-algorithm.securedme.ca
+source:
+  repository: https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner
+  issues: https://github.com/SeCuReDmE-main-dev/VisualAlgorithmDesigner/issues
+documentation:
+  public_root: docs/public
+  source_language: en
+  languages:
+  - en
+  - fr
+  - es
+commands:
+  install:
+  - cd RaySight-frontend
+  - npm install
+  start:
+  - npm run dev
+  test:
+  - npm test
+  - npm run build
+boundaries:
+  authority: Visual composition does not guarantee algorithmic correctness; tests
+    and code review remain required.
+  human_review_required: true
