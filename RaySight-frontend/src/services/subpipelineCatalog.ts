@@ -17,7 +17,7 @@ export interface CatalogNode {
   };
 }
 
-export interface CatalogEdge {
+export interface CatalogEdge extends Record<string, unknown> {
   id: string;
   source: string;
   target: string;

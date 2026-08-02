@@ -70,7 +70,7 @@ const AlgorithmBuilderPage: React.FC = () => { // Changed function name
       .split('\n')
       .map(line => line.trim())
       .filter(line => line !== '')
-      .map((line, index) => ({ // Using uuidv4 for consistency with addStep
+      .map((line) => ({ // Using uuidv4 for consistency with addStep
         id: uuidv4(), 
         content: line,
       }));

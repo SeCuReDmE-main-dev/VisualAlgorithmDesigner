@@ -8,14 +8,20 @@ import NotFoundPage from './pages/NotFoundPage';
 import { DnDProvider } from './contexts/DnDContext';
 import { useSessionMode } from './hooks/useSessionMode';
 import { ModeSelectionDialog } from './components/ModeSelectionDialog';
+import { FEATURE_FLAGS } from './config/featureFlags';
 
 const HEALTH_POLL_MS = 30_000;
 const HEALTH_TIMEOUT_MS = 3_000;
 
-function useBackendHealth() {
+function useBackendHealth(enabled: boolean) {
   const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
 
   useEffect(() => {
+    if (!enabled) {
+      setBackendOnline(null);
+      return undefined;
+    }
+
     let active = true;
 
     const checkHealth = async () => {
@@ -43,13 +49,13 @@ function useBackendHealth() {
       active = false;
       window.clearInterval(interval);
     };
-  }, []);
+  }, [enabled]);
 
   return backendOnline;
 }
 
 function App() {
-  const backendOnline = useBackendHealth();
+  const backendOnline = useBackendHealth(FEATURE_FLAGS.annexes);
   const { config, switchToPlayground, switchToWorkbench } = useSessionMode();
   const [modeSelected, setModeSelected] = useState(() => {
     try {
@@ -68,14 +74,14 @@ function App() {
           onWorkbench={() => switchToWorkbench(config?.mode === 'workbench' ? config.securityProfile : 'general')}
           onSelect={() => setModeSelected(true)}
         />
-        {backendOnline === false && (
+        {FEATURE_FLAGS.annexes && backendOnline === false && (
           <Alert severity="warning" sx={{ borderRadius: 0 }}>
             Backend unavailable. AI explanation and evaluation are offline until the server is running.
           </Alert>
         )}
         <Routes>
           <Route path="/" element={<Navigate to="/designer" replace />} />
-          <Route path="/designer" element={<AlgorithmDesignerPage />} />
+          <Route path="/designer" element={<AlgorithmDesignerPage backendOnline={backendOnline} />} />
           <Route path="/builder" element={<AlgorithmBuilderPage />} />
           <Route path="/circuit" element={<CircuitDesignerPage />} />
           <Route path="*" element={<NotFoundPage />} />

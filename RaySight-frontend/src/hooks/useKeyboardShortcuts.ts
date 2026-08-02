@@ -4,6 +4,8 @@ export interface KeyboardShortcutHandlers {
   onTogglePalette?: () => void;
   onToggleLibrary?: () => void;
   onSave?: () => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
 }
 
 export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers, enabled = true) {
@@ -17,11 +19,25 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers, enabled
       const isTyping =
         target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable;
 
-      if (isTyping || !(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey) {
+      if (isTyping || !(event.ctrlKey || event.metaKey) || event.altKey) {
         return;
       }
 
       const key = event.key.toLowerCase();
+
+      if (key === 'z' && !event.shiftKey && handlers.onUndo) {
+        event.preventDefault();
+        handlers.onUndo();
+        return;
+      }
+
+      if ((key === 'y' || (key === 'z' && event.shiftKey)) && handlers.onRedo) {
+        event.preventDefault();
+        handlers.onRedo();
+        return;
+      }
+
+      if (event.shiftKey) return;
 
       if (key === 'b' && handlers.onTogglePalette) {
         event.preventDefault();

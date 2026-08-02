@@ -4,22 +4,26 @@ import {
   BackgroundVariant,
   Controls,
   Edge,
+  EdgeChange,
+  Connection,
   MiniMap,
   Node,
+  NodeChange,
   ReactFlow,
   useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { AlgorithmNodeData } from './AlgorithmDesigner/AlgorithmNode';
 import AlgorithmNode from './AlgorithmDesigner/AlgorithmNode';
+import AlgorithmEdge from './AlgorithmDesigner/AlgorithmEdge';
 import '../styles/canvas.css';
 
 export interface SpatialCanvasProps {
   nodes: Node<AlgorithmNodeData>[];
   edges: Edge[];
-  onNodesChange: (changes: Parameters<typeof import('@xyflow/react').applyNodeChanges>[0]) => void;
-  onEdgesChange: (changes: Parameters<typeof import('@xyflow/react').applyEdgeChanges>[0]) => void;
-  onConnect: (connection: Parameters<typeof import('@xyflow/react').addEdge>[0]) => void;
+  onNodesChange: (changes: NodeChange<Node<AlgorithmNodeData>>[]) => void;
+  onEdgesChange: (changes: EdgeChange[]) => void;
+  onConnect: (connection: Connection) => void;
   onSelectionChange: (selectedNodeId: string | null) => void;
   /** Whether to show the minimap (default: true) */
   showMinimap?: boolean;
@@ -33,9 +37,11 @@ export interface SpatialCanvasProps {
   nodeTypes?: Record<string, React.ComponentType<unknown>>;
   /** Whether to call fitView on mount (default: true) */
   fitView?: boolean;
+  isValidConnection?: (connection: Edge | Connection) => boolean;
 }
 
 const defaultNodeTypes = { algorithmNode: AlgorithmNode };
+const defaultEdgeTypes = { algorithmEdge: AlgorithmEdge };
 
 function SpatialCanvas({
   nodes,
@@ -50,6 +56,7 @@ function SpatialCanvas({
   children,
   nodeTypes,
   fitView = true,
+  isValidConnection,
 }: SpatialCanvasProps) {
   const { fitView: rfFitView } = useReactFlow();
 
@@ -75,15 +82,20 @@ function SpatialCanvas({
   return (
     <div
       className={`spatial-canvas${className ? ` ${className}` : ''}`}
-      data-testid="spatial-canvas"
+      data-testid="algorithm-canvas-drop-surface"
+      data-vad-drop-zone="canvas"
     >
       <ReactFlow
         nodes={nodes}
         edges={edges}
         nodeTypes={mergedNodeTypes}
+        edgeTypes={defaultEdgeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        connectOnClick
+        connectionRadius={40}
+        isValidConnection={isValidConnection}
         onSelectionChange={({ nodes: selectedNodes }) =>
           onSelectionChange(selectedNodes[0]?.id ?? null)
         }
@@ -93,13 +105,16 @@ function SpatialCanvas({
         multiSelectionKeyCode="Shift"
         selectionKeyCode={null}
         panActivationKeyCode="Space"
-        selectNodesOnDrag={false}
+        selectNodesOnDrag
+        snapToGrid
+        snapGrid={[20, 20]}
         connectionLineStyle={{
           stroke: 'rgba(23, 105, 232, 0.55)',
           strokeWidth: 2,
           strokeDasharray: '4 2',
         }}
         defaultEdgeOptions={{
+          type: 'algorithmEdge',
           animated: true,
           style: {
             stroke: 'rgba(23, 105, 232, 0.42)',
@@ -115,14 +130,17 @@ function SpatialCanvas({
         />
 
         {showControls && (
-          <Controls
-            position="bottom-right"
-            showInteractive={false}
-          />
+          <div className="vad-canvas-controls" data-testid="canvas-controls" data-vad-drop-exclude="true">
+            <Controls
+              position="bottom-left"
+              showInteractive={false}
+            />
+          </div>
         )}
 
         {showMinimap && (
           <MiniMap
+            data-vad-drop-exclude="true"
             nodeColor="var(--color-primary)"
             maskColor="rgba(248, 251, 255, 0.72)"
             style={{ background: 'var(--canvas-control-bg)' }}

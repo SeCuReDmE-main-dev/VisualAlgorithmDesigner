@@ -9,6 +9,7 @@ const { AIPipelineService } = require('./services/aiPipelineService');
 const { SQLiteMLJobRepository } = require('./services/sqliteMLJobRepository');
 const { H2OLocalRuntime } = require('./services/h2oLocalRuntime');
 const { MLJobService } = require('./services/mlJobService');
+const { loadH2OParameterCatalog } = require('./services/h2oParameterCatalog');
 require('dotenv').config();
 
 const app = express();
@@ -43,10 +44,23 @@ if (trustProxyEnv === 'true') {
 }
 
 app.set('trust proxy', trustProxy);
-const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
+const configuredCorsOrigins = String(process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const allowedCorsOrigins = new Set([
+  'https://visual-algorithm.securedme.ca',
+  ...configuredCorsOrigins,
+  ...(process.env.NODE_ENV === 'production' ? [] : [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:4173',
+    'http://127.0.0.1:4173',
+  ]),
+]);
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || origin === corsOrigin) {
+    if (!origin || allowedCorsOrigins.has(origin)) {
       callback(null, true);
       return;
     }
@@ -114,6 +128,12 @@ app.get('/api/hello', (req, res) => {
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });
+});
+
+let h2oParameterCatalogCache;
+app.get('/api/catalog/h2o-parameters', (req, res) => {
+  h2oParameterCatalogCache ??= loadH2OParameterCatalog();
+  res.json({ status: 'success', data: h2oParameterCatalogCache });
 });
 
 app.post('/api/ai/explain-pipeline', aiLimiter, asyncHandler(async (req, res) => {

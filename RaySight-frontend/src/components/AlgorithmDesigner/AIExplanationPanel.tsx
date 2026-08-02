@@ -2,6 +2,7 @@ import { Alert, Box, Button, Chip, Divider, Stack, Typography } from '@mui/mater
 import { RaySightGuideBadge } from '../Brand/VADBrand';
 
 interface AIExplanationPanelProps {
+  available?: boolean | null;
   explanation: string;
   loading: boolean;
   error: string | null;
@@ -10,7 +11,7 @@ interface AIExplanationPanelProps {
   onFeedback: (rating: 'helpful' | 'unclear') => void;
 }
 
-export default function AIExplanationPanel({ explanation, loading, error, latencyMs, focusLabel, onFeedback }: AIExplanationPanelProps) {
+export default function AIExplanationPanel({ available, explanation, loading, error, latencyMs, focusLabel, onFeedback }: AIExplanationPanelProps) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
       <Box>
@@ -20,7 +21,12 @@ export default function AIExplanationPanel({ explanation, loading, error, latenc
         </Typography>
       </Box>
       <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
-        <Chip className="vad-icon-pulse" size="small" label="Memory on" color="success" />
+        <Chip
+          className={available ? 'vad-icon-pulse' : undefined}
+          size="small"
+          label={available === false ? 'RaySight offline' : available === true ? 'RaySight ready' : 'Checking RaySight'}
+          color={available === false ? 'warning' : available === true ? 'success' : 'default'}
+        />
         {focusLabel && <Chip size="small" variant="outlined" label={`Focus: ${focusLabel}`} />}
         {typeof latencyMs === 'number' && <Chip size="small" variant="outlined" label={`${latencyMs} ms`} />}
       </Stack>
@@ -40,7 +46,12 @@ export default function AIExplanationPanel({ explanation, loading, error, latenc
         }}
       >
         <Typography variant="body2" sx={{ color: explanation ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
-          {loading ? 'RaySight is explaining the selected pipeline state...' : explanation || 'Select a block and click Explain to ask RaySight about the current pipeline.'}
+          {loading
+            ? 'RaySight is explaining the selected pipeline state...'
+            : explanation
+              || (available === false
+                ? 'RaySight needs the school backend. The canvas still works offline.'
+                : 'Select a block, then choose Explain to ask RaySight about the pipeline.')}
         </Typography>
       </Box>
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>

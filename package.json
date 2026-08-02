@@ -1,4 +1,10 @@
 {
+  "scripts": {
+    "cpai:start": "powershell -NoProfile -ExecutionPolicy Bypass -File infra/codeproject-ai/start.ps1",
+    "cpai:health": "node infra/codeproject-ai/client.mjs health",
+    "cpai:mesh": "node infra/codeproject-ai/client.mjs mesh",
+    "cpai:stop": "powershell -NoProfile -ExecutionPolicy Bypass -File infra/codeproject-ai/stop.ps1"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.1"
   }

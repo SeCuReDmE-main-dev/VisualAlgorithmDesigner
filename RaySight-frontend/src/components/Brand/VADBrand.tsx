@@ -8,22 +8,23 @@ export function VADBrandMark({ compact = false }: { compact?: boolean }) {
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
       <Box
         component="img"
-        src={compact ? raysightBadge : vadLogo}
+        src={vadLogo}
         alt="Visual Algorithm Designer - Powered by H2O"
         sx={{
           width: compact ? 42 : 150,
           height: compact ? 42 : 44,
           objectFit: compact ? 'cover' : 'contain',
-          borderRadius: compact ? '50%' : 0,
+          objectPosition: compact ? 'left center' : 'center',
+          borderRadius: compact ? 4 : 0,
           flex: '0 0 auto',
         }}
       />
       <Box sx={{ minWidth: 0 }}>
         <Typography variant="h6" component="h1" sx={{ fontWeight: 900, lineHeight: 1.05 }}>
-          Visual Algorithm Designer
+          {compact ? 'VAD' : 'Visual Algorithm Designer'}
         </Typography>
         <Typography variant="caption" sx={{ display: 'block', color: 'var(--color-text-muted)', fontWeight: 700 }}>
-          VAD · Powered by H2O · RaySight guide
+          {compact ? 'Algorithm Designer' : 'VAD · Powered by H2O · RaySight guide'}
         </Typography>
       </Box>
     </Box>

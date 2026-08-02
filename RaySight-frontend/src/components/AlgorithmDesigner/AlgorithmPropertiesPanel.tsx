@@ -14,6 +14,7 @@ interface AlgorithmPropertiesPanelProps {
   onParamChange: (nodeId: string, key: string, value: unknown) => void;
   onExplain: () => void;
   onEvaluate: () => void;
+  showAnnexActions?: boolean;
 }
 
 function coerceParamValue(rawValue: string, type: string) {
@@ -37,6 +38,7 @@ export default function AlgorithmPropertiesPanel({
   onParamChange,
   onExplain,
   onEvaluate,
+  showAnnexActions = true,
 }: AlgorithmPropertiesPanelProps) {
   const nodeData = selectedNode?.data;
   const algorithm = nodeData ? getAlgorithmById(nodeData.algorithmId) : undefined;
@@ -53,15 +55,15 @@ export default function AlgorithmPropertiesPanel({
           Build state: {status}
         </Typography>
       </Box>
-      <Stack direction="row" spacing={1}>
+      {showAnnexActions && <Stack direction="row" spacing={1}>
         <Button fullWidth variant="contained" disabled={!canExplain} onClick={onExplain}>
           Explain
         </Button>
         <Button fullWidth variant="outlined" aria-disabled={!canEvaluate || evaluationLoading} aria-busy={evaluationLoading} onClick={(!canEvaluate || evaluationLoading) ? undefined : onEvaluate} sx={{ opacity: (!canEvaluate || evaluationLoading) ? 0.5 : 1, cursor: (!canEvaluate || evaluationLoading) ? 'not-allowed' : 'pointer' }}>
           {evaluationLoading ? 'Evaluating' : 'Evaluate'}
         </Button>
-      </Stack>
-      {evaluation && (
+      </Stack>}
+      {showAnnexActions && evaluation && (
         <Box sx={{ p: 1.5, border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', background: 'rgba(0,0,0,0.2)' }}>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
             <Chip size="small" color={evaluation.coherenceScore >= 93 ? 'success' : 'warning'} label={`${evaluation.coherenceScore}%`} />
@@ -142,7 +144,33 @@ export default function AlgorithmPropertiesPanel({
               />
             );
           })}
-          {!algorithm && (
+          {!algorithm && nodeData.parameterSchema && (() => {
+            const schema = nodeData.parameterSchema;
+            const value = nodeData.params?.[schema.key] ?? schema.defaultValue ?? '';
+            if (schema.valueType === 'boolean') {
+              return (
+                <TextField select size="small" label={schema.key.replaceAll('_', ' ')} value={String(value)} onChange={(event) => onParamChange(selectedNode.id, schema.key, event.target.value === 'true')} helperText="Choose whether this H2O function is enabled.">
+                  <MenuItem value="true">Enabled</MenuItem>
+                  <MenuItem value="false">Disabled</MenuItem>
+                </TextField>
+              );
+            }
+            return (
+              <TextField size="small" type={schema.valueType === 'number' ? 'number' : 'text'} label={schema.key.replaceAll('_', ' ')} value={String(value)} onChange={(event) => onParamChange(selectedNode.id, schema.key, schema.valueType === 'number' ? Number(event.target.value) : event.target.value)} helperText="Value passed to the H2O annex when this pipeline runs." />
+            );
+          })()}
+          {nodeData.compatibleAlgorithms && (
+            <Box>
+              <Typography variant="caption" sx={{ display: 'block', mb: 0.75 }}>Compatible H2O algorithms</Typography>
+              <Stack direction="row" gap={0.5} flexWrap="wrap">
+                {nodeData.compatibleAlgorithms.map((name) => <Chip key={name} size="small" label={name} />)}
+              </Stack>
+            </Box>
+          )}
+          {nodeData.sourceUrl && (
+            <Button component="a" href={nodeData.sourceUrl} target="_blank" rel="noreferrer" size="small" variant="text">Official H2O source ↗</Button>
+          )}
+          {!algorithm && !nodeData.parameterSchema && (
             <Typography variant="caption">
               This mechanism has no editable learning settings yet.
             </Typography>

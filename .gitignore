@@ -1,5 +1,6 @@
 # Node.js dependencies
 node_modules/
+node_modules.a1-incomplete/
 
 # Build output
 dist/
@@ -21,3 +22,7 @@ logs/
 RaySight-backend/data/*
 !RaySight-backend/data/.gitkeep
 site/
+
+# Local browser-test artifacts
+RaySight-frontend/playwright-report/
+RaySight-frontend/test-results/

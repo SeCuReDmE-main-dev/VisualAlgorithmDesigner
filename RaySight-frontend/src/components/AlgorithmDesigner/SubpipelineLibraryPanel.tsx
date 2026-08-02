@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { Box, Button, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 import SubpipelineCard from './SubpipelineCard';
-import { LOOP_CATALOG, MECHANISM_CATALOG, SECURITY_TEMPLATE_CATALOG, SUBPIPELINE_CATALOG } from '../../services/subpipelineCatalog';
+import { LOOP_CATALOG, SECURITY_TEMPLATE_CATALOG, SUBPIPELINE_CATALOG } from '../../services/subpipelineCatalog';
 import { PLAYGROUND_CATALOG } from '../../constants/playgroundCatalog';
 import type { SessionMode } from '../../hooks/useSessionMode';
 
@@ -10,10 +10,7 @@ interface SubpipelineLibraryPanelProps {
   onSaveRequested?: () => void;
 }
 
-const tabLabels = ['Templates', 'Mechanisms', 'Loops', 'Security', 'Validated'] as const;
-
 export default function SubpipelineLibraryPanel({ sessionMode, onSaveRequested }: SubpipelineLibraryPanelProps) {
-  const [tab, setTab] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
 
   // In playground mode show the 8 curated entries with friendly labels;
@@ -26,28 +23,14 @@ export default function SubpipelineLibraryPanel({ sessionMode, onSaveRequested }
         id: entry.id,
         label: entry.friendlyLabel,
         description: entry.realWorldExample,
-        nodes: [],
-        edges: [],
+        algorithmId: entry.algorithmId,
         coherenceScore: 0,
         tags: [] as string[],
-        loopCompatible: false,
-        category: 'classic' as const,
+        category: 'logic' as const,
       }));
     }
-    if (tab === 0) {
-      return SUBPIPELINE_CATALOG;
-    }
-    if (tab === 1) {
-      return MECHANISM_CATALOG;
-    }
-    if (tab === 2) {
-      return LOOP_CATALOG;
-    }
-    if (tab === 3) {
-      return SECURITY_TEMPLATE_CATALOG;
-    }
-    return SUBPIPELINE_CATALOG.filter((template) => template.coherenceScore >= 93);
-  }, [isPlayground, tab]);
+    return [...SUBPIPELINE_CATALOG, ...LOOP_CATALOG, ...SECURITY_TEMPLATE_CATALOG];
+  }, [isPlayground]);
 
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) return items;
@@ -66,18 +49,13 @@ export default function SubpipelineLibraryPanel({ sessionMode, onSaveRequested }
         borderTop: '1px solid var(--color-border)',
         pt: 1.25,
       }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-        {isPlayground ? (
-          <Typography variant="subtitle2" fontWeight={800}>
-            Starter kits
-          </Typography>
-        ) : (
-          <Tabs value={tab} onChange={(_, nextTab: number) => setTab(nextTab)} variant="scrollable" allowScrollButtonsMobile sx={{ minHeight: 36 }}>
-            {tabLabels.map((label) => (
-              <Tab key={label} label={label} sx={{ minHeight: 36, px: 1, textTransform: 'none', fontSize: 12, fontWeight: 800 }} />
-            ))}
-          </Tabs>
-        )}
+      <Box>
+        <Typography variant="h6" fontWeight={800}>
+          {isPlayground ? 'Starter kits' : 'Ready-made workflows'}
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'var(--color-text-muted)' }}>
+          Add a connected example, then adapt it on the canvas.
+        </Typography>
       </Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <input
@@ -89,7 +67,7 @@ export default function SubpipelineLibraryPanel({ sessionMode, onSaveRequested }
             style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-text)', outline: 'none' }}
           />
           <Button variant="outlined" size="small" onClick={onSaveRequested} disabled={!onSaveRequested} sx={{ flex: '0 0 auto', textTransform: 'none', fontWeight: 800 }}>
-            Save
+            Save canvas
           </Button>
       </Box>
       <Box sx={{ display: 'grid', gap: 1, minHeight: 0, overflow: 'auto', pr: 0.5, pb: 1 }}>

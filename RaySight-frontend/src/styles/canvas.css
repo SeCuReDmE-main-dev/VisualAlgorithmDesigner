@@ -53,6 +53,18 @@
   box-shadow: var(--shadow-node);
 }
 
+.vad-canvas-controls {
+  position: absolute;
+  z-index: 10;
+  left: 16px;
+  bottom: 16px;
+}
+
+.vad-canvas-controls .react-flow__controls {
+  position: static;
+  margin: 0;
+}
+
 .spatial-canvas .react-flow__controls-button {
   width: 30px;
   height: 30px;
@@ -128,4 +140,16 @@
   to {
     stroke-dashoffset: -24;
   }
+}
+
+.vad-workbench-shell .spatial-canvas {
+  background:
+    linear-gradient(rgba(18, 49, 100, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(18, 49, 100, 0.16) 1px, transparent 1px),
+    var(--color-canvas-bg);
+  background-size: 40px 40px;
+}
+
+.vad-workbench-shell .glass-panel {
+  background: rgba(7, 17, 39, 0.94);
 }

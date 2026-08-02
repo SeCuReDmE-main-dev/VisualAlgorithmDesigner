@@ -15,7 +15,7 @@ vi.mock('@hello-pangea/dnd', async (importOriginal) => {
         droppableProps: { 'data-testid': `droppable-${droppableId}` }, 
         placeholder: <div data-testid={`placeholder-${droppableId}`}>Placeholder</div> 
       }, {}),
-    Draggable: ({ children, draggableId, index }: { children: (provided: any, snapshot: any) => React.ReactElement, draggableId: string, index: number }) => 
+    Draggable: ({ children, draggableId, index: _index }: { children: (provided: any, snapshot: any) => React.ReactElement, draggableId: string, index: number }) =>
       children({ 
         innerRef: vi.fn(), 
         draggableProps: { 'data-testid': `draggable-${draggableId}`, style: {} }, 
@@ -48,13 +48,13 @@ describe('AlgorithmBuilderPage - Core Logic', () => {
     const stepsList = screen.getByTestId('droppable-steps'); 
 
     fireEvent.change(newStepInput, { target: { value: 'First test step' } });
-    await user.click(addButton);
+    fireEvent.click(addButton);
 
     expect(within(stepsList).getByText(/1\. First test step/i)).toBeInTheDocument();
     expect(newStepInput).toHaveValue(''); 
 
     fireEvent.change(newStepInput, { target: { value: 'Second test step' } });
-    await user.click(addButton);
+    fireEvent.click(addButton);
     
     expect(within(stepsList).getByText(/1\. First test step/i)).toBeInTheDocument(); 
     expect(within(stepsList).getByText(/2\. Second test step/i)).toBeInTheDocument(); 
