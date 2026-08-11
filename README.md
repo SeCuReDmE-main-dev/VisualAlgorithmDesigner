@@ -1,5 +1,11 @@
 # Visual Algorithm Designer (VAD)
 
+<!-- SECUREDME-ZENODO:START -->
+<p align="center">
+  <a href="https://zenodo.org/badge/latestdoi/935999258"><img alt="DOI" src="https://zenodo.org/badge/935999258.svg" /></a>
+</p>
+<!-- SECUREDME-ZENODO:END -->
+
 <!-- SECUREDME-CPAI-MESH:START -->
 <p align="center">
   <img alt="CodeProject.AI Server embedded mesh node" src="https://img.shields.io/badge/CodeProject.AI%20Server-Embedded%20Mesh%20Node-1F6FEB?style=for-the-badge" />
