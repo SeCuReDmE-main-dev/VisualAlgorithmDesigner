@@ -2,7 +2,7 @@
 
 <!-- SECUREDME-ZENODO:START -->
 <p align="center">
-  <a href="https://zenodo.org/badge/latestdoi/935999258"><img alt="DOI" src="https://zenodo.org/badge/935999258.svg" /></a>
+  <a href="https://doi.org/10.5281/zenodo.21893199"><img alt="Zenodo DOI: 10.5281/zenodo.21893199" src="https://img.shields.io/badge/Zenodo%20DOI-10.5281%2Fzenodo.21893199-1682D4?style=for-the-badge" /></a>
 </p>
 <!-- SECUREDME-ZENODO:END -->
 
