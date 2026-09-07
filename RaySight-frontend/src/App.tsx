@@ -9,6 +9,10 @@ import { DnDProvider } from './contexts/DnDContext';
 import { useSessionMode } from './hooks/useSessionMode';
 import { ModeSelectionDialog } from './components/ModeSelectionDialog';
 import { FEATURE_FLAGS } from './config/featureFlags';
+import { HeroBookSpecialistBanner } from './components/HeroBookSpecialistBanner';
+import { registerVadWebMcp } from './services/webMcpTools';
+
+registerVadWebMcp();
 
 const HEALTH_POLL_MS = 30_000;
 const HEALTH_TIMEOUT_MS = 3_000;
@@ -68,6 +72,7 @@ function App() {
   return (
     <DnDProvider>
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+        <HeroBookSpecialistBanner />
         <ModeSelectionDialog
           open={!modeSelected}
           onPlayground={switchToPlayground}
