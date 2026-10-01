@@ -10,7 +10,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "LicenseRef-SEL-2.0",
   "dependencies": {
     "better-sqlite3": "^12.9.0",
     "connect-sqlite3": "^0.9.16",

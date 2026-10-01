@@ -135,9 +135,9 @@ const calculateCircuitState = (currentNodes: Node<CircuitNodeData>[], currentEdg
 
 const CircuitDesignerFlow: React.FC = () => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const [nodes, setNodes, onNodesChange] = useNodesState<CircuitNodeData>(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node<CircuitNodeData>>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges); 
-  const { screenToFlowPosition, getNodes, getEdges, getViewport, setViewport, fitView } = useReactFlow();
+  const { screenToFlowPosition, getNodes, getEdges, getViewport, setViewport, fitView } = useReactFlow<Node<CircuitNodeData>>();
   const [selectedNode, setSelectedNode] = useState<Node<CircuitNodeData> | null>(null);
 
   const handleInputNodeValueChange = useCallback((nodeId: string, newValue: boolean) => {
@@ -207,7 +207,7 @@ const CircuitDesignerFlow: React.FC = () => {
     [setEdges]
   );
 
-  const handleNodeClick = useCallback((event: React.MouseEvent, node: Node<CircuitNodeData>) => {
+  const handleNodeClick = useCallback((_event: React.MouseEvent, node: Node<CircuitNodeData>) => {
     setSelectedNode(node);
   }, []);
 
@@ -276,6 +276,8 @@ const CircuitDesignerFlow: React.FC = () => {
         ref={reactFlowWrapper} 
         sx={{ flexGrow: 1, height: '100%' }}
         onDragOver={onDragOver}
+        role="region"
+        aria-label="Circuit canvas"
         onDrop={onDrop}
       >
         {/* Save/Load buttons are placed here, above the ReactFlow canvas, for context */}

@@ -3,7 +3,7 @@ import type { Edge, Node } from '@xyflow/react';
 
 export type PipelineStatus = 'empty' | 'single-node' | 'disconnected' | 'ready';
 
-export function usePipelineStatus(nodes: Node[], edges: Edge[]): PipelineStatus {
+export function usePipelineStatus(nodes: readonly Node[], edges: readonly Edge[]): PipelineStatus {
   return useMemo(() => {
     if (nodes.length === 0) {
       return 'empty';

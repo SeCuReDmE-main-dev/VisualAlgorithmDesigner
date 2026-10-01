@@ -1,14 +1,14 @@
 import React from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
-import { Paper, Typography, Box } from '@mui/material'; // Added Box for value display
+import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
+import { Paper, Typography } from '@mui/material'; // Added Box for value display
 
 // data prop for this node type
-export interface AndGateData {
+export type AndGateData = {
   label: string;
   outputValue: boolean; // Added for simulation output
 }
 
-const AndGateNode: React.FC<NodeProps<AndGateData>> = ({ data, isConnectable }) => {
+const AndGateNode: React.FC<NodeProps<Node<AndGateData>>> = ({ data, isConnectable }) => {
   return (
     <Paper 
       elevation={3} 

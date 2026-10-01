@@ -25,6 +25,7 @@ import { useLoopDetector } from '../hooks/useLoopDetector';
 import { VADBrandMark } from '../components/Brand/VADBrand';
 import { useGraphHistory } from '../hooks/useGraphHistory';
 import { FEATURE_FLAGS } from '../config/featureFlags';
+import { VadWebMcpBridge } from '../components/VadWebMcpBridge';
 
 const PIPELINE_METADATA_KEY = 'vad_pipeline_metadata';
 const FEEDBACK_KEY = 'vad_ai_feedback';
@@ -392,6 +393,7 @@ export default function AlgorithmDesignerPage({ backendOnline }: AlgorithmDesign
       data-active-section={activeSection}
       sx={{ height: '100vh', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr) auto', bgcolor: 'var(--color-bg)' }}
     >
+      <VadWebMcpBridge nodes={nodes} edges={edges} commit={commitGraphMutation} context={{ selected_node: selectedNodeId, section: activeSection, security_profile: securityProfile }} />
       <Box className="vad-workbench-header" sx={{ minHeight: 72, px: 2, py: 1, borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
         <VADBrandMark compact={compactLayout} />
         <Stack component="nav" aria-label="Workbench sections" direction="row" spacing={0.5} alignItems="center" sx={{ display: { xs: 'none', md: 'flex' } }}>

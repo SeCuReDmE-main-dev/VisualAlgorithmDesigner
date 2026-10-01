@@ -1,15 +1,15 @@
 import React from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react'; // Removed useReactFlow, Node as it's not needed here
+import { Handle, Position, type Node, type NodeProps } from '@xyflow/react'; // Removed useReactFlow, Node as it's not needed here
 import { Paper, Typography, Box, Switch } from '@mui/material';
 
 // data prop for this node type
-export interface InputSourceData {
+export type InputSourceData = {
   label: string;
   value: boolean;
   onValueChange: (id: string, value: boolean) => void; // Added for simulation trigger
 }
 
-const InputSourceNode: React.FC<NodeProps<InputSourceData>> = ({ id, data, isConnectable }) => {
+const InputSourceNode: React.FC<NodeProps<Node<InputSourceData>>> = ({ id, data, isConnectable }) => {
   // No need for setNodes here, use the passed callback
   // const { setNodes } = useReactFlow(); 
 

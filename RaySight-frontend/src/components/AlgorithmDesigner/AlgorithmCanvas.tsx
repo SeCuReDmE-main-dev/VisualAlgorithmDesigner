@@ -150,7 +150,15 @@ export default function AlgorithmCanvas({
   onClearRequested,
 }: AlgorithmCanvasProps) {
   const { dndState, dropTarget, resetDrag, cancelReason } = useDnD();
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, getViewport, setViewport } = useReactFlow();
+  useEffect(() => {
+    const updateZoom = (event: Event) => {
+      const zoom = Number((event as CustomEvent<{ zoom: number }>).detail?.zoom);
+      if (Number.isFinite(zoom) && zoom >= .25 && zoom <= 2) void setViewport({ ...getViewport(), zoom });
+    };
+    window.addEventListener('vad:webmcp-zoom', updateZoom);
+    return () => window.removeEventListener('vad:webmcp-zoom', updateZoom);
+  }, [getViewport, setViewport]);
   const processedSessions = useRef(new WeakSet<object>());
   const [contextMenu, setContextMenu] = useState<{ open: boolean; x: number; y: number }>({ open: false, x: 0, y: 0 });
   const [interactionMessage, setInteractionMessage] = useState('');

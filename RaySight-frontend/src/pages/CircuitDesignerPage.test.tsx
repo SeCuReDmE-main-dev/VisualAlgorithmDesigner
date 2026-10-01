@@ -1,8 +1,7 @@
-import React from 'react';
-import { render, screen, fireEvent, act, within } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
-import { Node, Edge, Viewport } from '@xyflow/react';
+import { Node, Edge } from '@xyflow/react';
 
 import CircuitDesignerPage, { CircuitNodeData } from './CircuitDesignerPage'; 
 // Assuming calculateCircuitState can be exported or is replicated below for testing.
@@ -100,7 +99,7 @@ vi.mock('../components/CircuitDesigner/nodes/NotGateNode', () => ({
 
 
 describe('CircuitDesignerPage - calculateCircuitState', () => {
-  const baseNodeProps = { x: 0, y: 0, type: 'default' }; // position etc. are not used by calc state
+  const baseNodeProps = { position: { x: 0, y: 0 }, type: 'default' };
 
   test('empty graph', () => {
     const result = calculateCircuitState([], []);
@@ -217,7 +216,7 @@ class ResizeObserver {
   unobserve() {}
   disconnect() {}
 }
-global.ResizeObserver = ResizeObserver;
+globalThis.ResizeObserver = ResizeObserver;
 
 describe('CircuitDesignerPage - Component Interactions', () => {
   beforeEach(() => {
@@ -321,39 +320,13 @@ describe('CircuitDesignerPage - Component Interactions', () => {
 
   test('onDrop: adds a new node to the canvas', async () => {
     render(<CircuitDesignerPage />);
-    // The onDrop handler is on the ReactFlow wrapper Box in CircuitDesignerFlow
-    // We need to find that Box. Let's assume it's a main part of the flow area.
-    // Since ReactFlow itself is complex to query directly for drop,
-    // we rely on the fact that CircuitDesignerFlow has the onDrop handler.
-    // We'll simulate drop by finding a high-level container for react flow.
-    // This is more of an integration test snippet.
-    
-    // This part of test is hard because onDrop is internal to react flow setup.
-    // The actual onDrop is on a Box wrapping ReactFlow.
-    // For a true unit test of onDrop logic, it should be extracted.
-    // Here, we are testing its effect if it were called.
-    
-    // Simulate a drop event
-    const mockEvent = {
-      preventDefault: vi.fn(),
-      dataTransfer: {
-        getData: vi.fn().mockReturnValue('andGate'), // Simulate dropping an AND gate
-        dropEffect: '',
-      },
-      clientX: 100,
-      clientY: 200,
-    } as unknown as React.DragEvent<HTMLDivElement>;
-
-    // How to get the onDrop handler or trigger it?
-    // If onDrop was passed as a prop to a testable component, we could call it.
-    // Here, it's part of the CircuitDesignerFlow internal setup.
-    // This test will be limited to verifying that if a node IS added, it appears.
-
-    // For now, this test is a placeholder for a more direct test of onDrop if it were refactored.
-    // We can verify that the palette exists.
-    expect(screen.getAllByText('AND Gate').length).toBeGreaterThan(0); // Palette item
+    fireEvent.drop(screen.getByRole('region', { name: 'Circuit canvas' }), {
+      clientX: 100, clientY: 200,
+      dataTransfer: { getData: () => 'andGate', dropEffect: '' },
+    });
+    expect(await screen.findByText('AND: 0')).toBeInTheDocument();
   });
-  
+
   // handleInputNodeValueChange and handleUpdateNodeLabel are harder to test in isolation
   // without more complex component instance interaction or refactoring.
   // Their effects (node data changing, re-simulation) are partially covered by visual feedback and other tests.

@@ -10,9 +10,6 @@ import { useSessionMode } from './hooks/useSessionMode';
 import { ModeSelectionDialog } from './components/ModeSelectionDialog';
 import { FEATURE_FLAGS } from './config/featureFlags';
 import { HeroBookSpecialistBanner } from './components/HeroBookSpecialistBanner';
-import { registerVadWebMcp } from './services/webMcpTools';
-
-registerVadWebMcp();
 
 const HEALTH_POLL_MS = 30_000;
 const HEALTH_TIMEOUT_MS = 3_000;

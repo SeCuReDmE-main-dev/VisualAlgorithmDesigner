@@ -59,7 +59,7 @@ describe('validatedAlgorithmCatalog', () => {
       const evaluation: PipelineEvaluation = {
         coherenceScore: PROMOTION_THRESHOLD,
         explanation: 'Test',
-        recommendation: 'Test',
+        recommendation: 'valid',
         weakPoints: [],
         strongPoints: [],
         loopCompatible: false,
@@ -87,7 +87,7 @@ describe('validatedAlgorithmCatalog', () => {
       const evaluation: PipelineEvaluation = {
         coherenceScore: PROMOTION_THRESHOLD,
         explanation: 'Test',
-        recommendation: 'Test',
+        recommendation: 'valid',
         weakPoints: [],
         strongPoints: [],
         loopCompatible: false,
@@ -105,7 +105,7 @@ describe('validatedAlgorithmCatalog', () => {
       const evaluation: PipelineEvaluation = {
         coherenceScore: PROMOTION_THRESHOLD - 1,
         explanation: 'Test',
-        recommendation: 'Test',
+        recommendation: 'valid',
         weakPoints: [],
         strongPoints: [],
         loopCompatible: false,
@@ -125,7 +125,7 @@ describe('validatedAlgorithmCatalog', () => {
       const evaluation: PipelineEvaluation = {
         coherenceScore: PROMOTION_THRESHOLD,
         explanation: 'Test',
-        recommendation: 'Test',
+        recommendation: 'valid',
         weakPoints: [],
         strongPoints: [],
         loopCompatible: false,
@@ -165,7 +165,7 @@ describe('validatedAlgorithmCatalog', () => {
       const evaluation: PipelineEvaluation = {
         coherenceScore: PROMOTION_THRESHOLD + 5,
         explanation: 'Test',
-        recommendation: 'Test',
+        recommendation: 'valid',
         weakPoints: [],
         strongPoints: [],
         loopCompatible: false,
@@ -192,7 +192,7 @@ describe('validatedAlgorithmCatalog', () => {
       const evaluation: PipelineEvaluation = {
         coherenceScore: PROMOTION_THRESHOLD,
         explanation: 'Test',
-        recommendation: 'Test',
+        recommendation: 'valid',
         weakPoints: [],
         strongPoints: [],
         loopCompatible: false,
@@ -229,7 +229,7 @@ describe('validatedAlgorithmCatalog', () => {
       const evaluation: PipelineEvaluation = {
         coherenceScore: PROMOTION_THRESHOLD,
         explanation: 'Test',
-        recommendation: 'Test',
+        recommendation: 'valid',
         weakPoints: [],
         strongPoints: [],
         loopCompatible: false,
@@ -252,7 +252,7 @@ describe('validatedAlgorithmCatalog', () => {
       const evaluation: PipelineEvaluation = {
         coherenceScore: PROMOTION_THRESHOLD,
         explanation: 'Test',
-        recommendation: 'Test',
+        recommendation: 'valid',
         weakPoints: [],
         strongPoints: [],
         loopCompatible: false,

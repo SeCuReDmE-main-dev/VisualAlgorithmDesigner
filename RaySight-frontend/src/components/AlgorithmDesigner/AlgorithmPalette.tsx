@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Box, Button, Chip, InputAdornment, Stack, TextField, Typography } from '@mui/material';
-import { ALGORITHM_CATALOG, searchAlgorithms } from '../../services/algorithmCatalog';
+import { searchAlgorithms } from '../../services/algorithmCatalog';
 import type { LearningAlgorithm } from '../../services/algorithmCatalog';
 import { useDragSource } from '../../hooks/useDragSource';
 

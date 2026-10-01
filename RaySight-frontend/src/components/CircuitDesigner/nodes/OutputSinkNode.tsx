@@ -1,14 +1,14 @@
 import React from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
 import { Paper, Typography, Box } from '@mui/material';
 
 // data prop for this node type
-export interface OutputSinkData {
+export type OutputSinkData = {
   label: string;
   value: boolean; // This will be updated by the simulation based on connected input
 }
 
-const OutputSinkNode: React.FC<NodeProps<OutputSinkData>> = ({ data, isConnectable }) => {
+const OutputSinkNode: React.FC<NodeProps<Node<OutputSinkData>>> = ({ data, isConnectable }) => {
   return (
     <Paper 
       elevation={3} 
